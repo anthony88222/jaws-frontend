@@ -61,7 +61,7 @@
     border: 2px solid var(--color-primary);
     padding: 2rem;
     border-radius: var(--border-radius);
-    width: 60vw; /* ⬅️ 寬度改為畫面寬度 80% */
+    width: 50vw; /* ⬅️ 寬度改為畫面寬度 80% */
     margin: 0 auto;
     background-color: #1a1a2a;
     box-shadow: 0 0 15px var(--color-primary);

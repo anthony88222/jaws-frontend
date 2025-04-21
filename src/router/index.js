@@ -6,13 +6,16 @@ import HomeView from '../views/HomeView.vue'
 import CartView from '../views/CartView.vue'
 import FriendView from '../views/FriendView.vue'
 import LoginPage from '../views/LoginPage.vue'
-
+import ProfileView from '../views/ProfileView.vue'
+import WishListView from '../views/WishListView.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/cart', name: 'Cart', component: CartView },
   { path: '/friend', name: 'Friend', component: FriendView },
   { path: '/login', name: 'LoginPage', component: LoginPage },
+  { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: '/wishlist', name: 'wishlist', component: WishListView },
 ]
 
 const router = createRouter({

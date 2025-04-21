@@ -75,7 +75,7 @@ function updateSpotlight(game) {
   <style scoped>
   .cyber-section {
     padding: 2rem;
-    background: #0d0f1a;
+    background: #1a1a2a;
     color: var(--color-primary);
     border: 2px solid var(--color-primary);
     box-shadow: 0 0 20px var(--color-primary);
