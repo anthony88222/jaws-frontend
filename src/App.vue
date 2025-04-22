@@ -1,11 +1,11 @@
 <template>
+  <Header />
   <div class="layout">
-    <Header />
-      <div class="container">
+    <div class="container">
         <router-view /> <!-- 顯示目前路由的內容 -->
       </div>
+    </div>
     <Footer />
-  </div>
 </template>
 
 <script setup>

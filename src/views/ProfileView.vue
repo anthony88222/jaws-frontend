@@ -50,7 +50,7 @@
 <script setup>
 const user = {
   id: 'JAWS2025',
-  username: 'CyberShark',
+  username: 'TestUser',
   avatarUrl: 'https://i.pravatar.cc/100?img=12',
   signature: 'Yo！',
   level: 12,

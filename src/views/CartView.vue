@@ -107,6 +107,7 @@
     padding: 0.5rem 1rem;
     cursor: pointer;
     text-shadow: 0 0 4px var(--color-secondary);
+    border-radius: var(--border-radius);
   }
   
   .btn-remove:hover {
@@ -130,6 +131,7 @@
     padding: 0.75rem 2rem;
     text-shadow: 0 0 6px var(--color-primary);
     transition: var(--transition);
+    border-radius: var(--border-radius);
   }
   
   .checkout-btn:hover {
