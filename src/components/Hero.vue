@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .hero-carousel {
   position: relative;
-  height: 53vh;
+  height: 40vh;
   overflow: hidden;
   box-shadow: 0 0 20px var(--color-primary);
 }

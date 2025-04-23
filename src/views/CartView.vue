@@ -1,142 +1,240 @@
 <template>
-    <div class="layout">
-  
-      <main class="container">
-        <section class="cart-section text-center mt-2">
-          <h1 class="cart-title">SHOPPING CART</h1>
-  
-          <div v-if="cart.length === 0" class="empty-cart">
-            <p class="text-lg text-gray-400">您的購物車目前是空的。</p>
+  <div class="container">
+    <div class="cart-wrapper">
+      <h1 class="cart-title">SHOPPING CART</h1>
+
+      <div v-if="cart.length === 0" class="empty-cart">
+        <p class="text-lg text-gray-400">您的購物車目前是空的。</p>
+      </div>
+
+      <div v-else class="cart-list">
+        <div class="cart-row" v-for="item in cart" :key="item.id">
+          <img class="cart-thumb" :src="item.coverImageUrl" :alt="item.gameName" />
+          
+          <div class="cart-info">
+            <h2 class="game-name">{{ item.gameName }}</h2>
           </div>
-  
-          <div v-else class="cart-box">
-            <div class="cart-item" v-for="item in cart" :key="item.id">
-              <img class="item-image" :src="item.image" :alt="item.name" />
-              <div class="item-info">
-                <h3 class="item-name">{{ item.name }}</h3>
-                <p class="item-price">${{ item.price }}</p>
+
+          <div class="cart-right">
+            <div v-if="promotionMap[item.gameId]?.onSale" class="price-box">
+              <div class="discount-tag">-{{ Math.floor(promotionMap[item.gameId].discountRate * 100) }}%</div>
+              <div class="price-text">
+                <div class="original-price">NT$ {{ item.price }}</div>
+                <div class="final-price">NT$ {{ Math.floor(promotionMap[item.gameId].discountedPrice) }}</div>
               </div>
-              <button class="btn-remove" @click="removeFromCart(item.id)">Remove</button>
             </div>
-  
-            <div class="cart-summary">
-              <p>Total: ${{ totalPrice }}</p>
-              <button class="btn-neon checkout-btn">CHECKOUT</button>
+            <div v-else class="price-box">
+              <div class="price-text">
+                <div class="final-price">NT$ {{ item.price }}</div>
+              </div>
+            </div>
+
+            <div class="cart-actions">
+              <button class="remove-btn" @click="removeFromCart(item.gameId)">移除</button>
             </div>
           </div>
-        </section>
-      </main>
-  
+        </div>
+
+        <div class="cart-summary">
+          <p>Total: NT$ {{ totalPrice }}</p>
+          <button class="btn-neon checkout-btn">CHECKOUT</button>
+        </div>
+      </div>
     </div>
-  </template>
-  
-  <script setup>
-  import Header from '@/components/Header.vue';
-  import Footer from '@/components/Footer.vue';
-  import { ref, computed } from 'vue';
-  
-  const cart = ref([
-    { id: 1, name: 'Cyberpunk 2077', price: 59.99, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg' },
-    { id: 2, name: 'Dark Souls III', price: 29.99, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/374320/header.jpg' }
-  ]);
-  
-  const totalPrice = computed(() => {
-    return cart.value.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-  });
-  
-  function removeFromCart(id) {
-    cart.value = cart.value.filter(item => item.id !== id);
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+const userId = 1
+const cart = ref([])
+const promotionMap = ref({})
+
+const totalPrice = computed(() => {
+  return cart.value.reduce((sum, item) => {
+    const promo = promotionMap.value[item.gameId]
+    const price = promo?.onSale ? promo.discountedPrice : item.price
+    return sum + price
+  }, 0).toFixed(0)
+})
+
+async function fetchCart() {
+  const res = await axios.get(`http://localhost:8080/api/cart/${userId}`)
+  cart.value = res.data
+  await fetchPromotions()
+}
+
+async function fetchPromotions() {
+  for (const item of cart.value) {
+    const res = await axios.get(`http://localhost:8080/api/promotions/status/${item.gameId}`)
+    promotionMap.value[item.gameId] = res.data
   }
-  </script>
-  
-  <style scoped>
-  .cart-title {
-    font-size: 3rem;
-    color: var(--color-secondary);
-    text-shadow: 0 0 10px var(--color-secondary);
-    margin-bottom: 2rem;
-  }
-  
-  .cart-box {
-    border: 2px solid var(--color-primary);
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    width: 50vw; /* ⬅️ 寬度改為畫面寬度 80% */
-    margin: 0 auto;
-    background-color: #1a1a2a;
-    box-shadow: 0 0 15px var(--color-primary);
-  }
-  
-  .cart-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--color-primary);
-    padding: 1rem 0;
-    gap: 1rem;
-  }
-  
-  .item-image {
-    width: 120px;
-    height: auto;
-    border: 2px solid var(--color-primary);
-    border-radius: 4px;
-    object-fit: cover;
-  }
-  
-  .item-info {
-    flex: 1;
-    text-align: left;
-    padding-left: 1rem;
-  }
-  
-  .item-name {
-    color: var(--color-primary);
-    font-size: 1.3rem;
-    text-shadow: 0 0 4px var(--color-primary);
-  }
-  
-  .item-price {
-    color: var(--color-muted);
-  }
-  
-  .btn-remove {
-    border: 1px solid var(--color-secondary);
-    background: transparent;
-    color: var(--color-secondary);
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    text-shadow: 0 0 4px var(--color-secondary);
-    border-radius: var(--border-radius);
-  }
-  
-  .btn-remove:hover {
-    background: var(--color-secondary);
-    color: var(--color-bg);
-    box-shadow: 0 0 10px var(--color-secondary);
-  }
-  
-  .cart-summary {
-    margin-top: 2rem;
-    text-align: right;
-    font-size: 1.5rem;
-    color: var(--color-primary);
-    text-shadow: 0 0 6px var(--color-primary);
-  }
-  
-  .checkout-btn {
-    background: transparent ;
-    border: 2px solid var(--color-primary);
-    color: var(--color-primary);
-    padding: 0.75rem 2rem;
-    text-shadow: 0 0 6px var(--color-primary);
-    transition: var(--transition);
-    border-radius: var(--border-radius);
-  }
-  
-  .checkout-btn:hover {
-    background: var(--color-primary);
-    color: var(--color-bg);
-    box-shadow: 0 0 20px var(--color-primary); /* ⬅️ 加入流光效果 */
-  }
-  </style>
+}
+
+async function removeFromCart(gameId) {
+  await axios.delete(`http://localhost:8080/api/cart/${userId}/remove/${gameId}`)
+  await fetchCart()
+}
+
+onMounted(fetchCart)
+</script>
+
+<style scoped>
+.container {
+  height: 100%;
+}
+.cart-wrapper {
+  width: 1150px;
+  max-width: 100%;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1a1a2a;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 20px var(--color-primary);
+  box-sizing: border-box;
+}
+
+.cart-title {
+  font-size: 2.5rem;
+  color: var(--color-secondary);
+  text-align: center;
+  text-shadow: 0 0 10px var(--color-secondary);
+  margin-bottom: 2rem;
+  margin-top: 0.5rem;
+}
+
+.cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cart-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #1a1a2a;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  box-shadow: 0 0 10px var(--color-primary);
+  gap: 1rem;
+}
+
+.cart-thumb {
+  width: 220px;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  flex-shrink: 0;
+}
+
+.cart-info {
+  flex-grow: 1;
+  text-align: left;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cart-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.game-name {
+  color: var(--color-primary);
+  text-shadow: 0 0 6px var(--color-primary);
+}
+
+.price-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.discount-tag {
+  background-color: #4a772f;
+  color: #bfff00;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.3rem;
+  border-radius: 2px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.price-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+.final-price {
+  /* color: var(--color-primary); */
+  font-size: 1rem;
+  font-weight: bold;
+  /* text-shadow: 0 0 6px var(--color-primary); */
+}
+
+.cart-actions {
+  text-align: right;
+}
+
+.remove-btn {
+  background: transparent;
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  padding: 0.4rem 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  text-shadow: 0 0 4px var(--color-secondary);
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.remove-btn:hover {
+  background: var(--color-secondary);
+  color: #000;
+  box-shadow: 0 0 8px var(--color-secondary);
+}
+
+.cart-summary {
+  text-align: right;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  /* color: var(--color-primary); */
+  /* text-shadow: 0 0 6px var(--color-primary); */
+}
+
+.checkout-btn {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 0.75rem 2rem;
+  text-shadow: 0 0 6px var(--color-primary);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+}
+
+.checkout-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  box-shadow: 0 0 20px var(--color-primary);
+}
+</style>

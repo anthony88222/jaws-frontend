@@ -54,7 +54,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 75vh;
     background: url('/assets/bg-login.jpg') no-repeat center center;
     background-size: cover;
     padding: 1rem;
@@ -66,7 +66,7 @@
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
     box-shadow: 0 0 20px var(--color-primary);
-    width: 60vh;
+    width: 55vh;
     max-width: 800px;
     text-align: center;
   }
@@ -89,7 +89,7 @@
   
   .login-form input[type='text'],
   .login-form input[type='password'] {
-    width: 100%;
+    width: 90%;
     margin-bottom: 1.2rem;
     padding: 0.75rem 1rem;
     border: 2px solid var(--color-primary);
@@ -130,7 +130,7 @@
   
   .btn-neon {
     display: inline-block;
-    width: 100%;
+    width: 35%;
     padding: 0.75rem 1rem;
     border: 2px solid var(--color-primary);
     color: var(--color-primary);

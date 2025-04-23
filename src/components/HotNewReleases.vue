@@ -74,6 +74,7 @@ function updateSpotlight(game) {
   
   <style scoped>
   .cyber-section {
+    width: 93%;
     padding: 2rem;
     background: #1a1a2a;
     color: var(--color-primary);
@@ -93,15 +94,17 @@ function updateSpotlight(game) {
     flex-wrap: wrap;
   }
   .game-list {
+    padding-left: 0rem;
     flex: 1;
     min-width: 280px;
     list-style: none;
   }
+
   .game-list li {
     background: #1a1a2a;
     padding: 1rem;
     margin-bottom: 1rem;
-    border-left: 4px solid var(--color-primary);
+    border-left: 2px solid var(--color-primary);
     box-shadow: 0 0 6px var(--color-primary);
   }
   .game-list li:hover {
