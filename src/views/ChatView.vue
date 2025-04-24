@@ -1,7 +1,6 @@
 <template>
   <div class="layout">
     <main class="chat-container">
-      <!-- 左側：好友功能選單 -->
       <aside class="friend-list">
         <h2 class="title">好友</h2>
         <ul>
@@ -9,7 +8,7 @@
             <span class="friend-name">我的好友</span>
           </li>
           <li class="clickable" @click="navigateTo('訊息')">
-            <span class="friend-name">訊息</span>
+            <span class="friend-name">聊天</span>
           </li>
           <li class="clickable" @click="navigateTo('新增好友')">
             <span class="friend-name">新增好友</span>
@@ -20,9 +19,8 @@
         </ul>
       </aside>
 
-      <!-- 中間：聊天對象列表 -->
       <aside class="recent-chats">
-        <h2 class="title">聊天對象</h2>
+        <h2 class="title">聊天</h2>
         <ul>
           <li v-for="chat in recentChats" :key="chat.id" class="clickable" @click="selectChat(chat.name)">
             <div class="chat-info">
@@ -32,9 +30,8 @@
         </ul>
       </aside>
 
-      <!-- 右側聊天視窗 -->
       <section class="chat-box">
-        <div class="chat-messages">
+        <div class="chat-messages" ref="messageList">
           <div v-for="msg in messages" :key="msg.id" :class="['bubble', msg.from === 'me' ? 'me' : 'them']">
             {{ msg.text }}
           </div>
@@ -49,8 +46,12 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import SockJS from 'sockjs-client'
+import Stomp from 'stompjs'
 
 const recentChats = ref([
   { id: 1, name: '好友名稱 1' },
@@ -58,21 +59,55 @@ const recentChats = ref([
   { id: 3, name: '好友名稱 3' },
 ])
 
-const messages = ref([
-  { id: 1, from: 'them', text: 'Hello!' },
-  { id: 2, from: 'them', text: 'How are you?' },
-  { id: 3, from: 'me', text: "I'm doing well, thanks!" },
-  { id: 4, from: 'them', text: "That's good to hear." }
-])
-
+const messages = ref([])
 const newMessage = ref('')
+const messageList = ref(null)
 
-function sendMessage() {
-  if (newMessage.value.trim()) {
+const route = useRoute()
+const senderId = route.query.senderId
+const receiverId = route.query.receiverId
+
+let stompClient = null
+
+const connect = () => {
+  const socket = new SockJS('/ws')
+  stompClient = Stomp.over(socket)
+
+  stompClient.connect({}, frame => {
+    console.log('Connected: ' + frame)
+
+    const topic = `/topic/private/${receiverId}-${senderId}`
+    stompClient.subscribe(topic, msg => {
+      messages.value.push({ id: Date.now(), from: 'them', text: msg.body })
+      scrollToBottom()
+    })
+  })
+}
+
+const sendMessage = () => {
+  if (newMessage.value.trim() && stompClient) {
+    stompClient.send('/app/send', {}, JSON.stringify({
+      senderId,
+      receiverId,
+      message: newMessage.value
+    }))
     messages.value.push({ id: Date.now(), from: 'me', text: newMessage.value })
     newMessage.value = ''
+    scrollToBottom()
   }
 }
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messageList.value) {
+      messageList.value.scrollTop = messageList.value.scrollHeight
+    }
+  })
+}
+
+onMounted(() => {
+  connect()
+})
 
 function selectChat(name) {
   alert(`開啟與 ${name} 的聊天`)
@@ -81,6 +116,7 @@ function selectChat(name) {
 function navigateTo(section) {
   alert(`前往：${section}`)
 }
+
 </script>
 
 <style scoped>
@@ -167,13 +203,14 @@ function navigateTo(section) {
   padding: 1rem;
 }
 
-
 .bubble {
   max-width: 60%;
   padding: 0.6rem 1rem;
   border-radius: 1rem;
   font-size: 0.95rem;
   color: var(--color-text);
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .bubble.them {
@@ -221,7 +258,7 @@ function navigateTo(section) {
   font-family: var(--font-family);
   border-radius: var(--border-radius);
   outline: none;
-  text-shadow: 0 0 4px var(--color-primary);
+  text-shadow: 0 0 1px var(--color-primary);
 }
 
 </style>

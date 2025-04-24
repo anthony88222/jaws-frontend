@@ -9,7 +9,7 @@
             <span class="friend-name">我的好友</span>
           </li>
           <li class="clickable" @click="navigateTo('訊息')">
-            <span class="friend-name">訊息</span>
+            <span class="friend-name">聊天</span>
           </li>
           <li class="clickable" @click="navigateTo('新增好友')">
             <span class="friend-name">新增好友</span>
@@ -33,7 +33,7 @@
               <img class="avatar" :src="friend.avatar" alt="Avatar" />
               <div class="friend-name center">{{ friend.name }}</div>
               <button class="message-btn" @click="selectChat(friend.name)">
-                訊息
+                聊天
               </button>
             </div>
           </div>
@@ -126,7 +126,7 @@ function navigateTo(section) {
 
 .friends-grid {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1rem;
   background: #1a1a2a;
   overflow-y: auto;
   display: flex;
@@ -153,7 +153,7 @@ function navigateTo(section) {
   border-radius: 12px;
   padding: 1rem;
   text-align: center;
-  box-shadow: 0 0 6px var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
   width: 180px;
 }
 
@@ -169,7 +169,7 @@ function navigateTo(section) {
   height: 80px;
   border-radius: 50%;
   margin-bottom: 0.5rem;
-  border: 2px solid var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
 }
 
 .message-btn {
