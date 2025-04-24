@@ -63,12 +63,16 @@ const tagMap = ref({})
 // 假資料模擬 API 回傳
 const mockReviewMap = {
   1: { text: "極度好評", link: "/reviews/1" },
-  2: { text: "褒貶不一", link: "/reviews/2" }
+  2: { text: "褒貶不一", link: "/reviews/2" },
+  4: { text: "褒貶不一", link: "/reviews/2" },
+  5: { text: "壓倒性好評", link: "/reviews/2" }
 }
 
 const mockTagMap = {
   1: ["動作類", "Rogue", "射擊"],
-  2: ["劇情", "平台跳躍"]
+  2: ["劇情", "平台跳躍"],
+  4: ["劇情", "Rogue"],
+  5: ["劇情", "開放世界", "魂類遊戲"]
 }
 
 const fetchPromotionStatus = async (gameId) => {
@@ -175,6 +179,7 @@ onMounted(fetchWishlist)
   object-fit: cover;
   border-radius: var(--border-radius);
   flex-shrink: 0;
+  margin-top: 10px;
 }
 
 .wishlist-info {
@@ -295,6 +300,7 @@ onMounted(fetchWishlist)
   justify-content: space-between;
   gap: 0.5rem;
   min-width: 200px;
+  margin-top: 17px;
 }
 
 .add-btn,

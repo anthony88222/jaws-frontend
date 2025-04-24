@@ -147,6 +147,7 @@ onMounted(fetchCart)
   align-items: flex-end;
   justify-content: space-between;
   height: 100%;
+  margin-top: 20px;
 }
 
 .game-name {

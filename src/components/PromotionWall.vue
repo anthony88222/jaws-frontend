@@ -60,7 +60,7 @@
       const { data } = await axios.get(
         'http://localhost:8080/api/promotions/active'
       )
-      promotions.value = data.flatMap(p => p.promotionsGames || [])
+      promotions.value = data.flatMap(p => p.promotionGame || [])
     } catch (err) {
       console.error('取得促銷資料失敗', err)
     }
@@ -96,7 +96,7 @@
   /* 自動輪播控制 */
   const startAutoSlide = () => {
     stopAutoSlide()
-    timer = setInterval(nextSlide, 5000)
+    timer = setInterval(nextSlide, 3000)
   }
   const stopAutoSlide = () => clearInterval(timer)
   
@@ -131,6 +131,7 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    margin-bottom: 0px;
   }
   
   .carousel-track {
@@ -139,7 +140,7 @@
     justify-content: space-evenly;
     padding: 1rem 0;
     overflow: hidden;
-    min-height: 260px;          /* 150px 圖片 + 110px 文字區 */
+    min-height: 230px;          /* 150px 圖片 + 110px 文字區 */
     position: relative;
     transition: transform 0.5s ease;
     flex: 1;
@@ -147,7 +148,8 @@
   
   .promo-card {
     min-width: 220px;
-    max-width: 240px;
+    max-width: 260px;
+    max-height: 211px;
     flex-shrink: 0;
     background: #000;
     border: 2px solid var(--color-primary);
@@ -174,8 +176,8 @@
   
   .promo-card img {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
+    /* height: 150px; */
+    object-fit:contain ;
   }
   
   .promo-overlay {
@@ -203,7 +205,7 @@
     color: #bfff00;
     font-weight: bold;
     padding: 0.2rem 0.5rem;
-    font-size: 1rem;
+    font-size: 1.3rem;
     border-radius: 2px;
     min-width: 50px;
     text-align: center;
