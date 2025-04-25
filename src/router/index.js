@@ -7,7 +7,9 @@ import CartView from '../views/CartView.vue'
 import FriendView from '../views/FriendView.vue'
 import LoginPage from '../views/LoginPage.vue'
 import ProfileView from '../views/ProfileView.vue'
-import WishListView from '../views/WishListView.vue'
+import WishListView from '../views/WishlistView.vue'
+import GamePageView from '../views/GamePageView.vue'
+
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
@@ -16,6 +18,7 @@ const routes = [
   { path: '/login', name: 'LoginPage', component: LoginPage },
   { path: '/profile', name: 'Profile', component: ProfileView },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
+  { path: '/gamepage', name: 'gamepage', component: GamePageView },
 ]
 
 const router = createRouter({
