@@ -9,6 +9,7 @@ import LoginPage from '../views/LoginPage.vue'
 import ProfileView from '../views/ProfileView.vue'
 import WishListView from '../views/WishlistView.vue'
 import GamePageView from '../views/GamePageView.vue'
+import PromotionView from '../views/PromotionView.vue'
 
 
 const routes = [
@@ -19,6 +20,8 @@ const routes = [
   { path: '/profile', name: 'Profile', component: ProfileView },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
   { path: '/gamepage', name: 'gamepage', component: GamePageView },
+  { path: '/promotion', name: 'promotion', component: PromotionView },
+
 ]
 
 const router = createRouter({

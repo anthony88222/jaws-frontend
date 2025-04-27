@@ -1,7 +1,9 @@
 <template>
     <section class="promotion-wall">
-      <h2 class="promotion-title">限時特賣商品</h2>
-  
+      <div class="promotion-header">
+      <h2>限時特賣</h2>
+      <a href="/promotion" class="more-button">看更多</a>
+    </div>
       <div class="carousel-container">
         <button class="nav-btn" @click="prevSlide" @mouseover="stopAutoSlide" @mouseleave="startAutoSlide">&#8249;</button>
   
@@ -149,7 +151,7 @@
   .promo-card {
     min-width: 220px;
     max-width: 260px;
-    max-height: 211px;
+    /* max-height: 211px; */
     flex-shrink: 0;
     background: #000;
     border: 2px solid var(--color-primary);
@@ -165,7 +167,9 @@
   }
   
   h3 {
-    line-height: 1px;
+    /* line-height: 10px; */
+    margin: 0px;
+    height: 65px;
   }
 
   
@@ -256,5 +260,43 @@
   .fade-leave-to {
     opacity: 0;
   }
+
+  .promotion-header {
+  display: flex;
+  justify-content: center; /* 讓 h2 置中 */
+  align-items: center;
+  position: relative; /* 讓更多按鈕絕對定位在右邊 */
+}
+
+.promotion-header h2 {
+  color: white;
+  font-size: 2.5rem;
+  margin: 0; /* 去掉預設的外邊距 */
+  text-shadow: 0 0 3px var(--color-primary);
+}
+.more-button {
+  position: absolute;
+  right: 60px;
+  top: 25px;
+  background: transparent;
+  width: 50px;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 0.4rem 1rem;
+  /* border-radius: var(--border-radius); */
+  cursor: pointer;
+  text-shadow: 0 0 4px var(--color-primary);
+  transition: all 0.3s;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+
+} 
+
+.more-button:hover {
+  background-color: var(--color-primary);
+  color: #000;
+}
   </style>
   

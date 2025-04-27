@@ -2,7 +2,8 @@
   <section class="section">
     <hero />
   </section>
-
+  
+  <PromotionWall/>
   <section class="section featured-games">
     <h2>熱門遊戲</h2>
     <div class="game-grid">
@@ -10,7 +11,6 @@
     </div>
   </section>
   
-  <PromotionWall/>
 
 
   <section class="section new-releases">

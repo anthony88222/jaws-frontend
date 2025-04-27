@@ -182,7 +182,7 @@ onMounted(fetchCart)
 .original-price {
   text-decoration: line-through;
   color: #bbb;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
 }
 
 .final-price {
