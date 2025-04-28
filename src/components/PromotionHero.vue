@@ -117,6 +117,7 @@
   /* 卡片 */
   .hero-content {
     width: 1200px;
+    max-height: 390px;
     display: flex;
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);

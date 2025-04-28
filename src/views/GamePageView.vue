@@ -1,6 +1,7 @@
 <template>
     <div class="game-page-container">
       <!-- Hero 區塊 -->
+      <h1 class="game-title">THE LONG DARK</h1>
       <section class="game-hero-carousel">
         <!-- 左側：主圖 + 縮圖 -->
         <div class="carousel-wrapper-vertical">
@@ -23,21 +24,19 @@
         <!-- 右側：遊戲資訊 -->
         <div class="game-info right-info">
           <img class="hero-cover" src="https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg" alt="The Long Dark" />
-          <h1 class="game-title">THE LONG DARK</h1>
           <p class="game-description">
             挑戰玩家獨自求生的探索遊戲，在地磁風暴後的極地荒野中掙扎求生。
           </p>
           <ul class="meta-info">
             <li>評論數：<span class="highlight">9萬+</span></li>
             <li>發行日：2017 年 8 月 1 日</li>
-            <li>開發者：Hinterland Studio Inc.</li>
             <li>標籤：
               <span class="tag">生存</span>
               <span class="tag">劇情</span>
               <span class="tag">探索</span>
             </li>
           </ul>
-          <button class="cart-btn">加入購物車</button>
+          <button class="cart-btn">立即購買</button>
         </div>
       </section>
   
@@ -67,10 +66,10 @@
   import { ref, onMounted, onBeforeUnmount } from 'vue'
   
   const screenshots = [
-    'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-    'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-    'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-    'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg'
+    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_718af4cf5640b3227a530adf6d5f6d9e3a46703b.600x338.jpg?t=1745525398',
+    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_70d3a9799c9b003a53c8ac512f163678a4967672.600x338.jpg?t=1745525398',
+    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_6b411930012a9f6794fe32e36504517aa54c3e4c.600x338.jpg?t=1745525398',
+    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_05c7f5d1b2ec2b2a1cf4ca2aa1ff609c7542f6b5.600x338.jpg?t=1745525398'
   ]
   
   const currentIndex = ref(0)
@@ -140,7 +139,7 @@
   background: linear-gradient(135deg, #080b17, #230034);
   border: 2px solid var(--color-primary);
   border-radius: 1rem;
-  box-shadow: 0 0 25px var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
   padding: 2rem;
   gap: 2rem;
   margin-bottom: 3rem;
@@ -158,7 +157,7 @@
   height: 360px;
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 0 18px var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary);
 }
 
 .carousel-image {
@@ -221,9 +220,10 @@
 }
 
 .game-title {
-  color: var(--color-secondary);
+  /* color: var(--color-secondary); */
   font-size: 2rem;
-  margin-bottom: 0.5rem;
+  margin: 0.7rem;
+  /* text-shadow: 0 0 10px var(white); */
 }
 
 .game-description {
@@ -269,7 +269,7 @@
 .section-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #00ccff;
+  text-shadow: 0 0 4px var(white);
 }
 
 .edition-card {
