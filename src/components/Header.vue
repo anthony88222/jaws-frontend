@@ -8,15 +8,8 @@
       </div>
       <nav>
         <ul>
-          <li><router-link to="/">首頁</router-link></li>
-          <li class="dropdown">
-            <a href="#">遊戲庫</a>
-            <ul class="dropdown-menu">
-              <li><a href="#" id="list">動作遊戲</a></li>
-              <li><a href="#" id="list">射擊遊戲</a></li>
-              <li><a href="#" id="list">卡牌遊戲</a></li>
-            </ul>
-          </li>
+          <li><router-link to="/library">遊戲庫</router-link></li>
+          <li><router-link to="/order-history">歷史訂單</router-link></li>
           <li><a href="#">商店</a></li>
           <li><router-link to="/login">登入 / 註冊</router-link></li>
         </ul>
