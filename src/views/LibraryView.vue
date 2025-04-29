@@ -1,159 +1,290 @@
 <template>
-  <div class="flex">
-    <!-- 左側分類選單 -->
-    <aside class="w-1/5 bg-gray-100 p-4">
-      <h2 class="text-xl font-bold mb-4">分類</h2>
-      <ul>
-        <li>
-          <button @click="clearCategory" class="w-full text-left hover:underline font-bold text-blue-600 mb-2">
-            全部
-          </button>
-        </li>
-        <li v-for="cat in categories" :key="cat" class="mb-2">
-          <button @click="filterByCategory(cat)" class="w-full text-left hover:underline">
-            {{ cat }}
-          </button>
-        </li>
+  <div class="library-wrapper">
+    <!-- 獨立側欄 -->
+    <aside class="sidebar">
+      <h2 class="sidebar-title">分類</h2>
+      <ul class="category-list">
+        <li class="category-item">動作</li>
+        <li class="category-item">射擊</li>
+        <li class="category-item">RPG</li>
+        <li class="category-item">模擬</li>
+        <li class="category-item">策略</li>
+        <li class="category-item">冒險</li>
+        <li class="category-item">恐怖</li>
+        <li class="category-item">解謎</li>
+        <li class="category-item">賽車</li>
+        <li class="category-item">音樂</li>
       </ul>
     </aside>
 
-    <!-- 右側主內容 -->
-    <div class="w-4/5 p-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <!-- 搜尋框 -->
-        <div class="flex items-center mb-4 md:mb-0">
-          <input
-            v-model="keyword"
-            type="text"
-            placeholder="搜尋遊戲名稱..."
-            class="border rounded p-2 w-64"
-          />
-          <button @click="fetchLibrary" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded">搜尋</button>
-        </div>
-
-        <!-- 排序選單＋按鈕 -->
-        <div class="flex items-center">
-          <select v-model="sortBy" @change="fetchLibrary" class="border rounded p-2 mr-2">
-            <option value="">排序條件</option>
-            <option value="releaseDate">發行時間</option>
-            <option value="purchaseDate">購買時間</option>
-            <option value="price">價格</option>
-          </select>
-          <button @click="orderAsc = true; fetchLibrary()" class="px-2">▲</button>
-          <button @click="orderAsc = false; fetchLibrary()" class="px-2">▼</button>
-        </div>
+    <!-- 主內容 -->
+    <div class="main-content">
+      <!-- 搜尋與排序 -->
+      <div class="top-bar">
+        <input
+          v-model="keyword"
+          type="text"
+          placeholder="搜尋遊戲名稱..."
+          class="search-input"
+        />
+        <select v-model="sortBy" class="sort-select">
+          <option value="purchaseDate">購買日期</option>
+        </select>
       </div>
 
       <!-- 遊戲列表 -->
-      <div v-if="filteredLibraries.length > 0" class="space-y-6">
-        <div v-for="game in filteredLibraries" :key="game.id" class="flex items-center border rounded shadow p-4">
-          <img :src="game.coverImageUrl" alt="Game Cover" class="w-32 h-32 object-cover rounded mr-6" />
-          <div>
-            <h2 class="text-xl font-semibold mb-2">{{ game.gameName }}</h2>
-            <p class="mb-1">購買日期：{{ formatDate(game.purchaseDate) }}</p>
-            <p class="mb-1">來源：{{ sourceText(game.source) }}</p>
-            <p class="mb-1">價格：{{ game.price }} 元</p>
+      <div class="game-grid">
+        <div
+          v-for="game in filteredLibraries"
+          :key="game.id"
+          class="game-card"
+        >
+          <img
+            :src="game.coverImageUrl"
+            alt="Game Cover"
+            class="game-image"
+          />
+          <div class="game-info">
+            <h3 class="game-title">{{ game.gameName }}</h3>
+            <p class="game-date">
+              購買日：{{ formatDate(game.purchaseDate) }}
+            </p>
           </div>
         </div>
-      </div>
+      </div> <!-- /.game-grid -->
 
-      <!-- 沒有資料 -->
-      <div v-else class="text-center py-16">
-        <p class="text-2xl mb-4">目前還沒有遊戲</p>
-        <router-link to="/" class="px-6 py-3 bg-blue-500 text-white rounded">回到首頁</router-link>
-      </div>
-    </div>
-  </div>
+      <!-- 回頁首按鈕：放在 .main-content 底部 -->
+      <button class="scroll-top-button" @click="scrollToTop">
+        回頁首
+      </button>
+    </div> <!-- /.main-content -->
+  </div> <!-- /.library-wrapper -->
 </template>
 
+
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 
-const libraries = ref([]);
-const keyword = ref('');
-const sortBy = ref('');
-const orderAsc = ref(true);
-const selectedCategory = ref('');
-const categories = ['動作', '射擊', '卡牌', 'RPG'];
-const userId = 1; // 測試用 userId
-
-// 計算最終顯示的列表（分類後過濾）
-const filteredLibraries = computed(() => {
-  let result = [...libraries.value];
-
-  if (selectedCategory.value) {
-    result = result.filter(game => game.category === selectedCategory.value);
-  }
-
-  return result;
-});
+const libraries = ref([])
+const keyword = ref('')
+const sortBy = ref('purchaseDate')
+const userId = 1
 
 const fetchLibrary = async () => {
   try {
-    let url = `/Library/user/${userId}/list-dto?status=1`;
-    const response = await axios.get(url);
-    let data = response.data;
-
-    // 關鍵字搜尋（前端過濾）
-    if (keyword.value.trim()) {
-      const kw = keyword.value.trim().toLowerCase();
-      data = data.filter(game => game.gameName.toLowerCase().includes(kw));
-    }
-
-    // 排序
-    if (sortBy.value) {
-      data.sort((a, b) => {
-        let fieldA = a[sortBy.value];
-        let fieldB = b[sortBy.value];
-
-        if (sortBy.value.includes('Date')) {
-          fieldA = new Date(fieldA);
-          fieldB = new Date(fieldB);
-        }
-
-        if (orderAsc.value) {
-          return fieldA > fieldB ? 1 : -1;
-        } else {
-          return fieldA < fieldB ? 1 : -1;
-        }
-      });
-    }
-
-    libraries.value = data;
+    const response = await axios.get(
+      `/Library/user/${userId}/list-dto?status=1`
+    )
+    libraries.value = response.data
   } catch (error) {
-    console.error('載入庫存失敗', error);
-    libraries.value = [];
+    console.error('載入庫存失敗', error)
   }
-};
+}
 
-const filterByCategory = (category) => {
-  selectedCategory.value = category;
-};
+const filteredLibraries = computed(() => {
+  let result = [...libraries.value]
 
-const clearCategory = () => {
-  selectedCategory.value = '';
-};
+  if (keyword.value.trim()) {
+    const kw = keyword.value.trim().toLowerCase()
+    result = result.filter((game) =>
+      game.gameName.toLowerCase().includes(kw)
+    )
+  }
+
+  if (sortBy.value === 'purchaseDate') {
+    result.sort(
+      (a, b) =>
+        new Date(b.purchaseDate) - new Date(a.purchaseDate)
+    )
+  } else if (sortBy.value === 'price') {
+    result.sort((a, b) => b.price - a.price)
+  }
+
+  return result
+})
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString();
-};
+  return new Date(dateString).toLocaleDateString()
+}
 
-const sourceText = (source) => {
-  switch (source) {
-    case 1: return '商城購買';
-    case 2: return '活動贈送';
-    default: return '其他';
-  }
-};
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
-onMounted(() => {
-  fetchLibrary();
-});
+onMounted(fetchLibrary)
 </script>
 
 <style scoped>
-.container {
-  max-width: 1200px;
+/* 整體外層，包含側欄與主內容 */
+.library-wrapper {
+  display: flex;
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+   
+  );
+  color: #0ff;
+  font-weight: bold;
+}
+
+/* 側欄：固定於畫面左側 */
+.sidebar {
+  /* position: fixed; */
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  /* background-color: #2c2733; */
+}
+
+.sidebar-title {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #f0f;  
+}
+
+.sidebar-title {
+  position: relative;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.sidebar-title::after {
+  content: "";
+  display: block;
+  width: 100%;          /* 線條寬度可改為 50%、80px... */
+  height: 1px;          /* 線條高度 */
+  background: #f0f;     /* 線條顏色 */
+  margin-top: 8px;      /* 標題與線條間距 */
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+}
+
+.category-item {
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+  font-size: 1.3rem
+}
+.category-item {
+  padding: 8px 0;                                    /* 上下間距 */
+  border-bottom: 1px solid rgba(255,255,255,0.2);    /* 分隔線：可調透明度和顏色 */
+}
+/* 滑鼠移到分類項目時，文字變成 SECOND 顏色 */
+.category-item:hover {
+  color: #f0f; /* 或者用 var(--color-secondary) */
+}
+
+.category-item:last-child {
+  border-bottom: none;                               /* 最後一個不需要分隔線 */
+}
+
+/* 主內容：靠右留出側欄寬度 */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 搜尋與排序區域 */
+.top-bar {
+
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.search-input {
+  width: 300px;
+  padding: 8px;
+  margin-right: 10px;
+  border: 2px solid #0ff;
+  background: transparent;
+  color: #0ff;
+  border-radius: 8px;
+}
+
+.sort-select {
+  padding: 8px;
+  border: 2px solid #0ff;
+  background: transparent;
+  color: #0ff;
+  border-radius: 8px;
+}
+
+/* 遊戲卡片格子 */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+
+.game-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 2px solid #0ff;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.game-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 50px #f0f; 
+}
+
+.game-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.game-info {
+  padding: 10px;
+}
+
+.game-title {
+  color: var(--color-primary);
+  margin-bottom: 5px;
+  font-size: 1.2rem;
+  text-shadow: 0 0 4px var(--color-primary);
+}
+
+.game-date,
+.game-price {
+  color: #f0f;
+  font-size: 0.9rem;
+  text-shadow: 0 0 4px var(--color-secondary);
+}
+
+/* 回頁首按鈕：固定於視窗底部置中 */
+.scroll-top-button {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border: 2px solid #f0f;
+  background: transparent;
+  color: #f0f;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  z-index: 100; /* 確保不被其他元素覆蓋 */
+}
+
+.scroll-top-button:hover {
+  background: #f0f;
+  color: #000;
 }
 </style>
