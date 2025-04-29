@@ -122,17 +122,18 @@ function navigateTo(section) {
 <style scoped>
 .chat-container {
   display: flex;
-  height: 70vh;
+  height: 90vh;
   margin: 2rem auto;
   width: 60vw;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 10px var(--color-primary);
+  overflow: hidden;
 }
 
 .friend-list,
 .recent-chats {
-  width: 20%;
+  flex-basis:15%;
   background-color: #111;
   padding: 1rem;
   border-right: 2px solid var(--color-primary);
@@ -188,9 +189,9 @@ function navigateTo(section) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: 1rem;
   background: #1a1a2a;
+  overflow: hidden;
 }
 
 .chat-messages {
@@ -198,18 +199,20 @@ function navigateTo(section) {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 1rem;  min-height: 0;
 }
 
 .bubble {
   max-width: 60%;
-  padding: 0.6rem 1rem;
-  border-radius: 1rem;
-  font-size: 0.95rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 1.5rem;
+  margin: 0.2rem 0;
+  font-size: 1rem;
   color: var(--color-text);
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
   white-space: pre-wrap;
 }
 
@@ -259,6 +262,12 @@ function navigateTo(section) {
   border-radius: var(--border-radius);
   outline: none;
   text-shadow: 0 0 1px var(--color-primary);
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
 }
 
 </style>

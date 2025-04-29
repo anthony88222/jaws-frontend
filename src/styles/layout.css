@@ -7,7 +7,7 @@ html, body {
 .layout {
   display: flex;
   flex-direction: column;
-  min-height: 95vh;
+  min-height: 9vh;
 }
 
 main {

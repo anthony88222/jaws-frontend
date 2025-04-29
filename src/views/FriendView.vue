@@ -67,7 +67,7 @@ function navigateTo(section) {
 <style scoped>
 .chat-container {
   display: flex;
-  height: 70vh;
+  height: 65vh;
   margin: 2rem auto;
   width: 60vw;
   border: 2px solid var(--color-primary);
@@ -76,7 +76,7 @@ function navigateTo(section) {
 }
 
 .friend-list {
-  width: 20%;
+  flex-basis:15%;
   background-color: #111;
   padding: 1rem;
   border-right: 2px solid var(--color-primary);
@@ -188,4 +188,11 @@ function navigateTo(section) {
   background: #ff00ff;
   box-shadow: 0 0 6px #ff00ff;
 }
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
+}
+
 </style>
