@@ -34,7 +34,6 @@
   <section class="section">
     <HotNewReleases />
   </section>
-
 </template>
 
 <script setup>
@@ -72,7 +71,6 @@ const previewImage = [
   'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.600x338.jpg?t=1736385712',
   'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.600x338.jpg?t=1736385712'
 ]
-
 </script>
 
 
