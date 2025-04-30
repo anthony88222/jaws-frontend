@@ -1,122 +1,151 @@
+<!-- PromotionView.vue -->
 <template>
-    <section class="promotion-view">
-        <h1>特別優惠</h1>
-        <PromotionHero :featuredPromotions="featuredPromotions" />
-  
-      <!-- 類別篩選 -->
-      <div class="category-bar">
-        <button
-          v-for="cat in categories"
-          :key="cat"
-          :class="{ active: selectedCategory === cat }"
-          @click="selectedCategory = cat"
+  <section class="promotion-view">
+    <h1>特別優惠</h1>
+    <PromotionHero :featuredPromotions="featuredPromotions" />
+
+    <!-- 類別篩選 -->
+    <div class="category-bar">
+      <button
+        v-for="cat in categories"
+        :key="cat"
+        :class="{ active: selectedCategory === cat }"
+        @click="selectedCategory = cat"
+      >
+        {{ cat }}
+      </button>
+    </div>
+
+    <!-- 促銷遊戲展示區 -->
+    <div class="promotion-grid">
+      <div
+        v-for="(row, rowIndex) in groupedPromotions"
+        :key="rowIndex"
+        class="promotion-row"
+        :style="{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }"
+      >
+        <router-link
+          v-for="item in row"
+          :key="item.game.id"
+          :to="`/gamepage/${item.game.id}`"
+          class="promo-card"
         >
-          {{ cat }}
-        </button>
-      </div>
-  
-      <!-- 促銷遊戲展示區 -->
-      <div class="promotion-grid">
-        <div
-          v-for="(row, rowIndex) in groupedPromotions"
-          :key="rowIndex"
-          class="promotion-row"
-          :style="{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }"
-        >
-          <div v-for="item in row" :key="item.game.id" class="promo-card">
-            <a href="#">
-              <div class="card-img">
-                <img :src="item.game.coverImageUrl" :alt="item.game.name" />
-                <div class="hover-info">
-                  <h3>{{ item.game.name }}</h3>
-                  <p>{{ item.game.description }}</p>
-                </div>
-              </div>
-              <div class="price-box-bottom">
-                <div class="discount-tag">-{{ item.discountRate }}%</div>
-                <div class="price-text">
-                  <div class="original-price">NT$ {{ item.game.price }}</div>
-                  <div class="final-price">NT$ {{ getDiscountedPrice(item) }}</div>
-                </div>
-              </div>
-            </a>
+          <div class="card-img">
+            <img :src="item.game.coverImageUrl" :alt="item.game.name" />
+            <div class="hover-info">
+              <h3>{{ item.game.name }}</h3>
+              <p>{{ item.game.description }}</p>
+            </div>
           </div>
-        </div>
+
+          <div class="price-box-bottom">
+            <!-- 有折扣才顯示 -->
+            <div v-if="item.discountRate > 0" class="discount-tag">-{{ item.discountRate }}%</div>
+            <div class="price-text">
+              <div v-if="item.discountRate > 0" class="original-price">NT$ {{ item.game.price }}</div>
+              <div class="final-price">NT$ {{ getDiscountedPrice(item) }}</div>
+            </div>
+          </div>
+        </router-link>
       </div>
-    </section>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, computed } from 'vue'
-  import axios from 'axios'
-  import PromotionHero from '../components/PromotionHero.vue'
-  
-  const promotions = ref([])
-  const featuredPromotions = ref([])
-  const currentHero = ref(0)
-  const autoSlideInterval = ref(null)
-  const selectedCategory = ref('全部')
-  
-  const categories = ['全部', '動作', '冒險', '角色扮演', '策略']
-  
-  const fetchPromotions = async () => {
-    try {
-      const res = await axios.get('http://localhost:8080/api/promotions/active')
-      const allGames = res.data.flatMap(p => p.promotionGame || [])
-      promotions.value = allGames
-      featuredPromotions.value = allGames.slice(0, 10)
-    } catch (e) {
-      console.error('取得促銷失敗', e)
-    }
+    </div>
+  </section>
+</template>
+
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
+import PromotionHero from '../components/PromotionHero.vue'
+
+const promotions = ref([])
+const featuredPromotions = ref([])
+const currentHero = ref(0)
+const autoSlideInterval = ref(null)
+const selectedCategory = ref('全部')
+
+const categories = [
+  '全部',
+  '角色扮演', '動作',  '策略', '生存', '恐怖', '第一人稱射擊',  '冒險'
+]
+
+// 快取每款遊戲的分類
+const categoryMap = ref({})
+
+// 取得促銷資料與分類
+const fetchPromotions = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/api/promotions/active')
+    const allGames = res.data.flatMap(p => p.promotionGame || [])
+    promotions.value = allGames
+    featuredPromotions.value = allGames.slice(0, 10)
+
+    // 抓取每款遊戲的分類
+    await Promise.all(allGames.map(async item => {
+      const gameId = item.game.id
+      if (!categoryMap.value[gameId]) {
+        try {
+          const catRes = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+          categoryMap.value[gameId] = catRes.data.map(c => c.name)
+        } catch (err) {
+          console.error(`取得 gameId=${gameId} 分類失敗`, err)
+          categoryMap.value[gameId] = []
+        }
+      }
+    }))
+  } catch (e) {
+    console.error('取得促銷失敗', e)
   }
-  
-  const getCategory = (gameId) => {
-    const map = ['動作', '冒險', '角色扮演', '策略']
-    return map[gameId % map.length]
-  }
-  
-  const filteredPromotions = computed(() => {
-    if (selectedCategory.value === '全部') return promotions.value
-    return promotions.value.filter(item => getCategory(item.game.id) === selectedCategory.value)
+}
+
+// 顯示選中分類的遊戲
+const filteredPromotions = computed(() => {
+  if (selectedCategory.value === '全部') return promotions.value
+  return promotions.value.filter(item => {
+    const gameId = item.game.id
+    const cats = categoryMap.value[gameId] || []
+    return cats.includes(selectedCategory.value)
   })
-  
-  // 固定排版：2,3,4,3,2,4
-  const layoutPattern = [2, 3, 4, 3, 2, 4]
-  const groupedPromotions = computed(() => {
-    const result = []
-    let i = 0
-    let index = 0
-    while (index < filteredPromotions.value.length && i < layoutPattern.length) {
-      const count = layoutPattern[i]
-      result.push(filteredPromotions.value.slice(index, index + count))
-      index += count
-      i++
-    }
-    return result
-  })
-  
-  const getDiscountedPrice = (item) => {
-    return Math.floor(item.game.price * (100 - item.discountRate) / 100)
+})
+
+// 固定排版樣式：2,3,4,3,2,4
+const layoutPattern = [2, 3, 4, 3, 2, 4]
+const groupedPromotions = computed(() => {
+  const result = []
+  let i = 0
+  let index = 0
+  while (index < filteredPromotions.value.length && i < layoutPattern.length) {
+    const count = layoutPattern[i]
+    result.push(filteredPromotions.value.slice(index, index + count))
+    index += count
+    i++
   }
-  
-  const nextSlide = () => {
-    currentHero.value = (currentHero.value + 1) % featuredPromotions.value.length
-  }
-  const prevSlide = () => {
-    currentHero.value = (currentHero.value - 1 + featuredPromotions.value.length) % featuredPromotions.value.length
-  }
-  const startAutoSlide = () => {
-    autoSlideInterval.value = setInterval(nextSlide, 10000)
-  }
-  const stopAutoSlide = () => {
-    clearInterval(autoSlideInterval.value)
-  }
-  
-  onMounted(() => {
-    fetchPromotions()
-    startAutoSlide()
-  })
-  </script>
+  return result
+})
+
+// 折扣後價格
+const getDiscountedPrice = (item) =>
+  Math.floor(item.game.price * (100 - item.discountRate) / 100)
+
+// Hero 輪播控制（如有需求）
+const nextSlide = () => {
+  currentHero.value = (currentHero.value + 1) % featuredPromotions.value.length
+}
+const prevSlide = () =>
+  currentHero.value = (currentHero.value - 1 + featuredPromotions.value.length) % featuredPromotions.value.length
+
+const startAutoSlide = () => {
+  autoSlideInterval.value = setInterval(nextSlide, 10000)
+}
+const stopAutoSlide = () => {
+  clearInterval(autoSlideInterval.value)
+}
+
+onMounted(() => {
+  fetchPromotions()
+  startAutoSlide()
+})
+</script>
   
   <style scoped>
   /* 整個 promotion 頁面 */

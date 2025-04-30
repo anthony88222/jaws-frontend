@@ -19,7 +19,7 @@ const routes = [
   { path: '/login', name: 'LoginPage', component: LoginPage },
   { path: '/profile', name: 'Profile', component: ProfileView },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
-  { path: '/gamepage', name: 'gamepage', component: GamePageView },
+  { path: '/gamepage/:id', name: 'gamepage', component: GamePageView },
   { path: '/promotion', name: 'promotion', component: PromotionView },
 
 ]
@@ -27,6 +27,10 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    // 每次跳轉都滾到最上方
+    return { top: 0 }
+  }
 })
 
 export default router

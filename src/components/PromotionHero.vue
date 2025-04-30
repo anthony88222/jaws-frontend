@@ -1,107 +1,126 @@
 <template>
-    <div class="hero-wrapper" @mouseover="stopAutoSlide" @mouseleave="startAutoSlide">
-      <button class="nav-btn left" @click="prevSlide">&#8249;</button>
-  
-      <div class="hero-content" v-if="featuredGames.length > 0">
-        <!-- 左邊封面圖 -->
-        <div class="hero-left">
-          <img
-            :src="currentItem.game.coverImageUrl"
-            alt="game cover"
-            class="hero-img"
-          />
+  <div class="hero-wrapper" @mouseover="stopAutoSlide" @mouseleave="startAutoSlide">
+    <button class="nav-btn left" @click="prevSlide">&#8249;</button>
+
+    <!-- 點擊跳轉整塊 -->
+    <router-link
+      v-if="featuredGames.length > 0"
+      :to="`/gamepage/${currentItem.game.id}`"
+      class="hero-content"
+      @click="scrollToTop"
+    >
+      <!-- 左邊封面圖 -->
+      <div class="hero-left">
+        <img
+          :src="currentItem.game.coverImageUrl"
+          alt="game cover"
+          class="hero-img"
+        />
+      </div>
+
+      <!-- 右邊資訊 -->
+      <div class="hero-right">
+        <h2 class="hero-title">{{ currentItem.game.name }}</h2>
+
+        <div class="hero-tags-area">
+          <span
+            v-for="tag in categoriesMap[currentItem.game.id] || []"
+            :key="tag"
+            class="tag"
+          >
+            {{ tag }}
+          </span>
         </div>
-  
-        <!-- 右邊資訊 -->
-        <div class="hero-right">
-          <!-- 遊戲名稱 -->
-          <h2 class="hero-title">{{ currentItem.game.name }}</h2>
-  
-          <!-- 標籤 -->
-          <div class="hero-tags-area">
-            <span
-              v-for="tag in getTags(currentItem.game.id)"
-              :key="tag"
-              class="tag"
-            >
-              {{ tag }}
-            </span>
-          </div>
-  
-          <!-- 描述 -->
-          <div class="hero-desc-area">
-            <p class="hero-desc">{{ currentItem.game.description }}</p>
-          </div>
-  
-          <!-- 價格 -->
-          <div class="hero-price-area">
-            <div class="price-box-bottom">
-              <div class="discount-tag">-{{ currentItem.discountRate }}%</div>
-              <div class="price-text">
-                <div class="original-price">NT$ {{ currentItem.game.price }}</div>
-                <div class="final-price">
-                  NT$ {{ getDiscountedPrice(currentItem) }}
-                </div>
+
+        <div class="hero-desc-area">
+          <p class="hero-desc">{{ currentItem.game.description }}</p>
+        </div>
+
+        <div class="hero-price-area">
+          <div class="price-box-bottom">
+            <div class="discount-tag">-{{ currentItem.discountRate }}%</div>
+            <div class="price-text">
+              <div class="original-price">NT$ {{ currentItem.game.price }}</div>
+              <div class="final-price">
+                NT$ {{ getDiscountedPrice(currentItem) }}
               </div>
             </div>
           </div>
         </div>
       </div>
-  
-      <button class="nav-btn right" @click="nextSlide">&#8250;</button>
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, computed } from 'vue'
-  import axios from 'axios'
-  
-  /* --- API資料 --- */
-  const featuredGames = ref([])
-  
-  const fetchPromotions = async () => {
+    </router-link>
+
+    <button class="nav-btn right" @click="nextSlide">&#8250;</button>
+  </div>
+</template>
+
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
+
+/* --- 資料狀態 --- */
+const featuredGames = ref([])
+const categoriesMap = ref({})  // 快取每款遊戲的分類
+
+/* --- 輪播控制 --- */
+const currentHero = ref(0)
+const autoSlideInterval = ref(null)
+const currentItem = computed(() => featuredGames.value[currentHero.value] || {})
+
+const nextSlide = () => {
+  currentHero.value = (currentHero.value + 1) % featuredGames.value.length
+}
+const prevSlide = () => {
+  currentHero.value =
+    (currentHero.value - 1 + featuredGames.value.length) % featuredGames.value.length
+}
+const startAutoSlide = () => {
+  autoSlideInterval.value = setInterval(nextSlide, 10000)
+}
+const stopAutoSlide = () => clearInterval(autoSlideInterval.value)
+
+/* --- API 請求 --- */
+// 取得促銷遊戲
+const fetchPromotions = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/api/promotions/active')
+    featuredGames.value = res.data.flatMap(p => p.promotionGame || [])
+  } catch (error) {
+    console.error('取得促銷失敗', error)
+  }
+}
+
+// 取得特定遊戲分類（並快取）
+const getCategories = async (gameId) => {
+  if (!categoriesMap.value[gameId]) {
     try {
-      const res = await axios.get('http://localhost:8080/api/promotions/active')
-      // 把所有 promotionGame 拉平
-      featuredGames.value = res.data.flatMap(p => p.promotionGame || [])
-    } catch (error) {
-      console.error('取得促銷失敗', error)
+      const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+      categoriesMap.value[gameId] = res.data.map(c => c.name)
+    } catch (err) {
+      console.error(`取得遊戲 ${gameId} 的分類失敗`, err)
+      categoriesMap.value[gameId] = []
     }
   }
-  
-  /* --- 輪播控制 --- */
-  const currentHero = ref(0)
-  const autoSlideInterval = ref(null)
-  
-  const currentItem = computed(() => featuredGames.value[currentHero.value])
-  
-  const nextSlide = () => {
-    currentHero.value = (currentHero.value + 1) % featuredGames.value.length
+}
+
+/* --- 價格計算 --- */
+const getDiscountedPrice = (item) =>
+  Math.floor((item.game.price * (100 - item.discountRate)) / 100)
+
+/* --- 掛載後初始化 --- */
+onMounted(async () => {
+  await fetchPromotions()
+  for (const item of featuredGames.value) {
+    await getCategories(item.game.id)
   }
-  const prevSlide = () => {
-    currentHero.value =
-      (currentHero.value - 1 + featuredGames.value.length) % featuredGames.value.length
-  }
-  
-  const startAutoSlide = () => {
-    autoSlideInterval.value = setInterval(nextSlide, 10000)
-  }
-  const stopAutoSlide = () => clearInterval(autoSlideInterval.value)
-  
-  /* --- 假標籤資料 --- */
-  const getTags = (gameId) => {
-    const all = ['動作', '冒險', '角色扮演', '合作', '多人', '日系', '射擊', '策略', '模擬']
-    return all.slice(0, (gameId % 3) + 2)
-  }
-  
-  const getDiscountedPrice = (item) =>
-    Math.floor((item.game.price * (100 - item.discountRate)) / 100)
-  
-  onMounted(() => {
-    fetchPromotions()
-    startAutoSlide()
-  })
-  </script>
+  startAutoSlide()
+})
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+</script>
   
   <style scoped>
   /* === 外層容器 === */
@@ -147,12 +166,16 @@
   
   /* 遊戲名稱 */
   .hero-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: var(--color-primary);
     margin-bottom: 0.8rem;
-    height: 100px;
+    /* height: 100px; */
     margin-top: 0.2rem;
     text-shadow: 0 0 6px var(--color-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;       /* 限制最多兩行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   
   /* tag */
@@ -235,5 +258,9 @@
   }
   .nav-btn.left  { left: -3.2rem; }
   .nav-btn.right { right: -3.2rem; }
+
+  a {
+    text-decoration: none;
+  }
   </style>
   

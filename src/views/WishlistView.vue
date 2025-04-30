@@ -60,7 +60,7 @@ const promotionMap = ref({})
 const reviewMap = ref({})
 const tagMap = ref({})
 
-// 假資料模擬 API 回傳
+// 假資料 fallback（如無後端分類）
 const mockReviewMap = {
   1: { text: "極度好評", link: "/reviews/1" },
   2: { text: "褒貶不一", link: "/reviews/2" },
@@ -75,6 +75,19 @@ const mockTagMap = {
   5: ["劇情", "開放世界", "魂類遊戲"]
 }
 
+// ✅ 取得分類資料（從後端）
+const fetchCategories = async (gameId) => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+    // 取回分類名稱陣列，例如 ['獨立', '角色扮演']
+    return res.data.map(c => c.name)
+  } catch (err) {
+    console.warn(`遊戲 ${gameId} 分類取得失敗，使用 mock 資料`, err)
+    return mockTagMap[gameId] || []
+  }
+}
+
+// ✅ 折扣資料
 const fetchPromotionStatus = async (gameId) => {
   try {
     const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId}`)
@@ -84,23 +97,28 @@ const fetchPromotionStatus = async (gameId) => {
   }
 }
 
+// ✅ 載入 wishlist 主流程
 const fetchWishlist = async () => {
   try {
     const res = await axios.get(`http://localhost:8080/api/wishlist/${userId}`)
     wishlist.value = res.data
 
     for (const item of wishlist.value) {
-      await fetchPromotionStatus(item.gameId)
+      const gameId = item.gameId
 
-      // 使用假資料模擬 API 回傳
-      reviewMap.value[item.gameId] = mockReviewMap[item.gameId] || null
-      tagMap.value[item.gameId] = mockTagMap[item.gameId] || []
+      await fetchPromotionStatus(gameId)
+
+      // 🔁 額外加入分類與評論
+      const tags = await fetchCategories(gameId)
+      tagMap.value[gameId] = tags
+      reviewMap.value[gameId] = mockReviewMap[gameId] || null
     }
   } catch (error) {
     console.error('載入願望清單失敗', error)
   }
 }
 
+// ✅ 移除遊戲
 const removeFromWishlist = async (id) => {
   try {
     await axios.delete(`http://localhost:8080/api/wishlist/${userId}/remove/${id}`)
@@ -113,6 +131,7 @@ const removeFromWishlist = async (id) => {
   }
 }
 
+// ✅ 加入購物車
 const addToCart = async (gameId) => {
   try {
     await axios.post(`http://localhost:8080/api/cart/${userId}/add/${gameId}`)

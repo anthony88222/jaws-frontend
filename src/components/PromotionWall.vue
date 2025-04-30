@@ -2,7 +2,7 @@
     <section class="promotion-wall">
       <div class="promotion-header">
       <h2>限時特賣</h2>
-      <a href="/promotion" class="more-button">看更多</a>
+      <router-link to="/promotion" class="more-button">看更多</router-link>
     </div>
       <div class="carousel-container">
         <button class="nav-btn" @click="prevSlide" @mouseover="stopAutoSlide" @mouseleave="startAutoSlide">&#8249;</button>
@@ -15,30 +15,31 @@
             @mouseover="stopAutoSlide"
             @mouseleave="startAutoSlide"
           >
-            <div
-              v-for="item in visiblePromotions"
-              :key="item.game.id"
-              class="promo-card"
-            >
-              <img :src="item.game.coverImageUrl" :alt="item.game.name" />
-              <div class="promo-overlay">
-                <h3>{{ item.game.name }}</h3>
-  
-                <div class="price-box-bottom" v-if="item.discountRate">
-                  <div class="discount-tag">-{{ item.discountRate }}%</div>
-                  <div class="price-text">
-                    <div class="original-price">NT$ {{ item.game.price }}</div>
-                    <div class="final-price">
-                      NT$ {{ getDiscountedPrice(item) }}
-                    </div>
-                  </div>
-                </div>
-  
-                <div class="price-box-bottom" v-else>
-                  <div class="final-price">NT$ {{ item.game.price }}</div>
+          <router-link
+          v-for="item in visiblePromotions"
+          :key="item.game.id"
+          :to="`/gamepage/${item.game.id}`"
+          class="promo-card"
+        >
+          <img :src="item.game.coverImageUrl" :alt="item.game.name" />
+          <div class="promo-overlay">
+            <h3>{{ item.game.name }}</h3>
+
+            <div class="price-box-bottom" v-if="item.discountRate">
+              <div class="discount-tag">-{{ item.discountRate }}%</div>
+              <div class="price-text">
+                <div class="original-price">NT$ {{ item.game.price }}</div>
+                <div class="final-price">
+                  NT$ {{ getDiscountedPrice(item) }}
                 </div>
               </div>
             </div>
+
+            <div class="price-box-bottom" v-else>
+              <div class="final-price">NT$ {{ item.game.price }}</div>
+            </div>
+          </div>
+        </router-link>
           </div>
         </transition>
   
@@ -119,6 +120,7 @@
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
     box-shadow: 0 0 6px var(--color-primary);
+    height: 400px;
   }
   
   .promotion-title {
@@ -297,6 +299,10 @@
 .more-button:hover {
   background-color: var(--color-primary);
   color: #000;
+}
+
+a {
+  text-decoration: none;
 }
   </style>
   
