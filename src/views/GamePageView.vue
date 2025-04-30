@@ -1,120 +1,247 @@
 <template>
-    <div class="game-page-container">
-      <!-- Hero 區塊 -->
-      <h1 class="game-title">THE LONG DARK</h1>
+  <div class="game-page-container">
+    <div v-if="loading" class="text-center py-8">載入中…</div>
+    <div v-else>
       <section class="game-hero-carousel">
-        <!-- 左側：主圖 + 縮圖 -->
         <div class="carousel-wrapper-vertical">
           <div class="main-image-container">
             <img :src="screenshots[currentIndex]" alt="遊戲截圖" class="carousel-image" />
           </div>
           <div class="thumbnail-list">
-            <div
-              v-for="(img, index) in screenshots"
-              :key="index"
-              class="thumbnail-item"
-              :class="{ active: currentIndex === index }"
-              @click="currentIndex = index"
-            >
+            <div v-for="(img, index) in screenshots" :key="index" class="thumbnail-item" :class="{ active: currentIndex === index }" @click="currentIndex = index">
               <img :src="img" :alt="`縮圖${index}`" />
             </div>
           </div>
         </div>
-  
-        <!-- 右側：遊戲資訊 -->
+
         <div class="game-info right-info">
-          <img class="hero-cover" src="https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg" alt="The Long Dark" />
-          <p class="game-description">
-            挑戰玩家獨自求生的探索遊戲，在地磁風暴後的極地荒野中掙扎求生。
-          </p>
+          <img class="hero-cover" :src="game.coverImageUrl" :alt="game.name" />
+          <h1 class="game-title">{{ game.name }}</h1>
+          <p class="game-description">{{ game.description }}</p>
           <ul class="meta-info">
-            <li>評論數：<span class="highlight">9萬+</span></li>
-            <li>發行日：2017 年 8 月 1 日</li>
-            <li>標籤：
-              <span class="tag">生存</span>
-              <span class="tag">劇情</span>
-              <span class="tag">探索</span>
+            <li>平均評分：
+              <span class="stars">
+                <span v-for="n in 5" :key="n">
+                  <i v-if="n <= Math.round(averageRating)" class="filled-star">★</i>
+                  <i v-else class="empty-star">☆</i>
+                </span>
+                ({{ averageRating }}/5)
+              </span>
             </li>
+            <li>評論數：<span class="highlight">{{ game.reviews.length }} 則</span></li>
+            <li>分類：<span class="tag" v-for="cat in game.categories" :key="cat.id">{{ cat.name }}</span></li>
           </ul>
-          <button class="cart-btn">立即購買</button>
+          <button class="cart-btn" @click="addToCart">加入購物車</button>
         </div>
       </section>
-  
-      <!-- 遊戲版本 -->
-      <section class="edition-section">
-        <h2 class="section-title">遊戲版本</h2>
-        <div class="edition-card" v-for="edition in editions" :key="edition.id">
-          <div class="edition-left">
-            <h3 class="edition-name">{{ edition.name }}</h3>
-            <p class="edition-desc">{{ edition.description }}</p>
-          </div>
-          <div class="edition-right">
-            <div class="price-box">
-              <div v-if="edition.discount > 0" class="discount-tag">-{{ edition.discount }}%</div>
-              <div :class="['price-text', edition.discount > 0 ? 'green' : 'white']">
-                <div v-if="edition.discount > 0" class="original-price">NT$ {{ edition.originalPrice }}</div>
-                <div class="final-price">NT$ {{ edition.finalPrice }}</div>
+
+      <!-- 遊戲介紹說明框 -->
+      <section class="game-description-box">
+        <h2 class="section-title">遊戲介紹</h2>
+        <p class="game-description-full">{{ game.description }}</p>
+      </section>
+
+      <section class="user-review">
+        <h2 class="section-title">我要評論</h2>
+        <textarea v-model="newComment" rows="5" placeholder="輸入您的評論..." class="comment-box" />
+        <div class="rate-group">
+          <label>評分：</label>
+          <span v-for="n in 5" :key="n" class="rating-star" @click="newRate = n">
+            <i :class="n <= newRate ? 'filled-star' : 'empty-star'">★</i>
+          </span>
+          ({{ newRate }}/5)
+        </div>
+        <button class="cart-btn" @click="submitReview" :disabled="submitting">
+          {{ submitting ? '送出中...' : '送出評論' }}
+        </button>
+      </section>
+
+      <section class="edition-section review-container">
+        <h2 class="section-title">玩家評論</h2>
+        <ul class="review-list">
+          <li v-for="review in game.reviews" :key="review.id" class="review-box">
+            <strong>玩家 {{ review.userId }}：</strong>
+            <div class="stars-with-score">
+              <div class="stars">
+                <span v-for="n in 5" :key="n">
+                  <i v-if="n <= Math.round(review.rate)" class="filled-star">★</i>
+                  <i v-else class="empty-star">☆</i>
+                </span>
               </div>
+              <span class="score-text">({{ review.rate }}/5)</span>
             </div>
-            <button class="cart-btn">加入購物車</button>
-          </div>
-        </div>
-      </section>
+            <div class="comment-text">{{ review.comment }}</div>
+          </li>
+        </ul>
+      </section> 
     </div>
-  </template>
-  <script setup>
-  import { ref, onMounted, onBeforeUnmount } from 'vue'
-  
-  const screenshots = [
-    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_718af4cf5640b3227a530adf6d5f6d9e3a46703b.600x338.jpg?t=1745525398',
-    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_70d3a9799c9b003a53c8ac512f163678a4967672.600x338.jpg?t=1745525398',
-    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_6b411930012a9f6794fe32e36504517aa54c3e4c.600x338.jpg?t=1745525398',
-    'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/305620/ss_05c7f5d1b2ec2b2a1cf4ca2aa1ff609c7542f6b5.600x338.jpg?t=1745525398'
-  ]
-  
-  const currentIndex = ref(0)
-  let interval = null
-  
-  onMounted(() => {
-    interval = setInterval(() => {
-      currentIndex.value = (currentIndex.value + 1) % screenshots.length
-    }, 3000)
-  })
-  
-  onBeforeUnmount(() => {
-    clearInterval(interval)
-  })
-  
-  const editions = [
-    {
-      id: 1,
-      name: '標準版',
-      description: '包含完整主遊戲體驗',
-      originalPrice: 1790,
-      discount: 40,
-      finalPrice: 1074,
-    },
-    {
-      id: 2,
-      name: '夜城擴充包',
-      description: '新增地圖區域、任務與角色',
-      originalPrice: 890,
-      discount: 30,
-      finalPrice: 623,
-    },
-    {
-      id: 3,
-      name: '終極收藏版',
-      description: '主遊戲 + 所有DLC內容',
-      originalPrice: 2490,
-    //   discount: 50,
-      finalPrice: 1245,
-    }
-  ]
-  </script>
-  
-  <style scoped>
-  :root {
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
+const gameId = Number(route.params.gameId)
+const loading = ref(true)
+const submitting = ref(false)
+const newComment = ref('')
+const newRate = ref(5)
+const game = ref({ 
+  id: null, 
+  name: '', 
+  description: '', 
+  coverImageUrl: '', 
+  categories: [], 
+  reviews: [] })
+const averageRating = ref(0)
+const ratingSummary = ref({ averageRating: 0, totalReviews: 0 })
+const screenshots = ref([
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg'
+])
+const currentIndex = ref(0)
+
+const fetchGameDetail = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}`)
+    game.value = res.data
+  } catch (err) {
+    console.error('取得遊戲細節失敗', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchRatingSummary = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
+    ratingSummary.value = res.data
+    averageRating.value = ratingSummary.value.averageRating
+  } catch (err) {
+    console.error('取得評分摘要失敗', err)
+  }
+}
+
+const fetchCategories = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+    game.value.categories = res.data
+  } catch (err) {
+    console.error('取得分類失敗', err)
+  }
+}
+
+function calculateAverage() {
+  const total = game.value.reviews.reduce((sum, r) => sum + r.rate, 0)
+  averageRating.value = game.value.reviews.length
+    ? (total / game.value.reviews.length).toFixed(1)
+    : 0
+}
+
+let carouselInterval = null
+
+async function submitReview() {
+  if (!newComment.value || newRate.value <= 0) {
+    alert('請填寫完整評論與正確分數')
+    return
+  }
+  submitting.value = true
+  try {
+    await axios.post(`http://localhost:8080/api/reviews/game/${gameId}`, {
+      userId: 8, // 假設使用者 ID
+      rate: newRate.value,
+      comment: newComment.value
+    })
+    alert('評論成功！')
+    await fetchGameDetail()
+    await fetchRatingSummary()
+    newComment.value = ''
+    newRate.value = 5
+  } catch (err) {
+    console.error('新增評論失敗', err)
+    alert('新增評論失敗')
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function addToCart() {
+  try {
+    await axios.post('http://localhost:8080/api/cart', {
+      userId: 5, // ⚠️ 這裡記得日後換成登入者的 ID
+      gameId: game.value.id
+    })
+    alert('成功加入購物車！')
+  } catch (err) {
+    console.error('加入購物車失敗', err)
+    alert('加入購物車失敗')
+  }
+}
+
+onMounted(() => {
+  fetchGameDetail()
+  fetchRatingSummary()
+  fetchCategories()
+})
+</script>
+
+<style scoped>
+/* 新增的介紹區塊樣式 */
+.game-description-box {
+  background: linear-gradient(135deg, #0e1628, #1e0040);
+  border: 1px solid var(--color-primary);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 12px var(--color-primary);
+  margin: 2rem 0;
+}
+
+.game-description-full {
+  color: #ccc;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.comment-box {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #555;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.edition-row-section {
+  margin-top: 3rem;
+}
+
+.edition-row-horizontal {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.edition-card-horizontal {
+  flex: 1;
+  min-width: 280px;
+  background: #1a1c2e;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.75rem;
+  padding: 1rem 2rem;
+  box-shadow: 0 0 12px var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+:root {
     --color-primary: #00fff7;
     --color-secondary: #ff00ff;
   }
@@ -385,5 +512,57 @@
   box-shadow: 0 0 12px var(--color-primary);
 }
 
-  </style>
-  
+.stars-with-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.stars {
+  color: gold;
+  font-size: 1.2rem;
+}
+
+.filled-star {
+  color: gold;
+}
+
+.empty-star {
+  color: lightgray;
+}
+
+.score-text {
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.review-container {
+  border: 1px solid var(--color-primary);
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.review-box {
+  padding: 1rem 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.review-box:last-child {
+  border-bottom: none;
+}
+
+.comment-text {
+  margin-top: 0.5rem;
+  color: #ddd;
+}
+
+</style>
