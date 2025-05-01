@@ -5,7 +5,7 @@
       <section class="game-hero-carousel">
         <div class="carousel-wrapper-vertical">
           <div class="main-image-container">
-            <img :src="screenshots[currentIndex]" alt="遊戲截圖" class="carousel-image" />
+            <img :src="game.coverImageUrl" alt="遊戲封面" class="carousel-image" />
           </div>
           <div class="thumbnail-list">
             <div v-for="(img, index) in screenshots" :key="index" class="thumbnail-item" :class="{ active: currentIndex === index }" @click="currentIndex = index">
@@ -29,7 +29,10 @@
               </span>
             </li>
             <li>評論數：<span class="highlight">{{ game.reviews.length }} 則</span></li>
-            <li>分類：<span class="tag" v-for="cat in game.categories" :key="cat.id">{{ cat.name }}</span></li>
+            <li>分類：
+              <span class="tag" v-for="cat in categories" :key="cat.id">{{ cat.name }}</span>
+            </li>
+
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
         </div>
@@ -98,18 +101,23 @@ const game = ref({
   reviews: [] })
 const averageRating = ref(0)
 const ratingSummary = ref({ averageRating: 0, totalReviews: 0 })
-const screenshots = ref([
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg'
-])
+const screenshots = ref([])
+console.log('screenshots:', screenshots.value)
+
 const currentIndex = ref(0)
+const categories = ref([]) 
 
 const fetchGameDetail = async () => {
   try {
     const res = await axios.get(`http://localhost:8080/api/games/${gameId}`)
     game.value = res.data
+
+    screenshots.value = [
+  game.value.coverImageUrl,
+  game.value.coverImageUrl,
+  game.value.coverImageUrl,
+  game.value.coverImageUrl]
+
   } catch (err) {
     console.error('取得遊戲細節失敗', err)
   } finally {
@@ -130,7 +138,7 @@ const fetchRatingSummary = async () => {
 const fetchCategories = async () => {
   try {
     const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
-    game.value.categories = res.data
+    categories.value = res.data
   } catch (err) {
     console.error('取得分類失敗', err)
   }
@@ -171,17 +179,16 @@ async function submitReview() {
 }
 
 async function addToCart() {
+  const userId = 5; // ⚠️ 之後要改成從登入資訊取得
   try {
-    await axios.post('http://localhost:8080/api/cart', {
-      userId: 5, // ⚠️ 這裡記得日後換成登入者的 ID
-      gameId: game.value.id
-    })
+    await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`)
     alert('成功加入購物車！')
   } catch (err) {
     console.error('加入購物車失敗', err)
     alert('加入購物車失敗')
   }
 }
+
 
 onMounted(() => {
   fetchGameDetail()
@@ -373,13 +380,15 @@ onMounted(() => {
 }
 
 .tag {
-  background-color: #00ccff;
-  color: #000;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.5rem;
-  margin-left: 0.25rem;
-  font-size: 0.8rem;
-}
+    /* background: #1f1f2e; */
+    border: 1px solid rgb(218, 208, 208);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    color: rgb(218, 208, 208);
+    white-space: nowrap;
+    margin-right: 0.3rem;
+  }
 
 .buy-btn {
   background-color: var(--color-secondary);
