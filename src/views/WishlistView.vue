@@ -8,20 +8,32 @@
           <router-link :to="`/gamepage/${item.gameId}`">
             <img :src="item.coverImageUrl" :alt="item.gameName" class="wishlist-thumb" />
           </router-link>
+
           <div class="wishlist-info">
             <router-link :to="`/gamepage/${item.gameId}`" class="game-name">
               <h2 class="game-name">{{ item.gameName }}</h2>
             </router-link>
-            <p class="game-description">{{ item.description }}</p>
 
-            <div class="user-review">
-              整體評價：
-              <a v-if="reviewMap[item.gameId]" :href="reviewMap[item.gameId].link" class="review-link" target="_blank">
-                {{ reviewMap[item.gameId].text }}
-              </a>
-              <span v-else class="review-text">尚無評論</span>
+            <!-- ✅ 評分顯示 -->
+            <div class="rating-display">
+              <template v-if="ratingMap[item.gameId]">
+                <span class="avg">{{ ratingMap[item.gameId].averageRating.toFixed(1) }}</span>
+                <span class="stars">
+                  <span
+                    v-for="n in 5"
+                    :key="n"
+                    class="star"
+                    :class="{ full: n <= Math.round(ratingMap[item.gameId].averageRating) }"
+                  >★</span>
+                </span>
+                <span class="count">({{ ratingMap[item.gameId].totalReviews.toLocaleString() }})</span>
+              </template>
+              <template v-else>
+                <span class="review-text">尚無評分</span>
+              </template>
             </div>
 
+            <p class="game-description">{{ item.description }}</p>
             <div class="tag-list">
               <span class="tag" v-for="tag in tagMap[item.gameId] || []" :key="tag">{{ tag }}</span>
             </div>
@@ -53,6 +65,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
@@ -62,25 +75,16 @@ const wishlist = ref([])
 const promotionMap = ref({})
 const reviewMap = ref({})
 const tagMap = ref({})
-
-// 假資料 fallback（如無後端分類）
-const mockReviewMap = {
-  1: { text: "極度好評", link: "/reviews/1" },
-  2: { text: "褒貶不一", link: "/reviews/2" },
-  4: { text: "褒貶不一", link: "/reviews/2" },
-  5: { text: "壓倒性好評", link: "/reviews/2" }
-}
-
+const ratingMap = ref({})
 
 // ✅ 取得分類資料（從後端）
 const fetchCategories = async (gameId) => {
   try {
     const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
-    // 取回分類名稱陣列，例如 ['獨立', '角色扮演']
     return res.data.map(c => c.name)
   } catch (err) {
     console.warn(`遊戲 ${gameId} 分類取得失敗，使用 mock 資料`, err)
-    return mockTagMap[gameId] || []
+    return []
   }
 }
 
@@ -94,6 +98,17 @@ const fetchPromotionStatus = async (gameId) => {
   }
 }
 
+// ✅ 評分資料
+const fetchRatingSummary = async (gameId) => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
+    ratingMap.value[gameId] = res.data
+  } catch (err) {
+    console.warn(`取得評分失敗：gameId=${gameId}`, err)
+    ratingMap.value[gameId] = null
+  }
+}
+
 // ✅ 載入 wishlist 主流程
 const fetchWishlist = async () => {
   try {
@@ -102,13 +117,9 @@ const fetchWishlist = async () => {
 
     for (const item of wishlist.value) {
       const gameId = item.gameId
-
       await fetchPromotionStatus(gameId)
-
-      // 🔁 額外加入分類與評論
-      const tags = await fetchCategories(gameId)
-      tagMap.value[gameId] = tags
-      reviewMap.value[gameId] = mockReviewMap[gameId] || null
+      await fetchRatingSummary(gameId)
+      tagMap.value[gameId] = await fetchCategories(gameId)
     }
   } catch (error) {
     console.error('載入願望清單失敗', error)
@@ -123,6 +134,7 @@ const removeFromWishlist = async (id) => {
     delete promotionMap.value[id]
     delete reviewMap.value[id]
     delete tagMap.value[id]
+    delete ratingMap.value[id]
   } catch (error) {
     console.error('移除失敗', error)
   }
@@ -140,6 +152,7 @@ const addToCart = async (gameId) => {
 
 onMounted(fetchWishlist)
 </script>
+
 
 <style scoped>
 .container {  
@@ -212,6 +225,8 @@ onMounted(fetchWishlist)
   text-shadow: 0 0 6px var(--color-primary);
   word-wrap: break-word;
   text-decoration: none;
+  margin-bottom: 0.1rem;
+  margin-top: 0.8rem;
 }
 
 .game-description {
@@ -359,19 +374,6 @@ onMounted(fetchWishlist)
   color: #ccc;
 }
 
-.review-link {
-  color: var(--color-primary);
-  font-weight: bold;
-  text-decoration: underline;
-  margin-left: 0.3rem;
-}
-
-.review-text {
-  color: var(--color-muted);
-  font-style: italic;
-  margin-left: 0.3rem;
-}
-
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -429,5 +431,41 @@ onMounted(fetchWishlist)
   color: #fff;
   font-size: 1rem;
   font-weight: bold;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  color: #ccc;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.rating-display .avg {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.rating-display .stars {
+  display: flex;
+  font-size: 1rem;
+  color: #666;
+}
+
+.rating-display .star {
+  color: #444;
+}
+
+.rating-display .star.full {
+  color: #ffc107;
+  text-shadow: 0 0 3px #ffc107;
+}
+
+.rating-display .count {
+  font-size: 0.85rem;
+  color: var(--color-muted);
 }
 </style>
