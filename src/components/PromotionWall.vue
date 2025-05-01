@@ -120,7 +120,7 @@
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
     box-shadow: 0 0 6px var(--color-primary);
-    height: 400px;
+    height: 380px;
   }
   
   .promotion-title {
@@ -169,10 +169,17 @@
   }
   
   h3 {
-    /* line-height: 10px; */
-    margin: 0px;
-    height: 65px;
-  }
+  margin: 0;
+  height: 3rem;              
+  line-height: 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;       /* 限制最多顯示 2 行 */
+  -webkit-box-orient: vertical;
+}
 
   
   .promo-card:hover {

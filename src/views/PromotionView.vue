@@ -49,6 +49,9 @@
         </router-link>
       </div>
     </div>
+    <section class="section">
+      <HotNewReleases />
+    </section>
   </section>
 </template>
 
@@ -57,6 +60,7 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import PromotionHero from '../components/PromotionHero.vue'
+import HotNewReleases from '../components/HotNewReleases.vue'
 
 const promotions = ref([])
 const featuredPromotions = ref([])
@@ -209,6 +213,7 @@ onMounted(() => {
     width: 1150px;
     margin-left: auto;
     margin-right: auto; 
+    margin-bottom: 4rem;
   }
   .promotion-row {
     display: grid;

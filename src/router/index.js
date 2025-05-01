@@ -28,9 +28,19 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    // 每次跳轉都滾到最上方
-    return { top: 0 }
+    if (savedPosition) {
+      return new Promise((resolve) => {
+        // 先滾到頂部
+        window.scrollTo({ top: 0, behavior: 'auto' })
+
+        // 延遲 100ms 再跳回 savedPosition
+        setTimeout(() => {
+          resolve(savedPosition)
+        }, 300)
+      })
+    } else {
+      return { top: 0 }
+    }
   }
 })
-
 export default router

@@ -1,194 +1,390 @@
 <template>
-    <section class="cyber-section">
-      <div class="cyber-title">新品與話題商品</div>
-      <div class="cyber-content">
-        <ul class="game-list">
-          <li v-for="game in games" :key="game.id"  @mouseover="updateSpotlight(game)">
-            <div class="game-entry" >
-              <img :src="game.img" alt="game image" class="game-thumb" />
-              <div class="game-info">
-                <div class="game-title">
-                  <span>{{ game.name }}</span>
-                  <span class="discount">-{{ game.discount }}%</span>
-                </div>
-                <div class="game-desc">{{ game.tags }}</div>
-                <div class="game-price">NT$ {{ game.price }}</div>
-              </div>
+  <div class="game-display-wrapper">
+    <!-- 左側上下頁按鈕 -->
+    <button class="nav-arrow left" @click="prevPage" :disabled="currentPage === 0">‹</button>
+
+    <div class="game-display">
+      <!-- 遊戲清單 -->
+      <div class="game-list">
+        <div
+          v-for="game in pagedGames"
+          :key="game.id"
+          class="game-item"
+          :class="{ selected: game.id === selectedGame.id }"
+          @mouseenter="selectGame(game)"
+          @click="goToGamePage(game.id)"
+        >
+          <img :src="game.cover" alt="cover" class="game-cover" />
+          <div class="info-section">
+            <h3 class="game-title">{{ game.name }}</h3>
+            <div class="tag-row">
+              <span v-for="(tag, idx) in game.tags" :key="idx" class="tag">{{ tag }}</span>
+              <p class="game-description">{{ game.description }}</p>
             </div>
-          </li>
-        </ul>
-        <div class="spotlight">
-          <img :src="spotlight.main" alt="Spotlight Game" class="spotlight-main" />
-          <h3>{{ spotlight.name }}</h3>
-          <p class="spotlight-desc">{{ spotlight.tags }}</p>
-          <div class="spotlight-price">NT$ {{ spotlight.price }}</div>
-          <div class="spotlight-previews">
-            <img v-for="(img, index) in spotlight.previews" :key="index" :src="img" class="preview-img" />
-        </div>
-        <div class="spotlight-review">
-            <span>整體使用者評論：</span>
-            <span class="review-summary">{{ spotlight.reviewSummary }}</span>
-            <span class="review-count">（{{ spotlight.reviewCount.toLocaleString() }} 篇評論）</span>
-        </div>
+          </div>
+          <div class="price-section">
+            <span v-if="game.discount > 0" class="discount-badge">-{{ game.discount }}%</span>
+            <div class="price-block">
+              <span v-if="game.discount > 0" class="price-original">NT${{ game.price }}</span>
+              <span class="price-final">NT${{ game.finalPrice }}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
-  </template>
-  
-  <script setup>
 
-  import { ref } from 'vue'
-  const games = [
-    { id: 1, name: 'Hogwarts Legacy', discount: 50, price: 899, tags: '奇幻冒險、角色扮演、動作', img: 'https://cdn.cloudflare.steamstatic.com/steam/apps/990080/header.jpg' },
-    { id: 2, name: 'Eternal Return', discount: 25, price: 246, tags: 'MOBA、沉浸、體驗', img: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1049590/header.jpg' },
-    { id: 3, name: 'Darkest Dungeon', discount: 85, price: 75, tags: '華元冒險、趨振撼、挫宕', img: 'https://cdn.cloudflare.steamstatic.com/steam/apps/262060/header.jpg' },
-    { id: 4, name: 'No Man\'s Sky', discount: 50, price: 790, tags: '圓柱方目險、視察、冒險', img: 'https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg' },
-    { id: 5, name: 'MANOR LORDS', discount: 15, price: 1049, tags: '策略模擬、早期存取', img: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1363080/header.jpg' },
-  ]
-  
-  const spotlight = ref({
-  name: 'Risk of Rain 2',
-  tags: '連軍蓄件、混撼、合-op',
-  price: 308,
-  main: 'https://cdn.cloudflare.steamstatic.com/steam/apps/990080/header.jpg',
-  previews: [
-    'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/990080/ss_df93b5e8a183f7232d68be94ae78920a90de1443.600x338.jpg?t=1743610330',
-    'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/990080/ss_94058497bf0f8fabdde17ee8d59bece609a60663.600x338.jpg?t=1743610330',
-    'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/990080/ss_8e08976236d29b1897769257ac3c64e9264792a5.600x338.jpg?t=1743610330'
-  ],
-  reviewSummary: '極度好評',
-  reviewCount: 3728
-})
+      <!-- 遊戲預覽 + 評價 -->
+      <div class="game-review" v-if="selectedGame.id">
+        <div class="review-summary">
+          <h3>整體使用者評論：</h3>
+          <div class="rating-display">
+            <span class="avg">{{ ratingSummary.averageRating.toFixed(1) }}</span>
+            <span class="stars">
+              <span
+                v-for="n in 5"
+                :key="n"
+                class="star"
+                :class="{ full: n <= Math.floor(ratingSummary.averageRating) }"
+              >★</span>
+            </span>
+            <span class="count">({{ ratingSummary.totalReviews.toLocaleString() }})</span>
+          </div>
+        </div>
+        <div class="preview-list">
+          <img
+            v-for="(img, idx) in previewImages.slice(0, 4)"
+            :key="idx"
+            :src="img"
+            loading="lazy"
+            class="preview-img"
+          />
+        </div>
+      </div>
+    </div>
 
-function updateSpotlight(game) {
-  spotlight.value.name = game.name
-  spotlight.value.tags = game.tags
-  spotlight.value.price = game.price
-  spotlight.value.main = game.img
-  spotlight.value.previews = [game.img, game.img, game.img]
-  spotlight.value.reviewSummary = '暫無資料'
-  spotlight.value.reviewCount = 0
+    <!-- 右側上下頁按鈕 -->
+    <button class="nav-arrow right" @click="nextPage" :disabled="endIndex >= allGames.length">›</button>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  name: 'HotNewReleases',
+  data() {
+    return {
+      allGames: [],
+      selectedGame: {},
+      ratingSummary: { totalReviews: 0, averageRating: 0 },
+      previewImages: [],
+      currentPage: 0,
+      pageSize: 8,
+    };
+  },
+  computed: {
+    startIndex() {
+      return this.currentPage * this.pageSize;
+    },
+    endIndex() {
+      return this.startIndex + this.pageSize;
+    },
+    pagedGames() {
+      return this.allGames.slice(this.startIndex, this.endIndex);
+    },
+  },
+  async mounted() {
+    await this.fetchGames();
+    if (this.pagedGames.length) this.selectGame(this.pagedGames[0]);
+  },
+  watch: {
+    selectedGame(newGame) {
+      if (newGame?.id) {
+        this.fetchRatingSummary(newGame.id);
+        this.fetchPreviewImages(newGame.id);
+      }
+    },
+  },
+  methods: {
+    async fetchGames() {
+      try {
+        const { data } = await axios.get('http://localhost:8080/api/games/game');
+        const gameArray = Array.isArray(data) ? data : data.games || [];
+
+        const mapped = await Promise.all(
+          gameArray.map(async (g) => {
+            let discount = 0;
+            let finalPrice = g.price;
+
+            try {
+              const { data: promo } = await axios.get(
+                `http://localhost:8080/api/promotions/status/${g.id}`
+              );
+              if (promo.onSale) {
+                discount = Math.round(promo.discountRate * 100);
+                finalPrice = Math.floor(promo.discountedPrice);
+              }
+            } catch (err) {
+              console.warn(`查折扣失敗 (gameId=${g.id})`, err);
+            }
+
+            return {
+              id: g.id,
+              name: g.name,
+              description: g.description,
+              tags: g.categories?.map(c => c.name) || [],
+              price: g.price,
+              discount,
+              finalPrice,
+              cover: g.coverImageUrl,
+            };
+          })
+        );
+
+        this.allGames = mapped;
+        if (this.pagedGames.length) this.selectGame(this.pagedGames[0]);
+      } catch (e) {
+        console.error('載入遊戲列表失敗：', e);
+      }
+    },
+
+    selectGame(game) {
+      this.selectedGame = game;
+    },
+
+    async fetchRatingSummary(gameId) {
+      try {
+        const { data } = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`);
+        this.ratingSummary = data;
+      } catch (err) {
+        console.error('載入評分摘要失敗：', err);
+        this.ratingSummary = { totalReviews: 0, averageRating: 0 };
+      }
+    },
+
+    async fetchPreviewImages(gameId) {
+      try {
+        const { data } = await axios.get(`http://localhost:8080/api/games/${gameId}`);
+        this.previewImages = data.previewImages || [];
+      } catch (err) {
+        console.error('載入預覽圖失敗：', err);
+        this.previewImages = [];
+      }
+    },
+
+    goToGamePage(gameId) {
+      this.$router.push({ name: 'gamepage', params: { gameId } });
+    },
+
+    nextPage() {
+      if (this.endIndex < this.allGames.length) {
+        this.currentPage++;
+        this.selectGame(this.pagedGames[0]);
+      }
+    },
+
+    prevPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--;
+        this.selectGame(this.pagedGames[0]);
+      }
+    },
+  },
+};
+</script>
+
+<style scoped>
+.game-display-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
-  
-  </script>
-  
-  <style scoped>
-  .cyber-section {
-    width: 93%;
-    padding: 2rem;
-    background: #1a1a2a;
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
-    box-shadow: 0 0 20px var(--color-primary);
-    font-family: var(--font-family);
-  }
-  .cyber-title {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 0 8px var(--color-secondary);
-    color: var(--color-secondary);
-  }
-  .cyber-content {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-  .game-list {
-    padding-left: 0rem;
-    flex: 1;
-    min-width: 280px;
-    list-style: none;
-  }
 
-  .game-list li {
-    background: #1a1a2a;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-left: 2px solid var(--color-primary);
-    box-shadow: 0 0 6px var(--color-primary);
-  }
-  .game-list li:hover {
-  background: #252540;
-  transform: translateX(1px);
-  box-shadow: 0 0 10px var(--color-secondary);
+.nav-arrow {
+  font-size: 2rem;
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+  height: 100%;
+  width: 40px;
 }
-  .game-entry {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-  }
-  .game-thumb {
-    width: 200px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--color-muted);
-    box-shadow: 0 0 4px var(--color-primary);
-  }
-  .game-info {
-    flex: 1;
-  }
-  .game-title {
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.3rem;
-  }
-  .discount {
-    color: lime;
-  }
-  .game-desc,
-  .game-price {
-    color: var(--color-text);
-    font-size: 0.9rem;
-  }
-  .spotlight {
-    flex: 1;
-    background: #1f1f2e;
-    padding: 1rem;
-    border: 2px solid var(--color-secondary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 0 10px var(--color-secondary);
-    text-align: center;
-  }
-  .spotlight-main {
-    width: 100%;
-    border-radius: var(--border-radius);
-    margin-bottom: 1rem;
-    border: 1px solid var(--color-primary);
-  }
-  .spotlight-desc {
-    color: var(--color-muted);
-    margin-bottom: 0.5rem;
-  }
-  .spotlight-price {
-    color: var(--color-text);
-    font-weight: bold;
-    font-size: 1.2rem;
-  }
-  .spotlight-previews {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    justify-content: center;
-  }
-  .preview-img {
-    width: 33%;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--color-primary);
-  }
 
-  .spotlight-review {
-  margin-top: 3rem;
-  font-size: 0.95rem;
+.nav-arrow.left {
+  position: absolute;
+  left: 0;
+}
+
+.nav-arrow.right {
+  position: absolute;
+  right: 0;
+}
+
+.game-display {
+  display: flex;
+  gap: 1.5rem;
+  width: 1100px;
+  padding: 0.5rem;
   color: var(--color-text);
+  font-family: var(--font-family);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 20px var(--color-primary);
+  background: rgb(79, 123, 147);
+}
+
+.game-list {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.game-item {
+  display: flex;
+  align-items: center;
+  background: hsl(212, 55%, 15%);
+  padding-right: 0.75rem;
+  cursor: pointer;
+  transition: 0.25s;
+  height: 115px;
+}
+.game-item:hover,
+.game-item.selected {
+  border-color: var(--color-primary);
+  background: rgb(79, 123, 147);
+}
+.game-cover {
+  width: 210px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.info-section {
+  flex: 1;
+  margin-left: 0.5rem;
+  margin-top: 0.2rem;
+  overflow: hidden;
+  height: 100%;
+}
+.game-title {
+  font-size: 1rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  margin: 0 0 2px 0;
+}
+.game-description {
+  font-size: 0.75rem;
+  color: #c5d1e0;
+  margin: 2px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tag-row {
+  font-size: 0.75rem;
+  color: #9eb0c0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  margin-top: 7px;
+}
+.tag {
+  display: inline-block;
+  padding: 2px 6px;
+  margin-right: 4px;
+  font-size: 0.65rem;
+  border-radius: 3px;
+  background-color: #454547;
+  color: #ccc;
+}
+.price-section {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-left: auto;
+}
+.discount-badge {
+  background: #4a772f;
+  color: #bfff00;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+.price-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 80px;
+}
+.price-original {
+  font-size: 0.65rem;
+  text-decoration: line-through;
+}
+.price-final {
+  font-size: 0.90rem;
+  font-weight: bold;
+  color: #bfff00;
+}
+.game-review {
+  width: 34%;
+  display: flex;
+  flex-direction: column;
+}
+.review-summary h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ccc;
+  margin: 0;
+  text-align: left;
 }
 .review-summary {
-  font-weight: bold;
-  color: lime;
-  margin-left: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  margin: 1rem;
+  color: var(--color-primary);
+  background-color: hsl(210, 47%, 27%);
+  border-radius: 6px;
+  width: 85%;
 }
-.review-count {
-  color: #aaa;
-  margin-left: 0.3rem;
+.preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem;
 }
-
+.preview-img {
+  width: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+  max-height: 198px;
+}
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 500;
+  color: #ccc;
+}
+.rating-display .avg {
+  font-size: 1rem;
+  color: #fff;
+}
+.rating-display .stars {
+  display: flex;
+  font-size: 1rem;
+  color: #999;
+}
+.rating-display .star {
+  color: #666;
+}
+.rating-display .star.full {
+  color: #ffc107;
+}
 </style>

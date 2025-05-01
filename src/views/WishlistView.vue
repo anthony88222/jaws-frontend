@@ -5,10 +5,13 @@
 
       <div v-if="wishlist.length > 0" class="wishlist-list">
         <div v-for="item in wishlist" :key="item.id" class="wishlist-row">
-          <img :src="item.coverImageUrl" :alt="item.gameName" class="wishlist-thumb" />
-
+          <router-link :to="`/gamepage/${item.gameId}`">
+            <img :src="item.coverImageUrl" :alt="item.gameName" class="wishlist-thumb" />
+          </router-link>
           <div class="wishlist-info">
-            <h2 class="game-name">{{ item.gameName }}</h2>
+            <router-link :to="`/gamepage/${item.gameId}`" class="game-name">
+              <h2 class="game-name">{{ item.gameName }}</h2>
+            </router-link>
             <p class="game-description">{{ item.description }}</p>
 
             <div class="user-review">
@@ -68,12 +71,6 @@ const mockReviewMap = {
   5: { text: "壓倒性好評", link: "/reviews/2" }
 }
 
-const mockTagMap = {
-  1: ["動作類", "Rogue", "射擊"],
-  2: ["劇情", "平台跳躍"],
-  4: ["劇情", "Rogue"],
-  5: ["劇情", "開放世界", "魂類遊戲"]
-}
 
 // ✅ 取得分類資料（從後端）
 const fetchCategories = async (gameId) => {
@@ -214,6 +211,7 @@ onMounted(fetchWishlist)
   color: var(--color-primary);
   text-shadow: 0 0 6px var(--color-primary);
   word-wrap: break-word;
+  text-decoration: none;
 }
 
 .game-description {

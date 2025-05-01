@@ -31,9 +31,7 @@
     </div>
   </section>
 
-  <section class="section">
-    <HotNewReleases />
-  </section>
+  
 </template>
 
 <script setup>
