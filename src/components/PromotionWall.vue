@@ -116,10 +116,10 @@
     margin: 4rem auto;
     padding: 0.5rem;
     max-width: 100%;
-    background: linear-gradient(135deg, #0ff3, #f0f3);
+    background: linear-gradient(13deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
-    box-shadow: 0 0 6px var(--color-primary);
+    box-shadow: 0 0 8px var(--color-primary);
     height: 380px;
   }
   

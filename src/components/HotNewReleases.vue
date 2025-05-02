@@ -6,6 +6,17 @@
     <div class="game-display">
       <!-- 遊戲清單 -->
       <div class="game-list">
+        <!-- ✅ 排序選單放置這裡 -->
+        <div class="sort-bar">
+          <label for="sortSelect">排序：</label>
+          <select id="sortSelect" v-model="sortOption">
+            <option value="default">---------------------</option>
+            <option value="priceAsc">價格：由低到高</option>
+            <option value="priceDesc">價格：由高到低</option>
+            <option value="discountDesc">折扣：由高到低</option>
+          </select>
+        </div>
+
         <div
           v-for="game in pagedGames"
           :key="game.id"
@@ -49,15 +60,16 @@
             <span class="count">({{ ratingSummary.totalReviews.toLocaleString() }})</span>
           </div>
         </div>
-        <div class="preview-list">
-          <img
-            v-for="(img, idx) in previewImages.slice(0, 4)"
-            :key="idx"
-            :src="img"
-            loading="lazy"
-            class="preview-img"
-          />
-        </div>
+        <transition name="fade-preview" mode="out-in">
+          <div class="preview-list" :key="selectedGame.id">
+            <img
+              v-for="(img, idx) in previewImages.slice(0, 4)"
+              :key="img"
+              :src="img"
+              class="preview-img"
+            />
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -79,6 +91,7 @@ export default {
       previewImages: [],
       currentPage: 0,
       pageSize: 8,
+      sortOption: 'default',
     };
   },
   computed: {
@@ -87,10 +100,20 @@ export default {
     },
     endIndex() {
       return this.startIndex + this.pageSize;
-    },
-    pagedGames() {
-      return this.allGames.slice(this.startIndex, this.endIndex);
-    },
+    },sortedGames() {
+    let sorted = [...this.allGames];
+    if (this.sortOption === 'priceAsc') {
+      sorted.sort((a, b) => a.finalPrice - b.finalPrice);
+    } else if (this.sortOption === 'priceDesc') {
+      sorted.sort((a, b) => b.finalPrice - a.finalPrice);
+    } else if (this.sortOption === 'discountDesc') {
+      sorted.sort((a, b) => b.discount - a.discount);
+    }
+    return sorted;
+  },
+      pagedGames() {
+    return this.sortedGames.slice(this.startIndex, this.endIndex);
+  }
   },
   async mounted() {
     await this.fetchGames();
@@ -201,7 +224,7 @@ export default {
 }
 
 .nav-arrow {
-  font-size: 2rem;
+  font-size: 3rem;
   color: var(--color-primary);
   background: transparent;
   border: none;
@@ -214,32 +237,32 @@ export default {
 
 .nav-arrow.left {
   position: absolute;
-  left: 0;
+  left: -30px;
 }
 
 .nav-arrow.right {
   position: absolute;
-  right: 0;
+  right: -30px;
 }
 
 .game-display {
   display: flex;
   gap: 1.5rem;
-  width: 1100px;
-  padding: 0.5rem;
+  width: 1080px;
+  padding: 1.5rem;
   color: var(--color-text);
   font-family: var(--font-family);
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 20px var(--color-primary);
-  background: rgb(79, 123, 147);
+  background: #00000050;
 }
 
 .game-list {
   width: 60%;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.2rem;
 }
 .game-item {
   display: flex;
@@ -249,6 +272,9 @@ export default {
   cursor: pointer;
   transition: 0.25s;
   height: 115px;
+  border: var(--color-primary) 2px solid;
+  box-shadow: 0 0 10px var(--color-primary);
+  border-radius: 6px;
 }
 .game-item:hover,
 .game-item.selected {
@@ -336,6 +362,11 @@ export default {
   width: 34%;
   display: flex;
   flex-direction: column;
+  border: var(--color-primary) 2px solid;
+  background-color: rgb(79, 123, 147);
+  box-shadow: 0 0 10px var(--color-primary);
+  margin-left: 0.8rem ;
+  border-radius: 6px;
 }
 .review-summary h3 {
   font-size: 0.9rem;
@@ -356,7 +387,7 @@ export default {
 .preview-list {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.7rem;
   padding: 0.5rem;
 }
 .preview-img {
@@ -364,6 +395,7 @@ export default {
   border-radius: 6px;
   object-fit: cover;
   max-height: 198px;
+  animation: fadeIn 0.5s ease-in-out;
 }
 .rating-display {
   display: flex;
@@ -387,4 +419,41 @@ export default {
 .rating-display .star.full {
   color: #ffc107;
 }
+
+.fade-preview-enter-active,
+.fade-preview-leave-active {
+  transition: opacity 1ms ease;
+}
+.fade-preview-enter-from,
+.fade-preview-leave-to {
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ccc;
+  margin: 0.2rem 0 0.6rem 0;
+  padding-left: 0.5rem;
+}
+.sort-bar select {
+  padding: 4px 8px;
+  background-color: #1e1e2f;
+  color: #ccc;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+}
+
 </style>
