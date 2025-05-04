@@ -95,25 +95,28 @@ export default {
     };
   },
   computed: {
-    startIndex() {
-      return this.currentPage * this.pageSize;
-    },
-    endIndex() {
-      return this.startIndex + this.pageSize;
-    },sortedGames() {
-    let sorted = [...this.allGames];
-    if (this.sortOption === 'priceAsc') {
-      sorted.sort((a, b) => a.finalPrice - b.finalPrice);
-    } else if (this.sortOption === 'priceDesc') {
-      sorted.sort((a, b) => b.finalPrice - a.finalPrice);
-    } else if (this.sortOption === 'discountDesc') {
-      sorted.sort((a, b) => b.discount - a.discount);
-    }
-    return sorted;
+  startIndex() {
+    return this.currentPage * this.pageSize;
   },
-      pagedGames() {
-    return this.sortedGames.slice(this.startIndex, this.endIndex);
-  }
+  endIndex() {
+    return this.startIndex + this.pageSize;
+  },
+    sortedGames() {
+      return this.allGames
+        .filter(g => g.discount > 0)
+        .sort((a, b) => {
+          if (this.sortOption === 'priceAsc') return a.finalPrice - b.finalPrice;
+          if (this.sortOption === 'priceDesc') return b.finalPrice - a.finalPrice;
+          if (this.sortOption === 'discountDesc') return b.discount - a.discount;
+          return 0; // default
+        });
+    },
+    pagedGames() {
+      // 確保 computed 追蹤 sortedGames 的結果
+      const start = this.startIndex;
+      const end = this.endIndex;
+      return this.sortedGames.slice(start, end);
+    }
   },
   async mounted() {
     await this.fetchGames();
