@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>付款成功</title>
+</head>
+<body>
+  <h2>✅ 付款成功！即將前往訂單詳細頁面...</h2>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+
+    if (orderId) {
+      // 通知後端更新訂單狀態為已付款
+      fetch(`http://localhost:8080/order/confirm-payment?orderId=${orderId}`, {
+        method: 'POST'
+      })
+      .then(() => {
+        // 延遲 2 秒後跳轉
+        setTimeout(() => {
+            window.location.href = `/order/${orderId}?success=true`;
+        }, 2000);
+      })
+      .catch(() => {
+        // 若失敗仍跳轉
+        window.location.href = window.location.href = `/order/${orderId}?success=true`;
+
+      });
+    } else {
+      window.location.href = '/order-history';
+    }
+  </script>
+</body>
+</html>

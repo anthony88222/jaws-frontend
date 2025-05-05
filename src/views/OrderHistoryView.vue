@@ -17,6 +17,7 @@
         <span v-for="game in ord.gameNames" :key="game">{{ game }}</span>
       </p>
       <button @click="viewOrder(ord.orderId)">查看詳情</button>
+      <button v-if="ord.status === 1" @click="payAgain(ord.orderId)">再次付款</button>
       <button v-if="ord.status === 1" @click="cancelOrder(ord.orderId)">取消訂單</button>
     </div>
   </div>
@@ -61,6 +62,23 @@ const fetchOrders = async () => {
 const viewOrder = (orderId) => {
   router.push({ name: 'OrderDetail', params: { orderId } })
 }
+
+const payAgain = async (orderId) => {
+  try {
+    const response = await axios.post(`http://localhost:8080/order/pay-again`, null, {
+      params: { orderId }
+    })
+    const html = response.data
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(html)
+    newWindow.document.close()
+  } catch (error) {
+    console.error('重新付款失敗:', error)
+    alert('無法重新付款，請稍後再試。')
+  }
+}
+
+
 
 const cancelOrder = async (orderId) => {
   try {
