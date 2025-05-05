@@ -1,13 +1,23 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // 設定 @ 指向 src 資料夾
+      "@": path.resolve(__dirname, "./src"), // 設定 @ 指向 src 資料夾
     },
   },
-})
+  server: {
+    historyApiFallback: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080", // ✅ 這裡請填你的 Spring Boot 後端位址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
+});
