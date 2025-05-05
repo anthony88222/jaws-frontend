@@ -2,13 +2,16 @@
   <section class="section">
     <hero />
   </section>
-
+  
+  <PromotionWall/>
   <section class="section featured-games">
     <h2>熱門遊戲</h2>
     <div class="game-grid">
       <GameCard v-for="(img, index) in gameImages" :key="index" :img="img" />
     </div>
   </section>
+  
+
 
   <section class="section new-releases">
     <h2>最新上架</h2>
@@ -17,13 +20,6 @@
     </div>
   </section>
 
-  <section class="section sale-banner">
-    <div class="banner-content">
-      <h2>限時特賣 🔥</h2>
-      <p>Cyber Deals — 最低 30% 折扣</p>
-      <a href="#" class="btn-neon">立即查看</a>
-    </div>
-  </section>
 
   <section class="section categories">
     <h2>分類瀏覽</h2>
@@ -35,16 +31,14 @@
     </div>
   </section>
 
-  <section class="section">
-    <HotNewReleases />
-  </section>
-
+  
 </template>
 
 <script setup>
 import Hero from '../components/Hero.vue'
 import GameCard from '../components/GameCard.vue'
 import HotNewReleases from '../components/HotNewReleases.vue'
+import PromotionWall from '../components/PromotionWall.vue'
 
 const gameImages = [
   'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/578080/aa1c51a9b45c88e770b443d8d3cd28f3024b0760/ss_aa1c51a9b45c88e770b443d8d3cd28f3024b0760.1920x1080.jpg?t=1743471348',
@@ -75,7 +69,6 @@ const previewImage = [
   'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.600x338.jpg?t=1736385712',
   'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.600x338.jpg?t=1736385712'
 ]
-
 </script>
 
 

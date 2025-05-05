@@ -9,11 +9,22 @@ import LoginPage from '../views/LoginPage.vue'
 import LibraryView from '../views/LibraryView.vue'
 import OrderHistoryView from '../views/OrderHistoryView.vue'
 import OrderDetailView from '../views/OrderDetailView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import WishListView from '../views/WishlistView.vue'
+import GamePageView from '../views/GamePageView.vue'
+import PromotionView from '../views/PromotionView.vue'
+
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/cart', name: 'Cart', component: CartView },
   { path: '/friend', name: 'Friend', component: FriendView },
+  { path: '/login', name: 'LoginPage', component: LoginPage },
+  { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: '/wishlist', name: 'wishlist', component: WishListView },
+  { path: '/gamepage/:gameId', name: 'gamepage', component: GamePageView },
+  { path: '/promotion', name: 'promotion', component: PromotionView },
+
   { path: '/login', name: 'LoginPage',component:LoginPage},
   { path: '/library',name: 'Library',component:LibraryView},
   { path: '/order-history', name: 'OrderHistory', component: OrderHistoryView },
@@ -24,6 +35,20 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return new Promise((resolve) => {
+        // 先滾到頂部
+        window.scrollTo({ top: 0, behavior: 'auto' })
 
+        // 延遲 100ms 再跳回 savedPosition
+        setTimeout(() => {
+          resolve(savedPosition)
+        }, 300)
+      })
+    } else {
+      return { top: 0 }
+    }
+  }
+})
 export default router
