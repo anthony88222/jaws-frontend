@@ -10,7 +10,6 @@
 
     <!-- 頁尾 -->
     <Footer />
-  </div>
 </template>
 
 <script setup>

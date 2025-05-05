@@ -1,230 +1,244 @@
-<!-- 整合：個人資料 + 修改密碼 + 刪除帳號（含防呆 + 再確認） -->
 <template>
-    <div class="profile-view container">
-        <h1>歡迎回來，{{ user?.username }}</h1>
-
-        <!-- 🔹 使用者資訊編輯表單 -->
-        <form @submit.prevent="updateProfile" class="profile-form">
-            <div>
-                <label>帳號（無法修改）：</label>
-                <input type="text" :value="user?.username" disabled />
-            </div>
-
-            <div>
-                <label>Email：</label>
-                <input type="email" v-model="email" required />
-            </div>
-
-            <div>
-                <label>大頭貼 URL：</label>
-                <input type="text" v-model="avatarUrl" />
-            </div>
-
-            <div>
-                <label>個人簽名：</label>
-                <textarea v-model="signature" rows="2"></textarea>
-            </div>
-
-            <div>
-                <label><input type="checkbox" v-model="gamesPrivacy" /> 隱藏我的遊戲庫</label>
-            </div>
-
-            <div>
-                <label><input type="checkbox" v-model="reviewsPrivacy" /> 隱藏我的評論</label>
-            </div>
-
-            <button type="submit">儲存修改</button>
-        </form>
-
-        <div style="padding: 20px 0px 0px 0px;">
-            <hr />
+  <div class="profile-container">
+    <div class="profile-header">
+      <img :src="user.avatarUrl" alt="User Avatar" class="avatar" />
+      <div class="user-info">
+        <h2 class="username">{{ user.username }}</h2>
+        <p class="user-id">ID: {{ user.id }}</p>
+        <p class="signature">{{ user.signature }}</p>
+        <div class="level-bar">
+          <span>Lv. {{ user.level }}</span>
+          <div class="exp-bar">
+            <div class="exp-fill" :style="{ width: user.expPercent + '%' }"></div>
+          </div>
         </div>
-
-        <!-- 🔒 修改密碼表單 -->
-        <form @submit.prevent="changePassword" class="profile-form">
-            <h2>修改密碼</h2>
-            <div>
-                <label>舊密碼：</label>
-                <input type="password" v-model="oldPassword" required />
-            </div>
-            <div>
-                <label>新密碼：</label>
-                <input type="password" v-model="newPassword" required />
-            </div>
-            <div>
-                <label>再次輸入新密碼：</label>
-                <input type="password" v-model="confirmPassword" required />
-            </div>
-            <button type="submit">更新密碼</button>
-        </form>
-
-        <div style="padding: 20px 0px 0px 0px;">
-            <hr />
-        </div>
-
-        <!-- 🔥 刪除帳號表單 -->
-        <form @submit.prevent="deleteAccount" class="profile-form">
-            <h2 style="color: red">刪除帳號</h2>
-            <div>
-                <label>請輸入密碼以確認刪除：</label>
-                <input type="password" v-model="deletePassword" required />
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" v-model="confirmDelete" /> 我確認要永久刪除帳號
-                </label>
-            </div>
-            <button type="submit" :disabled="!confirmDelete" style="background-color: red;">永久刪除帳號</button>
-        </form>
-
-        <!-- 顯示訊息 -->
-        <p v-if="message" class="message">{{ message }}</p>
+      </div>
     </div>
+
+    <div class="profile-actions">
+      <button class="btn-neon-sm">個人資訊設定</button>
+      <button class="btn-neon-sm">隱私設定</button>
+      <button class="btn-neon-sm">錢包餘額 & 加值</button>
+      <button class="btn-neon-sm">購買紀錄</button>
+      <button class="btn-neon-sm">願望清單</button>
+    </div>
+
+    <div class="profile-columns">
+      <div class="profile-section">
+        <h3 class="section-title">擁有的遊戲</h3>
+        <div class="games-grid">
+          <div class="game-card" v-for="game in games" :key="game.id">
+            <img :src="game.cover" alt="game cover" class="game-cover" />
+            <p class="game-title">{{ game.name }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3 class="section-title">好友列表</h3>
+        <ul class="friend-list">
+          <li v-for="friend in friends" :key="friend.id">
+            <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
+            <span class="friend-name">{{ friend.name }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useAuthStore } from '@/stores/authStore'
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
-import axios from '@/axios'
+const user = {
+  id: 'JAWS2025',
+  username: 'TestUser',
+  avatarUrl: 'https://i.pravatar.cc/100?img=12',
+  signature: 'Yo！',
+  level: 12,
+  expPercent: 68,
+};
 
-const auth = useAuthStore()
-const { user } = storeToRefs(auth)
-const router = useRouter()
+const friends = [
+  { id: 1, name: 'Neo', avatarUrl: 'https://i.pravatar.cc/100?img=3' },
+  { id: 2, name: 'Trinity', avatarUrl: 'https://i.pravatar.cc/100?img=4' },
+  { id: 3, name: 'Morpheus', avatarUrl: 'https://i.pravatar.cc/100?img=5' },
+];
 
-// 個人資料欄位
-const email = ref(user.value?.email || '')
-const avatarUrl = ref(user.value?.avatarUrl || '')
-const signature = ref(user.value?.signature || '')
-const gamesPrivacy = ref(user.value?.gamesPrivacy ?? true)
-gamesPrivacy.value = Boolean(gamesPrivacy.value)
-const reviewsPrivacy = ref(user.value?.reviewsPrivacy ?? true)
-reviewsPrivacy.value = Boolean(reviewsPrivacy.value)
-
-// 密碼變更欄位
-const oldPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-
-// 刪除帳號欄位
-const deletePassword = ref('')
-const confirmDelete = ref(false)
-
-const message = ref('')
-
-// ✅ 更新個人資料
-async function updateProfile() {
-    try {
-        await axios.put('/user/me', {
-            email: email.value,
-            avatarUrl: avatarUrl.value,
-            signature: signature.value,
-            gamesPrivacy: gamesPrivacy.value,
-            reviewsPrivacy: reviewsPrivacy.value,
-        })
-
-        const profileRes = await axios.get('/user/me')
-        auth.user = profileRes.data.data
-
-        message.value = '資料更新成功 ✅'
-    } catch (err) {
-        console.error('更新失敗', err)
-        message.value = '更新失敗，請稍後再試 ❌'
-    }
-}
-
-// ✅ 修改密碼（加上防呆）
-async function changePassword() {
-    if (newPassword.value !== confirmPassword.value) {
-        message.value = '新密碼與確認密碼不一致 ❌'
-        return
-    }
-
-    if (newPassword.value === oldPassword.value) {
-        message.value = '新密碼不能與舊密碼相同 ❌'
-        return
-    }
-
-    try {
-        await axios.put('/user/update-password', {
-            oldPassword: oldPassword.value,
-            newPassword: newPassword.value,
-        })
-
-        message.value = '密碼更新成功 ✅'
-        oldPassword.value = ''
-        newPassword.value = ''
-        confirmPassword.value = ''
-    } catch (err) {
-        console.error('密碼更新失敗', err)
-        message.value = err.response?.data?.message || '密碼更新失敗，請確認舊密碼正確 ❌'
-    }
-}
-
-// ✅ 刪除帳號（soft delete + 登出）
-async function deleteAccount() {
-    if (!confirmDelete.value) {
-        message.value = '請勾選確認刪除 ✅'
-        return
-    }
-    try {
-        await axios.delete('/user/delete', {
-            data: { password: deletePassword.value },
-        })
-
-        message.value = '帳號已刪除，登出中...'
-        auth.logout()
-        router.push('/')
-    } catch (err) {
-        console.error('刪除帳號失敗', err)
-        message.value = err.response?.data?.message || '刪除帳號失敗 ❌'
-    }
-}
+const games = [
+  { id: 1, name: 'Cyberpunk 2077', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg' },
+  { id: 2, name: 'Elden Ring', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg' },
+  { id: 3, name: 'Hades', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg' },
+];
 </script>
 
 <style scoped>
-.profile-view {
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--border-radius);
-    text-shadow: 0 0 6px var(--color-primary);
+.profile-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1a1a2a;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 20px var(--color-primary);
 }
 
-.profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
-.profile-form input,
-.profile-form textarea {
-    padding: 0.5rem;
-    border: 1px solid var(--color-primary);
-    border-radius: var(--border-radius);
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--color-text);
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--color-secondary);
+  box-shadow: 0 0 10px var(--color-secondary);
 }
 
-button[type='submit'] {
-    padding: 0.5rem 1rem;
-    background-color: var(--color-primary);
-    border: none;
-    border-radius: var(--border-radius);
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
+.user-info {
+  color: var(--color-text);
+  flex: 1;
 }
 
-button[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
+.username {
+  font-size: 2rem;
+  color: var(--color-primary);
+  text-shadow: 0 0 6px var(--color-primary);
 }
 
-.message {
-    margin-top: 1rem;
-    color: yellow;
+.user-id,
+.signature {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  text-shadow: 0 0 4px var(--color-muted);
+}
+
+.level-bar {
+  margin-top: 0.75rem;
+}
+
+.level-bar span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+  margin-bottom: 0.2rem;
+}
+
+.exp-bar {
+  height: 12px;
+  width: 100%;
+  background: #222;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 6px var(--color-primary);
+}
+
+.exp-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.4s ease;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.btn-neon-sm {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  text-shadow: 0 0 5px var(--color-primary);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-neon-sm:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  box-shadow: 0 0 12px var(--color-primary);
+}
+
+.profile-columns {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.profile-section {
+  flex: 1 1 48%;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  color: var(--color-secondary);
+  text-shadow: 0 0 5px var(--color-secondary);
+  margin-bottom: 1rem;
+}
+
+.friend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.friend-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1a1a2a;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.friend-name {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.games-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: #1a1a2a;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.game-cover {
+  width: 80px;
+  border-radius: var(--border-radius);
+}
+
+.game-title {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  text-shadow: 0 0 4px var(--color-text);
 }
 </style>

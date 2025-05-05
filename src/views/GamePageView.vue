@@ -1,0 +1,568 @@
+<template>
+  <div class="game-page-container">
+    <div v-if="loading" class="text-center py-8">載入中…</div>
+    <div v-else>
+      <section class="game-hero-carousel">
+        <div class="carousel-wrapper-vertical">
+          <div class="main-image-container">
+            <img :src="screenshots[currentIndex]" alt="遊戲截圖" class="carousel-image" />
+          </div>
+          <div class="thumbnail-list">
+            <div v-for="(img, index) in screenshots" :key="index" class="thumbnail-item" :class="{ active: currentIndex === index }" @click="currentIndex = index">
+              <img :src="img" :alt="`縮圖${index}`" />
+            </div>
+          </div>
+        </div>
+
+        <div class="game-info right-info">
+          <img class="hero-cover" :src="game.coverImageUrl" :alt="game.name" />
+          <h1 class="game-title">{{ game.name }}</h1>
+          <p class="game-description">{{ game.description }}</p>
+          <ul class="meta-info">
+            <li>平均評分：
+              <span class="stars">
+                <span v-for="n in 5" :key="n">
+                  <i v-if="n <= Math.round(averageRating)" class="filled-star">★</i>
+                  <i v-else class="empty-star">☆</i>
+                </span>
+                ({{ averageRating }}/5)
+              </span>
+            </li>
+            <li>評論數：<span class="highlight">{{ game.reviews.length }} 則</span></li>
+            <li>分類：<span class="tag" v-for="cat in game.categories" :key="cat.id">{{ cat.name }}</span></li>
+          </ul>
+          <button class="cart-btn" @click="addToCart">加入購物車</button>
+        </div>
+      </section>
+
+      <!-- 遊戲介紹說明框 -->
+      <section class="game-description-box">
+        <h2 class="section-title">遊戲介紹</h2>
+        <p class="game-description-full">{{ game.description }}</p>
+      </section>
+
+      <section class="user-review">
+        <h2 class="section-title">我要評論</h2>
+        <textarea v-model="newComment" rows="5" placeholder="輸入您的評論..." class="comment-box" />
+        <div class="rate-group">
+          <label>評分：</label>
+          <span v-for="n in 5" :key="n" class="rating-star" @click="newRate = n">
+            <i :class="n <= newRate ? 'filled-star' : 'empty-star'">★</i>
+          </span>
+          ({{ newRate }}/5)
+        </div>
+        <button class="cart-btn" @click="submitReview" :disabled="submitting">
+          {{ submitting ? '送出中...' : '送出評論' }}
+        </button>
+      </section>
+
+      <section class="edition-section review-container">
+        <h2 class="section-title">玩家評論</h2>
+        <ul class="review-list">
+          <li v-for="review in game.reviews" :key="review.id" class="review-box">
+            <strong>玩家 {{ review.userId }}：</strong>
+            <div class="stars-with-score">
+              <div class="stars">
+                <span v-for="n in 5" :key="n">
+                  <i v-if="n <= Math.round(review.rate)" class="filled-star">★</i>
+                  <i v-else class="empty-star">☆</i>
+                </span>
+              </div>
+              <span class="score-text">({{ review.rate }}/5)</span>
+            </div>
+            <div class="comment-text">{{ review.comment }}</div>
+          </li>
+        </ul>
+      </section> 
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
+const gameId = Number(route.params.gameId)
+const loading = ref(true)
+const submitting = ref(false)
+const newComment = ref('')
+const newRate = ref(5)
+const game = ref({ 
+  id: null, 
+  name: '', 
+  description: '', 
+  coverImageUrl: '', 
+  categories: [], 
+  reviews: [] })
+const averageRating = ref(0)
+const ratingSummary = ref({ averageRating: 0, totalReviews: 0 })
+const screenshots = ref([
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
+  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg'
+])
+const currentIndex = ref(0)
+
+const fetchGameDetail = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}`)
+    game.value = res.data
+  } catch (err) {
+    console.error('取得遊戲細節失敗', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchRatingSummary = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
+    ratingSummary.value = res.data
+    averageRating.value = ratingSummary.value.averageRating
+  } catch (err) {
+    console.error('取得評分摘要失敗', err)
+  }
+}
+
+const fetchCategories = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+    game.value.categories = res.data
+  } catch (err) {
+    console.error('取得分類失敗', err)
+  }
+}
+
+function calculateAverage() {
+  const total = game.value.reviews.reduce((sum, r) => sum + r.rate, 0)
+  averageRating.value = game.value.reviews.length
+    ? (total / game.value.reviews.length).toFixed(1)
+    : 0
+}
+
+let carouselInterval = null
+
+async function submitReview() {
+  if (!newComment.value || newRate.value <= 0) {
+    alert('請填寫完整評論與正確分數')
+    return
+  }
+  submitting.value = true
+  try {
+    await axios.post(`http://localhost:8080/api/reviews/game/${gameId}`, {
+      userId: 8, // 假設使用者 ID
+      rate: newRate.value,
+      comment: newComment.value
+    })
+    alert('評論成功！')
+    await fetchGameDetail()
+    await fetchRatingSummary()
+    newComment.value = ''
+    newRate.value = 5
+  } catch (err) {
+    console.error('新增評論失敗', err)
+    alert('新增評論失敗')
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function addToCart() {
+  try {
+    await axios.post('http://localhost:8080/api/cart', {
+      userId: 5, // ⚠️ 這裡記得日後換成登入者的 ID
+      gameId: game.value.id
+    })
+    alert('成功加入購物車！')
+  } catch (err) {
+    console.error('加入購物車失敗', err)
+    alert('加入購物車失敗')
+  }
+}
+
+onMounted(() => {
+  fetchGameDetail()
+  fetchRatingSummary()
+  fetchCategories()
+})
+</script>
+
+<style scoped>
+/* 新增的介紹區塊樣式 */
+.game-description-box {
+  background: linear-gradient(135deg, #0e1628, #1e0040);
+  border: 1px solid var(--color-primary);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 12px var(--color-primary);
+  margin: 2rem 0;
+}
+
+.game-description-full {
+  color: #ccc;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.comment-box {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #555;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.edition-row-section {
+  margin-top: 3rem;
+}
+
+.edition-row-horizontal {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.edition-card-horizontal {
+  flex: 1;
+  min-width: 280px;
+  background: #1a1c2e;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.75rem;
+  padding: 1rem 2rem;
+  box-shadow: 0 0 12px var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+:root {
+    --color-primary: #00fff7;
+    --color-secondary: #ff00ff;
+  }
+  
+  :root {
+  --color-primary: #00fff7;
+  --color-secondary: #ff00ff;
+}
+
+/* 基本容器 */
+.game-page-container {
+  padding: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  color: #e0e0e0;
+}
+
+/* Hero 區塊 */
+.game-hero-carousel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #080b17, #230034);
+  border: 2px solid var(--color-primary);
+  border-radius: 1rem;
+  box-shadow: 0 0 10px var(--color-primary);
+  padding: 2rem;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* 左側圖片上下結構 */
+.carousel-wrapper-vertical {
+  display: flex;
+  flex-direction: column;
+  width: 640px;
+}
+
+.main-image-container {
+  width: 100%;
+  height: 360px;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+
+/* 修正縮圖滾動問題 */
+.thumbnail-list {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 60px;
+}
+
+.thumbnail-item {
+  width: 100px;
+  height: 56px;
+  border: 2px solid transparent;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.thumbnail-item:hover {
+  transform: scale(1.05);
+  border-color: #00ccff;
+}
+
+.thumbnail-item.active {
+  border-color: var(--color-secondary);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 右側資訊 */
+.right-info {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-cover {
+  width: 100%;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 0 12px var(--color-primary);
+}
+
+.game-title {
+  /* color: var(--color-secondary); */
+  font-size: 2rem;
+  margin: 0.7rem;
+  /* text-shadow: 0 0 10px var(white); */
+}
+
+.game-description {
+  font-size: 0.95rem;
+  color: #bbb;
+  margin-bottom: 1rem;
+}
+
+.meta-info {
+  list-style: none;
+  padding: 0;
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.meta-info .highlight {
+  color: var(--color-primary);
+  font-weight: bold;
+}
+
+.tag {
+  background-color: #00ccff;
+  color: #000;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-left: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.buy-btn {
+  background-color: var(--color-secondary);
+  border-radius: 1rem;
+  color: white;
+  font-weight: bold;
+}
+
+/* 遊戲版本 */
+.edition-section {
+  margin-top: 3rem;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 4px var(white);
+}
+
+.edition-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1c2e;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.75rem;
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 12px var(--color-primary);
+}
+
+.edition-left {
+  flex: 1;
+}
+
+.edition-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-direction: row;
+}
+
+.edition-name {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.edition-desc {
+  font-size: 0.95rem;
+  color: #aaa;
+}
+
+.edition-price {
+  text-align: right;
+  font-size: 1.1rem;
+}
+
+.edition-price .original {
+  text-decoration: line-through;
+  margin-right: 0.5rem;
+  color: #666;
+}
+
+/* ===== 新增區塊：價格樣式依折扣變色 ===== */
+.price-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.discount-tag {
+  background-color: #4a772f;
+  color: #bfff00;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.3rem;
+  border-radius: 2px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.price-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.price-text.green .final-price {
+  color: #bfff00;
+  text-shadow: 0 0 6px #bfff00;
+}
+
+.price-text.white .final-price {
+  color: #fff;
+  text-shadow: none;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+.final-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* 加入購物車按鈕 */
+.cart-btn {
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-shadow: 0 0 4px var(--color-primary);
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.cart-btn:hover {
+  background-color: var(--color-primary);
+  color: #000;
+  box-shadow: 0 0 12px var(--color-primary);
+}
+
+.stars-with-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.stars {
+  color: gold;
+  font-size: 1.2rem;
+}
+
+.filled-star {
+  color: gold;
+}
+
+.empty-star {
+  color: lightgray;
+}
+
+.score-text {
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.review-container {
+  border: 1px solid var(--color-primary);
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.review-box {
+  padding: 1rem 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.review-box:last-child {
+  border-bottom: none;
+}
+
+.comment-text {
+  margin-top: 0.5rem;
+  color: #ddd;
+}
+
+</style>
