@@ -32,8 +32,12 @@
 
       <section class="chat-box">
         <div class="chat-messages" ref="messageList">
-          <div v-for="msg in messages" :key="msg.id" :class="['bubble', msg.from === 'me' ? 'me' : 'them']">
-            {{ msg.text }}
+          <div v-for="msg in messages" :key="msg.id" class="message-wrapper" :class="msg.from">
+            <img v-if="msg.from === 'them'" :src="msg.avatar" class="avatar" />
+            <div :class="['bubble', msg.from === 'me' ? 'me' : 'them']">
+              {{ msg.text }}
+            </div>
+            <small class="timestamp">{{ msg.time }}</small>
           </div>
         </div>
         <div class="chat-input">
@@ -59,6 +63,8 @@ const recentChats = ref([
   { id: 3, name: '好友名稱 3' },
 ])
 
+const DEFAULT_AVATAR = '/logo4.png'
+
 const messages = ref([])
 const newMessage = ref('')
 const messageList = ref(null)
@@ -69,6 +75,18 @@ const receiverId = route.query.receiverId
 
 let stompClient = null
 
+const getHistory = async () => {
+  const res = await fetch(`/api/chat/history?senderId=${senderId}&receiverId=${receiverId}`)
+  const history = await res.json()
+  messages.value = history.map(m => ({
+    id: Date.now() + Math.random(),
+    from: m.senderId == senderId ? 'me' : 'them',
+    avatar: m.senderId == senderId ? null : DEFAULT_AVATAR,
+    text: m.message,
+    time: formatTime(m.sendAt)
+  }))
+}
+
 const connect = () => {
   const socket = new SockJS('/ws')
   stompClient = Stomp.over(socket)
@@ -77,10 +95,21 @@ const connect = () => {
     console.log('Connected: ' + frame)
 
     const topic = `/topic/private/${receiverId}-${senderId}`
+
     stompClient.subscribe(topic, msg => {
-      messages.value.push({ id: Date.now(), from: 'them', text: msg.body })
+      const payload = JSON.parse(msg.body)
+
+      messages.value.push({
+        id: Date.now(),
+        from: payload.senderId == senderId ? 'me' : 'them',
+        avatar: payload.senderId == senderId ? null : DEFAULT_AVATAR,
+        text: payload.message,
+        time: formatTime(payload.sendAt)
+      })
+
       scrollToBottom()
     })
+
   })
 }
 
@@ -91,7 +120,14 @@ const sendMessage = () => {
       receiverId,
       message: newMessage.value
     }))
-    messages.value.push({ id: Date.now(), from: 'me', text: newMessage.value })
+
+    messages.value.push({
+      id: Date.now(),
+      from: 'me',
+      text: newMessage.value,
+      time: formatTime(new Date().toISOString())
+    })
+
     newMessage.value = ''
     scrollToBottom()
   }
@@ -105,8 +141,11 @@ const scrollToBottom = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await getHistory()
   connect()
+  await nextTick()
+  scrollToBottom()
 })
 
 function selectChat(name) {
@@ -115,6 +154,13 @@ function selectChat(name) {
 
 function navigateTo(section) {
   alert(`前往：${section}`)
+}
+
+function formatTime(isoString) {
+  const date = new Date(isoString)
+  const hours = date.getHours()
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
 }
 
 </script>
@@ -133,7 +179,7 @@ function navigateTo(section) {
 
 .friend-list,
 .recent-chats {
-  flex-basis:15%;
+  flex-basis: 15%;
   background-color: #111;
   padding: 1rem;
   border-right: 2px solid var(--color-primary);
@@ -200,7 +246,9 @@ function navigateTo(section) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1rem;  min-height: 0;
+  padding: 0rem 0.75rem 0rem 0.25rem;
+  min-height: 0;
+  max-height: calc(90vh - 180px);
 }
 
 .bubble {
@@ -223,8 +271,7 @@ function navigateTo(section) {
   text-shadow: 0 0 4px #fff;
   box-shadow:
     0 0 5px var(--color-secondary),
-    0 0 10px var(--color-secondary),
-    0 0 15px var(--color-secondary);
+    0 0 10px var(--color-secondary);
 }
 
 .bubble.me {
@@ -234,15 +281,14 @@ function navigateTo(section) {
   text-shadow: 0 0 4px #fff;
   box-shadow:
     0 0 5px var(--color-primary),
-    0 0 10px var(--color-primary),
-    0 0 15px var(--color-primary);
+    0 0 10px var(--color-primary);
 }
-
 
 .chat-input {
   margin-top: 1rem;
   border-top: 1px solid var(--color-primary);
   padding-top: 1rem;
+  flex-shrink: 0;
 }
 
 .input-wrapper {
@@ -268,6 +314,59 @@ function navigateTo(section) {
   display: flex;
   flex-direction: column;
   min-height: 90vh;
+}
+
+.message-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.message-wrapper.them {
+  flex-direction: row;
+}
+
+.message-wrapper.me {
+  flex-direction: row-reverse;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.message-wrapper.me .timestamp {
+  margin-right: 0.25rem;
+}
+
+.message-wrapper.them .timestamp {
+  margin-left: 0.25rem;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 4px var(--color-primary);
 }
 
 </style>
