@@ -24,8 +24,6 @@ const routes = [
   { path: '/wishlist', name: 'wishlist', component: WishListView },
   { path: '/gamepage/:gameId', name: 'gamepage', component: GamePageView },
   { path: '/promotion', name: 'promotion', component: PromotionView },
-
-  { path: '/login', name: 'LoginPage',component:LoginPage},
   { path: '/library',name: 'Library',component:LibraryView},
   { path: '/order-history', name: 'OrderHistory', component: OrderHistoryView },
   { path: '/order/:orderId', name: 'OrderDetail', component: OrderDetailView },
