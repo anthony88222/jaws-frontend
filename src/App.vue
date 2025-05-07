@@ -1,10 +1,14 @@
 <template>
-  <Header />
-  <div class="layout">
-    <div class="container">
-        <router-view /> <!-- 顯示目前路由的內容 -->
-      </div>
+  <div class="page-wrapper">
+    <!-- 頁首 -->
+    <Header />
+
+    <!-- 主內容 -->
+    <div class="page-content container">
+      <router-view />
     </div>
+
+    <!-- 頁尾 -->
     <Footer />
 </template>
 
@@ -19,4 +23,21 @@ import HomeView from './views/HomeView.vue'
 @import './styles/base.css';
 @import './styles/variables.css';
 @import './styles/layout.css';
+
+/* Sticky Footer 關鍵樣式 */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  flex: 1;
+  /* 撐滿可用空間，讓 Footer 推到底 */
+}
+
+/* * {
+  outline: 1px solid red;
+}
+  */
 </style>

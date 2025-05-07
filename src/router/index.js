@@ -1,5 +1,6 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
 
 // 匯入頁面元件
 import HomeView from '../views/HomeView.vue'
@@ -16,11 +17,22 @@ import PromotionView from '../views/PromotionView.vue'
 
 
 const routes = [
-  { path: '/', name: 'Home', component: HomeView },
-  { path: '/cart', name: 'Cart', component: CartView },
-  { path: '/friend', name: 'Friend', component: FriendView },
-  { path: '/login', name: 'LoginPage', component: LoginPage },
-  { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: "/", name: "Home", component: HomeView },
+  { path: "/login", name: "LoginPage", component: LoginPage },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: ProfileView,
+    meta: { requiresAuth: true }, // 需要登入的頁面＋這行
+  },
+  { path: "/friend", name: "Friend", component: FriendView },
+  { path: "/cart", name: "Cart", component: CartView },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: ProfileView,
+    meta: { requiresAuth: true }, // 需要登入的頁面＋這行
+  },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
   { path: '/gamepage/:gameId', name: 'gamepage', component: GamePageView },
   { path: '/promotion', name: 'promotion', component: PromotionView },
@@ -29,6 +41,8 @@ const routes = [
   { path: '/order/:orderId', name: 'OrderDetail', component: OrderDetailView },
   
 ]
+
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -49,4 +63,15 @@ const router = createRouter({
     }
   }
 })
+
+
+router.beforeEach((to, from, next) => {
+  const auth = useAuthStore();
+  if (to.meta.requiresAuth && !auth.token) {
+    next({ name: "LoginPage" });
+  } else {
+    next();
+  }
+});
+
 export default router

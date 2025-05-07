@@ -1,18 +1,30 @@
 <template>
-  <div v-if="order && order.orderId" class="order-detail">
-    <h2>訂單詳情</h2>
-    <p>訂單編號：{{ order.orderId }}</p>
-    <p>支付狀態：{{ statusText(order.status) }}</p>
-    <p>總金額：{{ order.total }} 元</p>
+  <div class="order-detail" v-if="order">
+    <div class="main-content">
+      <h2>訂單詳情</h2>
+      <p>訂單編號: {{ order.orderId }}</p>
+      <p>支付狀態: {{ statusText(order.status) }}</p>
+      <p>總金額: {{ order.total }} 元</p>
 
-    <p>遊戲清單：</p>
-    <ul>
-      <li v-for="(name, index) in order.gameNames" :key="index">
-        {{ name }} - {{ order.gamePrices?.[index] }} 元
-      </li>
-    </ul>
+      <p>遊戲清單:</p>
+      <div class="game-list">
+        <div class="game-card" v-for="(name, index) in order.gameNames" :key="index">
+          <img
+            class="game-image"
+            :src="order.gameImages?.[index]"
+            :alt="name"
+          />
+          <div class="game-title">{{ name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-else class="loading">
+    <p>載入中...</p>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -20,7 +32,8 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
-const order = ref({})
+const order = ref(null)
+
 
 const fetchOrderDetail = async () => {
   try {
