@@ -11,13 +11,7 @@
         <ul>
           <li><router-link to="/">首頁</router-link></li>
           <li class="dropdown">
-            <a href="#">遊戲庫</a>
-            <ul class="dropdown-menu">
-              <li><a href="#" id="list">動作遊戲</a></li>
-              <li><a href="#" id="list">射擊遊戲</a></li>
-              <li><a href="#" id="list">卡牌遊戲</a></li>
-            </ul>
-          </li>
+            <a href="#">遊戲庫</a></li>
           <li><a href="#">商店</a></li>
 
           <!-- ✅ 使用者登入狀態切換區 -->
