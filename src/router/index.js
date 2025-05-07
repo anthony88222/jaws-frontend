@@ -15,7 +15,6 @@ import WishListView from '../views/WishlistView.vue'
 import GamePageView from '../views/GamePageView.vue'
 import PromotionView from '../views/PromotionView.vue'
 
-
 const routes = [
   { path: "/", name: "Home", component: HomeView },
   { path: "/login", name: "LoginPage", component: LoginPage },
@@ -34,12 +33,13 @@ const routes = [
     meta: { requiresAuth: true }, // 需要登入的頁面＋這行
   },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
-  { path: '/gamepage/:gameId', name: 'gamepage', component: GamePageView },
+  { path: '/gamepage/:gameId', name: 'GamePage', component: () => import('@/views/GamePageView.vue'), props: true },
   { path: '/promotion', name: 'promotion', component: PromotionView },
   { path: '/library',name: 'Library',component:LibraryView},
   { path: '/order-history', name: 'OrderHistory', component: OrderHistoryView },
   { path: '/order/:orderId', name: 'OrderDetail', component: OrderDetailView },
-  
+    {path: '/category/:categoryName', name: 'CategoryView', component: () => import('@/views/CategoryView.vue'), props: true },
+
 ]
 
 
