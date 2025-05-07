@@ -10,9 +10,13 @@
       <nav>
         <ul>
           <li><router-link to="/">首頁</router-link></li>
-          <li class="dropdown">
-            <a href="#">遊戲庫</a></li>
-          <li><a href="#">商店</a></li>
+
+          <li><router-link to="/library">遊戲庫</router-link></li>
+
+          <li><router-link to="/order-history">歷史訂單</router-link></li>
+
+          <li><router-link to="/promotion">商店</router-link></li>
+
 
           <!-- ✅ 使用者登入狀態切換區 -->
           <li v-if="auth.user" class="dropdown">
