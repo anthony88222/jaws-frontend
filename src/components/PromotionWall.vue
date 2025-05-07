@@ -15,30 +15,29 @@
             @mouseover="stopAutoSlide"
             @mouseleave="startAutoSlide"
           >
-            <div
+            <router-link
               v-for="item in visiblePromotions"
               :key="item.game.id"
               class="promo-card"
+              :to="{ name: 'GamePage', params: { gameId: item.game.id } }"
             >
               <img :src="item.game.coverImageUrl" :alt="item.game.name" />
               <div class="promo-overlay">
                 <h3>{{ item.game.name }}</h3>
-  
-                <div class="price-box-bottom" v-if="item.discountRate">
-                  <div class="discount-tag">-{{ item.discountRate }}%</div>
-                  <div class="price-text">
-                    <div class="original-price">NT$ {{ item.game.price }}</div>
-                    <div class="final-price">
-                      NT$ {{ getDiscountedPrice(item) }}
+
+                  <div class="price-box-bottom" v-if="item.discountRate">
+                    <div class="discount-tag">-{{ item.discountRate }}%</div>
+                    <div class="price-text">
+                      <div class="original-price">NT$ {{ item.game.price }}</div>
+                      <div class="final-price">NT$ {{ getDiscountedPrice(item) }}</div>
                     </div>
                   </div>
-                </div>
-  
+
                 <div class="price-box-bottom" v-else>
                   <div class="final-price">NT$ {{ item.game.price }}</div>
                 </div>
               </div>
-            </div>
+            </router-link>
           </div>
         </transition>
   
