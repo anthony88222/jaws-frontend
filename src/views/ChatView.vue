@@ -4,16 +4,13 @@
       <aside class="friend-list">
         <h2 class="title">好友</h2>
         <ul>
-          <li class="clickable" @click="navigateTo('我的好友')">
+          <li class="clickable" @click="navigateTo('/friend')">
             <span class="friend-name">我的好友</span>
           </li>
-          <li class="clickable" @click="navigateTo('訊息')">
+          <li class="clickable" @click="refreshPage">
             <span class="friend-name">聊天</span>
           </li>
-          <li class="clickable" @click="navigateTo('新增好友')">
-            <span class="friend-name">新增好友</span>
-          </li>
-          <li class="clickable" @click="navigateTo('好友邀請')">
+          <li class="clickable" @click="navigateTo('/invite')">
             <span class="friend-name">好友邀請</span>
           </li>
         </ul>
@@ -53,7 +50,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 
@@ -69,11 +66,20 @@ const messages = ref([])
 const newMessage = ref('')
 const messageList = ref(null)
 
+const router = useRouter()
 const route = useRoute()
 const senderId = route.query.senderId
 const receiverId = route.query.receiverId
 
 let stompClient = null
+
+function refreshPage() {
+    window.location.reload()
+}
+
+function navigateTo(path) {
+    router.push(path)
+}
 
 const getHistory = async () => {
   const res = await fetch(`/api/chat/history?senderId=${senderId}&receiverId=${receiverId}`)
@@ -152,10 +158,6 @@ function selectChat(name) {
   alert(`開啟與 ${name} 的聊天`)
 }
 
-function navigateTo(section) {
-  alert(`前往：${section}`)
-}
-
 function formatTime(isoString) {
   const date = new Date(isoString)
   const hours = date.getHours()
@@ -223,8 +225,8 @@ function formatTime(isoString) {
 
 .friend-name,
 .chat-name {
-  text-shadow: 0 0 4px var(--color-primary);
-  font-size: 1rem;
+  text-shadow: 0 0 5px var(--color-primary);
+  font-size: 1.2rem;
 }
 
 .chat-info {

@@ -1,40 +1,32 @@
 <template>
   <div class="layout">
-    <main class="chat-container">
-      <!-- 左側好友選單 -->
+    <main class="friend-container">
+
       <aside class="friend-list">
         <h2 class="title">好友</h2>
         <ul>
-          <li class="clickable" @click="navigateTo('我的好友')">
+          <li class="clickable" @click="refreshPage">
             <span class="friend-name">我的好友</span>
           </li>
-          <li class="clickable" @click="navigateTo('訊息')">
+          <li class="clickable" @click="navigateTo('/chat')">
             <span class="friend-name">聊天</span>
           </li>
-          <li class="clickable" @click="navigateTo('新增好友')">
-            <span class="friend-name">新增好友</span>
-          </li>
-          <li class="clickable" @click="navigateTo('好友邀請')">
+          <li class="clickable" @click="navigateTo('/invite')">
             <span class="friend-name">好友邀請</span>
           </li>
         </ul>
       </aside>
-
-      <!-- 右側好友卡片區 -->
       <section class="friends-grid">
         <h2 class="title left-align">我的好友</h2>
         <div class="grid">
-          <div
-            v-for="friend in friends"
-            :key="friend.id"
-            class="friend-card"
-          >
+          <div v-for="friend in friends" :key="friend.id" class="friend-card">
             <div class="friend-content">
               <img class="avatar" :src="friend.avatar" alt="Avatar" />
               <div class="friend-name center">{{ friend.name }}</div>
-              <button class="message-btn" @click="selectChat(friend.name)">
+              <button class="message-btn" @click="selectChat(friend.name, friend.id)">
                 聊天
               </button>
+              <div class="friend-date">{{ friend.time }}</div>
             </div>
           </div>
         </div>
@@ -44,28 +36,67 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-const friends = ref([
-  { id: 1, name: '好友名稱 1', avatar: '/friend1.png' },
-  { id: 2, name: '好友名稱 2', avatar: '/friend2.png' },
-  { id: 3, name: '好友名稱 3', avatar: '/friend3.png' },
-  { id: 4, name: '好友名稱 4', avatar: '/friend4.png' },
-  { id: 5, name: '好友名稱 5', avatar: '/friend5.png' },
-  { id: 6, name: '好友名稱 6', avatar: '/friend6.png' }
-])
+const friends = ref([])
+const DEFAULT_AVATAR = '/logo4.png'
+const userId = 1
+const router = useRouter()
 
-function selectChat(name) {
-  alert(`開啟與 ${name} 的聊天`)
+function refreshPage() {
+  window.location.reload()
 }
 
-function navigateTo(section) {
-  alert(`前往：${section}`)
+function navigateTo(path) {
+  router.push(path)
 }
+
+const fetchFriends = async () => {
+  try {
+    const res = await fetch(`/api/friend/getFriends?userId=${userId}`)
+    const data = await res.json()
+
+    friends.value = data.map(f => {
+      const isSelfUser = f.userId === userId
+      const otherId = isSelfUser ? f.friendId : f.userId
+
+      return {
+        id: otherId,
+        name: f.username,
+        avatar: f.avatarUrl || DEFAULT_AVATAR,
+        time: formatTime(f.updatedAt) 
+      }
+    })
+  } catch (err) {
+    console.error('取得好友失敗', err)
+  }
+}
+
+function selectChat(name, receiverId) {
+  router.push({
+    path: '/chat',
+    query: {
+      senderId: userId,
+      receiverId
+    }
+  })
+}
+
+function formatTime(isoString) {
+  const date = new Date(isoString)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+onMounted(fetchFriends)
 </script>
 
+
 <style scoped>
-.chat-container {
+.friend-container {
   display: flex;
   height: 65vh;
   margin: 2rem auto;
@@ -76,7 +107,7 @@ function navigateTo(section) {
 }
 
 .friend-list {
-  flex-basis:15%;
+  flex-basis: 15%;
   background-color: #111;
   padding: 1rem;
   border-right: 2px solid var(--color-primary);
@@ -114,14 +145,18 @@ function navigateTo(section) {
 }
 
 .friend-name {
-  text-shadow: 0 0 4px var(--color-primary);
-  font-size: 1rem;
+  text-shadow: 0 0 5px var(--color-primary);
+  font-size: 1.2rem;
   text-align: left;
   width: 100%;
 }
 
 .friend-name.center {
+  padding: 0.5rem;
   text-align: center;
+  font-size: 1rem;
+  color: var(--color-primary);
+  text-shadow: 0 0 4px var(--color-primary);
 }
 
 .friends-grid {
@@ -154,7 +189,8 @@ function navigateTo(section) {
   padding: 1rem;
   text-align: center;
   box-shadow: 0 0 10px var(--color-primary);
-  width: 180px;
+  width: 170px;
+  height: 220px;
 }
 
 .friend-content {
@@ -175,9 +211,8 @@ function navigateTo(section) {
 .message-btn {
   background: #ff00ff;
   border: none;
-  padding: 0.4rem 1rem;
+  padding: 0.5rem 1rem;
   border-radius: 8px;
-  margin-top: 0.5rem;
   cursor: pointer;
   font-weight: bold;
   color: #000;
@@ -189,10 +224,15 @@ function navigateTo(section) {
   box-shadow: 0 0 6px #ff00ff;
 }
 
+.friend-date {
+  margin-top: 1rem;
+  font-size: 1rem;
+  text-shadow: 0 0 5px
+}
+
 .layout {
   display: flex;
   flex-direction: column;
   min-height: 90vh;
 }
-
 </style>
