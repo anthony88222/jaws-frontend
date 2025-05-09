@@ -151,7 +151,7 @@
   }
   
   .promo-card {
-    /* min-width: 220px; */
+    min-width: 245px;
     max-width: 245px;
     max-height: 211px;
     flex-shrink: 0;
