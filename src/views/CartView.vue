@@ -10,7 +10,7 @@
       <div v-else class="cart-list">
         <div class="cart-row" v-for="item in cart" :key="item.id">
           <img class="cart-thumb" :src="item.coverImageUrl" :alt="item.gameName" />
-          
+
           <div class="cart-info">
             <h2 class="game-name">{{ item.gameName }}</h2>
           </div>
@@ -37,7 +37,8 @@
 
         <div class="cart-summary">
           <p>Total: NT$ {{ totalPrice }}</p>
-          <button class="btn-neon checkout-btn">CHECKOUT</button>
+          <!-- ✅ 加上跳轉結帳頁邏輯 -->
+          <button class="btn-neon checkout-btn" @click="goToCheckout">CHECKOUT</button>
         </div>
       </div>
     </div>
@@ -46,8 +47,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
+const router = useRouter()
 const userId = 1
 const cart = ref([])
 const promotionMap = ref({})
@@ -59,6 +62,14 @@ const totalPrice = computed(() => {
     return sum + price
   }, 0).toFixed(0)
 })
+
+// ✅ 新增：跳轉至結帳頁面
+function goToCheckout() {
+  router.push({
+    path: '/checkout',
+    query: { total: totalPrice.value }
+  })
+}
 
 async function fetchCart() {
   const res = await axios.get(`http://localhost:8080/api/cart/${userId}`)
@@ -80,6 +91,7 @@ async function removeFromCart(gameId) {
 
 onMounted(fetchCart)
 </script>
+
 
 <style scoped>
 .container {

@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", {
         // 1️⃣ 發送登入請求
         const res = await axios.post("/user/login", { username, password });
         console.log("🚀 登入回傳：", res.data);
-        this.token = res.data.data.accessToken; // 🔁 維持你原本的命名習慣（token）
+        this.token = res.data.data.token;// 🔁 維持你原本的命名習慣（token）
 
         // 2️⃣ 用 token 呼叫 /me 拿使用者資訊
         const profileRes = await axios.get("/user/me", {

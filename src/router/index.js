@@ -26,20 +26,15 @@ const routes = [
   },
   { path: "/friend", name: "Friend", component: FriendView },
   { path: "/cart", name: "Cart", component: CartView },
-  {
-    path: "/profile",
-    name: "Profile",
-    component: ProfileView,
-    meta: { requiresAuth: true }, // 需要登入的頁面＋這行
-  },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
   { path: '/gamepage/:gameId', name: 'GamePage', component: () => import('@/views/GamePageView.vue'), props: true },
   { path: '/promotion', name: 'promotion', component: PromotionView },
   { path: '/library',name: 'Library',component:LibraryView},
   { path: '/order-history', name: 'OrderHistory', component: OrderHistoryView },
   { path: '/order/:orderId', name: 'OrderDetail', component: OrderDetailView },
-    {path: '/category/:categoryName', name: 'CategoryView', component: () => import('@/views/CategoryView.vue'), props: true },
-
+  { path: '/category/:categoryName', name: 'CategoryView', component: () => import('@/views/CategoryView.vue'), props: true },
+  {path: '/checkout', name: 'Checkout',component: () => import('@/views/CheckoutView.vue')},
+  
 ]
 
 
