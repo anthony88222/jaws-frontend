@@ -76,15 +76,25 @@ const payAgain = async (orderId) => {
     const response = await axios.post(`http://localhost:8080/order/pay-again`, null, {
       params: { orderId }
     })
+
     const html = response.data
     const newWindow = window.open('', '_blank')
+
     newWindow.document.write(html)
     newWindow.document.close()
+
+    // ✅ 關鍵：確保表單自動送出（防止卡在新頁面）
+    newWindow.onload = () => {
+      const form = newWindow.document.querySelector('form')
+      if (form) form.submit()
+    }
+
   } catch (error) {
     console.error('重新付款失敗:', error)
     alert('無法重新付款，請稍後再試。')
   }
 }
+
 
 const cancelOrder = async (orderId) => {
   try {
