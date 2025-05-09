@@ -171,13 +171,6 @@ onMounted(() => {
     font-weight: bold;
   }
 
-  /* Hero 輪播區 */
-  
-  
-
-
-
-  
   /* 分類列 */
   .category-bar {
     display: flex;
@@ -208,7 +201,7 @@ onMounted(() => {
   .promotion-grid {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     padding: 0 2rem;
     width: 1150px;
     margin-left: auto;
@@ -286,7 +279,7 @@ onMounted(() => {
     padding: 0.3rem 0.6rem;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
   .price-text {
     text-align: right;
@@ -294,13 +287,13 @@ onMounted(() => {
   .original-price {
     text-decoration: line-through;
     color: #bbb;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
   .final-price {
     color: #bfff00;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    text-shadow: 0 0 6px #bfff00;
+    text-shadow: 0 0 3px #bfff00;
   }
   </style>
   

@@ -86,7 +86,7 @@ onMounted(fetchCart)
   height: 100%;
 }
 .cart-wrapper {
-  width: 1150px;
+  width: 1050px;
   max-width: 100%;
   margin: 2rem auto;
   padding: 2rem;

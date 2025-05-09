@@ -276,7 +276,7 @@ export default {
   transition: 0.25s;
   height: 115px;
   border: var(--color-primary) 2px solid;
-  box-shadow: 0 0 10px var(--color-primary);
+  box-shadow: 0 0 3px var(--color-primary);
   border-radius: 6px;
 }
 .game-item:hover,
@@ -297,16 +297,16 @@ export default {
   height: 100%;
 }
 .game-title {
-  font-size: 1rem;
+  font-size: 1.3rem;
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
-  margin: 0 0 2px 0;
+  margin: 4px 0 2px 0;
 }
 .game-description {
-  font-size: 0.75rem;
+  font-size: 0.83rem;
   color: #c5d1e0;
   margin: 2px 0;
   display: -webkit-box;
@@ -315,7 +315,7 @@ export default {
   overflow: hidden;
 }
 .tag-row {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #9eb0c0;
   white-space: nowrap;
   overflow: hidden;
@@ -327,7 +327,7 @@ export default {
   display: inline-block;
   padding: 2px 6px;
   margin-right: 4px;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   border-radius: 3px;
   background-color: #454547;
   color: #ccc;
@@ -341,7 +341,7 @@ export default {
 .discount-badge {
   background: #4a772f;
   color: #bfff00;
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 2px;
@@ -350,14 +350,14 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  min-width: 80px;
+  min-width: 60px;
 }
 .price-original {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   text-decoration: line-through;
 }
 .price-final {
-  font-size: 0.90rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #bfff00;
 }

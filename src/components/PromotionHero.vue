@@ -166,7 +166,7 @@ function scrollToTop() {
   
   /* 遊戲名稱 */
   .hero-title {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     color: var(--color-primary);
     margin-bottom: 0.8rem;
     /* height: 100px; */
@@ -193,7 +193,7 @@ function scrollToTop() {
     border: 1px solid rgb(218, 208, 208);
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
-    font-size: 0.72rem;
+    font-size: 1rem;
     color: rgb(218, 208, 208);
     white-space: nowrap;
   }
@@ -206,7 +206,7 @@ function scrollToTop() {
   }
   .hero-desc {
     color: var(--color-text);
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.2;
   }
   
@@ -216,6 +216,9 @@ function scrollToTop() {
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
+    scale: 1.2;
+    position: relative;
+    right: 25px;
   }
   .price-box-bottom {
     display: flex;

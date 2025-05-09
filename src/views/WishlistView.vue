@@ -159,7 +159,7 @@ onMounted(fetchWishlist)
   height: 100%;
 }
 .wishlist-wrapper {
-  width: 1150px;
+  width: 1050px;
   max-width: 100%;
   margin: 2rem auto;
   padding: 2rem;
@@ -338,7 +338,7 @@ onMounted(fetchWishlist)
 .add-btn,
 .remove-btn {
   background: transparent;
-  width: 120px;
+  width: 100px;
   border: 1px solid var(--color-secondary);
   color: var(--color-secondary);
   padding: 0.4rem 1rem;

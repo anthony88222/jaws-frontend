@@ -120,7 +120,7 @@
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
     box-shadow: 0 0 8px var(--color-primary);
-    height: 380px;
+    height: 340px;
   }
   
   .promotion-title {
@@ -140,7 +140,7 @@
   
   .carousel-track {
     display: flex;
-    gap: 1rem;
+    gap: 0.3rem;
     justify-content: space-evenly;
     padding: 1rem 0;
     overflow: hidden;
@@ -151,9 +151,9 @@
   }
   
   .promo-card {
-    min-width: 220px;
-    max-width: 260px;
-    /* max-height: 211px; */
+    /* min-width: 220px; */
+    max-width: 245px;
+    max-height: 211px;
     flex-shrink: 0;
     background: #000;
     border: 2px solid var(--color-primary);
@@ -285,7 +285,7 @@
 }
 .more-button {
   position: absolute;
-  right: 60px;
+  right: 55px;
   top: 25px;
   background: transparent;
   width: 50px;
