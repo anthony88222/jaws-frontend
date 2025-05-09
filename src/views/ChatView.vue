@@ -239,6 +239,7 @@ function formatTime(isoString) {
   flex-direction: column;
   padding: 1rem;
   background: #1a1a2a;
+  max-height: 82vh;
   overflow: hidden;
 }
 
@@ -250,7 +251,6 @@ function formatTime(isoString) {
   gap: 0.5rem;
   padding: 0rem 0.75rem 0rem 0.25rem;
   min-height: 0;
-  max-height: calc(90vh - 180px);
 }
 
 .bubble {

@@ -24,13 +24,16 @@
                 <div class="invite-block">
                     <h3 class="subtitle">已送出的邀請</h3>
                     <hr class="underline" />
-                    <div class="invite-list">
+                    <div class="invite-list" :style="{ maxHeight: sentHeight }">
                         <div class="invite-item" v-for="invite in sentInvites" :key="invite.username">
-                            <img class="avatar" :src="invite.avatar" />
-                            <div class="info-row">
-                                <div class="name">{{ invite.username }}</div>
-                                <div class="date">{{ invite.time }}</div>
+                            <div class="invite-card">
+                                <img class="avatar" :src="invite.avatar" />
+                                <div class="info-row">
+                                    <div class="name">{{ invite.username }}</div>
+                                    <div class="date">{{ invite.time }}</div>
+                                </div>
                             </div>
+                            <button class="delete-btn" @click="confirmDelete(invite, 1)">✕</button>
                         </div>
                     </div>
                 </div>
@@ -38,13 +41,17 @@
                 <div class="invite-block">
                     <h3 class="subtitle">已收到的邀請</h3>
                     <hr class="underline" />
-                    <div class="invite-list">
+                    <div class="invite-list" :style="{ maxHeight: receivedHeight }">
                         <div class="invite-item" v-for="invite in receivedInvites" :key="invite.username">
-                            <img class="avatar" :src="invite.avatar" />
-                            <div class="info-row">
-                                <div class="name">{{ invite.username }}</div>
-                                <div class="date">{{ invite.time }}</div>
+                            <div class="invite-card">
+                                <img class="avatar" :src="invite.avatar" />
+                                <div class="info-row">
+                                    <div class="name">{{ invite.username }}</div>
+                                    <div class="date">{{ invite.time }}</div>
+                                </div>
                             </div>
+                            <button class="accept-btn" @click="confirmAccept(invite)">✔</button>
+                            <button class="delete-btn" @click="confirmDelete(invite, 2)">✕</button>
                         </div>
                     </div>
                 </div>
@@ -55,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 
 const DEFAULT_AVATAR = '/logo4.png'
@@ -63,6 +70,41 @@ const userId = 1
 const router = useRouter()
 const sentInvites = ref([])
 const receivedInvites = ref([])
+const sentHeight = ref('16.5rem')
+const receivedHeight = ref('16.5rem')
+
+watchEffect(() => {
+    const sentCount = sentInvites.value.length
+    const receivedCount = receivedInvites.value.length
+
+    if (sentCount >= 3) {
+        sentHeight.value = '16.5rem'
+        receivedHeight.value = '16.5rem'
+    } else if (sentCount === 2) {
+        sentHeight.value = '11rem'
+        receivedHeight.value = '22rem'
+    } else if (sentCount === 1) {
+        sentHeight.value = '5.5rem'
+        receivedHeight.value = '27.5rem'
+    } else {
+        sentHeight.value = '0rem'
+        receivedHeight.value = '33rem'
+    }
+
+    if (receivedCount >= 3) {
+        sentHeight.value = '16.5rem'
+        receivedHeight.value = '16.5rem'
+    } else if (receivedCount === 2) {
+        sentHeight.value = '22rem'
+        receivedHeight.value = '11rem'
+    } else if (receivedCount === 1) {
+        sentHeight.value = '27.5rem'
+        receivedHeight.value = '5.5rem'
+    } else if (receivedCount === 0) {
+        sentHeight.value = '33rem'
+        receivedHeight.value = '0rem'
+    }
+})
 
 function refreshPage() {
     window.location.reload()
@@ -81,6 +123,8 @@ const fetchInvites = async () => {
 
     data.forEach(invite => {
         const item = {
+            userId: invite.userId,
+            friendId: invite.friendId,
             username: invite.username,
             avatar: invite.avatarUrl || DEFAULT_AVATAR,
             time: formatTime(invite.createdAt)
@@ -92,6 +136,54 @@ const fetchInvites = async () => {
             receivedInvites.value.push(item)
         }
     })
+}
+
+async function confirmDelete(invite, type) {
+    const message =
+        type === 1
+            ? `確定要取消對 ${invite.username} 的邀請嗎？`
+            : `確定要拒絕 ${invite.username} 的邀請嗎？`
+
+    const ok = window.confirm(message)
+    if (!ok) return
+
+    const res = await fetch('/api/friend/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            userId: invite.userId,
+            friendId: invite.friendId
+        })
+    })
+
+    if (res.ok) {
+        sentInvites.value = sentInvites.value.filter(i => i.username !== invite.username)
+        receivedInvites.value = receivedInvites.value.filter(i => i.username !== invite.username)
+    } else {
+        const msg = await res.text()
+        alert(`刪除失敗：${msg}`)
+    }
+}
+
+async function confirmAccept(invite) {
+    const ok = window.confirm(`確定要同意 ${invite.username} 的邀請嗎？`)
+    if (!ok) return
+
+    const res = await fetch('/api/friend/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            userId: invite.friendId,
+            friendId: invite.userId
+        })
+    })
+
+    if (res.ok) {
+        receivedInvites.value = receivedInvites.value.filter(i => i.username !== invite.username)
+    } else {
+        const msg = await res.text()
+        alert(`同意失敗：${msg}`)
+    }
 }
 
 function formatTime(isoString) {
@@ -163,6 +255,8 @@ onMounted(fetchInvites)
     flex: 1;
     padding: 1rem;
     background: #1a1a2a;
+    height: 82vh;
+    overflow: hidden;
 }
 
 .title.left-align {
@@ -213,44 +307,94 @@ onMounted(fetchInvites)
     flex-direction: column;
     gap: 1rem;
     margin-top: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
+    min-height: 0;
+    max-height: 16.5rem;
+    overflow-y: auto;
 }
 
 .invite-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #2a2a3a;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 0 6px var(--color-primary);
-  width: 80%;
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.invite-card {
+    background: #2a2a3a;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 0 6px var(--color-primary);
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 1rem;
-  box-shadow: 0 0 6px var(--color-primary);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem;
+    box-shadow: 0 0 6px var(--color-primary);
 }
 
 .info-row {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .name {
-  font-size: 1rem;
-  color: var(--color-primary);
-  text-shadow: 0 0 4px var(--color-primary);
+    font-size: 1rem;
+    color: var(--color-primary);
+    text-shadow: 0 0 4px var(--color-primary);
 }
 
 .date {
-  font-size: 1rem;
-  text-shadow: 0 0 5px
+    font-size: 1rem;
+    text-shadow: 0 0 5px
 }
 
+.invite-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.invite-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.invite-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
+    border-radius: 6px;
+    background-clip: content-box;
+    border: 2px solid transparent;
+}
+
+.delete-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-secondary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.accept-btn {
+    position: absolute;
+    right: 5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+}
 </style>

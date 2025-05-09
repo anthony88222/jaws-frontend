@@ -152,7 +152,7 @@ onMounted(fetchFriends)
 }
 
 .friend-name.center {
-  padding: 0.5rem;
+  padding: 0.25rem;
   text-align: center;
   font-size: 1rem;
   color: var(--color-primary);
@@ -163,7 +163,8 @@ onMounted(fetchFriends)
   flex: 1;
   padding: 1rem;
   background: #1a1a2a;
-  overflow-y: auto;
+  max-height: 82vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -181,16 +182,19 @@ onMounted(fetchFriends)
   flex-wrap: wrap;
   gap: 1.25rem;
   justify-content: flex-start;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 0.25rem 0.5rem 0rem 0.5rem;
 }
 
 .friend-card {
   background: #2a2a3a;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: center;
   box-shadow: 0 0 10px var(--color-primary);
-  width: 170px;
-  height: 220px;
+  width: 165px;
+  height: 205px;
 }
 
 .friend-content {
@@ -209,23 +213,24 @@ onMounted(fetchFriends)
 }
 
 .message-btn {
-  background: #ff00ff;
-  border: none;
+  background: #1a1a2a;
+  border: 1px solid var(--color-secondary);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  color: #000;
+  color: var(--color-secondary);
   transition: 0.2s;
 }
 
 .message-btn:hover {
+  color: #1a1a2a;
   background: #ff00ff;
   box-shadow: 0 0 6px #ff00ff;
 }
 
 .friend-date {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   font-size: 1rem;
   text-shadow: 0 0 5px
 }
@@ -235,4 +240,20 @@ onMounted(fetchFriends)
   flex-direction: column;
   min-height: 90vh;
 }
+
+.grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
 </style>
