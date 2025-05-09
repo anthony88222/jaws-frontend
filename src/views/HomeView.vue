@@ -14,10 +14,18 @@
   
   <section class="section category-wrapper">
     <h2>分類瀏覽</h2>
-    <div class="category-swiper-container"></div>
+
+    <div class="category-swiper-container">
+      <!-- 左箭頭 -->
+      <div class="swiper-button-prev custom-swiper-button"></div>
+
+      <!--主要分類滑動區塊-->
     <swiper
       :modules="[Navigation]"
-      navigation
+      :navigation="{
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      }"
       :slides-per-view="4"
       :space-between="20"
       class="category-swiper"
@@ -28,6 +36,9 @@
         </div>
       </swiper-slide>
     </swiper>
+    <!-- 右箭頭 -->
+    <div class="swiper-button-next custom-swiper-button"></div>
+    </div>
   </section>
 </template>
 
@@ -145,51 +156,43 @@ onMounted(async () => {
 </style>
 
 <style>
-.swiper-button-prev{
-  left: -60px;
-}
 
-.swiper-button-next {
-  background-color: rgba(17, 17, 17, 0.9);
-  color: white;
-  width: 40px;
-  height: 60px;
-  font-size: 24px;
-  font-weight: bold;
+.custom-swiper-button {
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  border-radius: 4px;
-  box-shadow: 0 0 8px cyan;
-  opacity: 0.9;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #00ffff;
+  font-size: 2rem;
+  width: 40px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  right: -60px;
+  cursor: pointer;
+  box-shadow: 0 0 10px cyan;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.swiper-button-prev:hover,
-.swiper-button-next:hover {
-  background-color: #00ffff;
-  color: black;
-  opacity: 1;
-}
-
-.swiper-button-prev::after {
-  content: '‹';
-  font-size: 24px;
-}
-
-.swiper-button-next::after {
-  content: '›';
-  font-size: 24px;
-}
-
-.swiper-button-prev {
+.swiper-button-prev{
   left: 0;
 }
 
 .swiper-button-next {
   right: 0;
 }
+
+
+
+.swiper-button-prev::after {
+  content: '‹';
+}
+
+.swiper-button-next::after {
+  content: '›';
+}
+
+
 </style>
