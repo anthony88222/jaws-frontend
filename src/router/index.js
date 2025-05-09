@@ -11,7 +11,6 @@ import WishListView from '../views/WishlistView.vue'
 import GamePageView from '../views/GamePageView.vue'
 import PromotionView from '../views/PromotionView.vue'
 
-
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/cart', name: 'Cart', component: CartView },
@@ -19,8 +18,9 @@ const routes = [
   { path: '/login', name: 'LoginPage', component: LoginPage },
   { path: '/profile', name: 'Profile', component: ProfileView },
   { path: '/wishlist', name: 'wishlist', component: WishListView },
-  { path: '/gamepage/:gameId', name: 'gamepage', component: GamePageView },
+  { path: '/gamepage/:gameId', name: 'GamePage', component: () => import('@/views/GamePageView.vue'), props: true },
   { path: '/promotion', name: 'promotion', component: PromotionView },
+  {path: '/category/:categoryName', name: 'CategoryView', component: () => import('@/views/CategoryView.vue'), props: true },
 
 ]
 

@@ -4,13 +4,23 @@
     <div v-else>
       <section class="game-hero-carousel">
         <div class="carousel-wrapper-vertical">
-          <div class="main-image-container">
-            <img :src="screenshots[currentIndex]" alt="遊戲截圖" class="carousel-image" />
+          <div class="main-image-container" v-if="screenshots.length > 0">
+            <img :src="screenshots[currentIndex]" alt="遊戲封面" class="carousel-image" />
           </div>
-          <div class="thumbnail-list">
-            <div v-for="(img, index) in screenshots" :key="index" class="thumbnail-item" :class="{ active: currentIndex === index }" @click="currentIndex = index">
-              <img :src="img" :alt="`縮圖${index}`" />
+          <div class="thumbnail-scroll-wrapper">
+            <button class="scroll-btn left" @click="changeImage('left')">◀</button>
+            <div class="thumbnail-list" ref="thumbnailList">
+              <div
+                v-for="(img, index) in screenshots"
+                :key="index"
+                class="thumbnail-item"
+                :class="{ active: currentIndex === index }"
+                @click="currentIndex = index; nextTick(() => scrollToThumbnail(index))"
+              >
+                <img :src="img" :alt="`縮圖${index}`" />
+              </div>
             </div>
+            <button class="scroll-btn right" @click="changeImage('right')">▶</button>
           </div>
         </div>
 
@@ -29,13 +39,29 @@
               </span>
             </li>
             <li>評論數：<span class="highlight">{{ game.reviews.length }} 則</span></li>
-            <li>分類：<span class="tag" v-for="cat in game.categories" :key="cat.id">{{ cat.name }}</span></li>
+            <li>分類：
+              <span class="tag" v-for="cat in categories" :key="cat.id">{{ cat.name }}</span>
+            </li>
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
+          <button class="cart-btn danger" @click="clearCart">清空購物車</button>
         </div>
       </section>
 
-      <!-- 遊戲介紹說明框 -->
+      <section class="related-games">
+        <h2 class="section-title">相似遊戲</h2>
+        <div class="thumbnail-list">
+          <div
+            v-for="related in relatedGames"
+            :key="related.id"
+            class="thumbnail-item"
+            @click="goToGamePage(related.id)"
+          >
+            <img :src="related.coverImageUrl" :alt="related.name" />
+          </div>
+        </div>
+      </section>
+
       <section class="game-description-box">
         <h2 class="section-title">遊戲介紹</h2>
         <p class="game-description-full">{{ game.description }}</p>
@@ -56,11 +82,11 @@
         </button>
       </section>
 
-      <section class="edition-section review-container">
+      <section class="edition-section">
         <h2 class="section-title">玩家評論</h2>
-        <ul class="review-list">
-          <li v-for="review in game.reviews" :key="review.id" class="review-box">
-            <strong>玩家 {{ review.userId }}：</strong>
+        <ul>
+          <li v-for="review in sortedReviews" :key="review.id" class="review-item">
+            <strong>玩家 {{ review.userId }}</strong>：
             <div class="stars-with-score">
               <div class="stars">
                 <span v-for="n in 5" :key="n">
@@ -70,125 +96,194 @@
               </div>
               <span class="score-text">({{ review.rate }}/5)</span>
             </div>
-            <div class="comment-text">{{ review.comment }}</div>
+            {{ review.comment }}
           </li>
         </ul>
-      </section> 
+      </section>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios'
 
-const route = useRoute()
-const gameId = Number(route.params.gameId)
-const loading = ref(true)
-const submitting = ref(false)
-const newComment = ref('')
-const newRate = ref(5)
-const game = ref({ 
-  id: null, 
-  name: '', 
-  description: '', 
-  coverImageUrl: '', 
-  categories: [], 
-  reviews: [] })
-const averageRating = ref(0)
-const ratingSummary = ref({ averageRating: 0, totalReviews: 0 })
-const screenshots = ref([
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg',
-  'https://cdn.akamai.steamstatic.com/steam/apps/305620/header.jpg'
-])
-const currentIndex = ref(0)
+<script setup>
+import { ref, onMounted, watch, nextTick, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+
+const route = useRoute();
+const router = useRouter();
+
+const gameId = ref(Number(route.params.gameId));
+const loading = ref(true);
+const submitting = ref(false);
+const newComment = ref('');
+const newRate = ref(5);
+const game = ref({reviews: [],});
+const averageRating = ref(0);
+const ratingSummary = ref({ averageRating: 0, totalReviews: 0 });
+const screenshots = ref([]);
+const currentIndex = ref(0);
+const categories = ref([]);
+const relatedGames = ref([]);
+const thumbnailList = ref(null);
+
+const sortedReviews = computed(() => {
+  return game.value.reviews;
+});
 
 const fetchGameDetail = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId}`)
-    game.value = res.data
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}`);
+    game.value = res.data;
+
+    const previewRes = await axios.get(`http://localhost:8080/api/games/${gameId.value}/previews`);
+    const previews = previewRes.data.map(p => p.imageUrl);
+    screenshots.value = previews;
   } catch (err) {
-    console.error('取得遊戲細節失敗', err)
+    console.error('取得遊戲細節失敗', err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const fetchRatingSummary = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
-    ratingSummary.value = res.data
-    averageRating.value = ratingSummary.value.averageRating
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/rating-summary`);
+    ratingSummary.value = res.data;
+    averageRating.value = ratingSummary.value.averageRating;
   } catch (err) {
-    console.error('取得評分摘要失敗', err)
+    console.error('取得評分摘要失敗', err);
   }
-}
+};
 
 const fetchCategories = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
-    game.value.categories = res.data
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/categories`);
+    categories.value = res.data;
   } catch (err) {
-    console.error('取得分類失敗', err)
+    console.error('取得分類失敗', err);
+  }
+};
+
+const fetchRelatedGames = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/related-games`);
+    relatedGames.value = res.data;
+  } catch (err) {
+    console.error('取得相似遊戲失敗', err);
+  }
+};
+
+function goToGamePage(targetId) {
+  if (targetId !== gameId.value) {
+    router.push(`/gamepage/${targetId}`);
   }
 }
-
-function calculateAverage() {
-  const total = game.value.reviews.reduce((sum, r) => sum + r.rate, 0)
-  averageRating.value = game.value.reviews.length
-    ? (total / game.value.reviews.length).toFixed(1)
-    : 0
-}
-
-let carouselInterval = null
 
 async function submitReview() {
   if (!newComment.value || newRate.value <= 0) {
-    alert('請填寫完整評論與正確分數')
-    return
+    alert('請填寫完整評論與正確分數');
+    return;
   }
-  submitting.value = true
+
+  submitting.value = true;
   try {
-    await axios.post(`http://localhost:8080/api/reviews/game/${gameId}`, {
-      userId: 8, // 假設使用者 ID
+    const response = await axios.post(`http://localhost:8080/api/reviews/game/${game.value.id}`, {
+      userId: 1, // ⚠️ 請根據登入狀態調整
       rate: newRate.value,
       comment: newComment.value
-    })
-    alert('評論成功！')
-    await fetchGameDetail()
-    await fetchRatingSummary()
-    newComment.value = ''
-    newRate.value = 5
+    });
+
+    // 新增評論後手動加入到最前面，假設 response.data 為新評論物件
+    if (response.data && response.data.id) {
+      game.value.reviews.unshift(response.data); // 直接新增到陣列開頭
+    } else {
+      await fetchGameDetail(); // 備案：重新抓資料
+    }
+
+    newComment.value = '';
+    newRate.value = 5;
   } catch (err) {
-    console.error('新增評論失敗', err)
-    alert('新增評論失敗')
+    console.error('新增評論失敗', err);
+    alert('新增評論失敗');
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 
 async function addToCart() {
+  const userId = 3;
   try {
-    await axios.post('http://localhost:8080/api/cart', {
-      userId: 5, // ⚠️ 這裡記得日後換成登入者的 ID
-      gameId: game.value.id
-    })
-    alert('成功加入購物車！')
+    await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`);
+    alert('成功加入購物車！');
   } catch (err) {
-    console.error('加入購物車失敗', err)
-    alert('加入購物車失敗')
+    console.error('加入購物車失敗', err);
+    alert('加入購物車失敗');
   }
 }
 
-onMounted(() => {
-  fetchGameDetail()
-  fetchRatingSummary()
-  fetchCategories()
-})
+async function clearCart() {
+  const userId = 3;
+  try {
+    await axios.delete(`http://localhost:8080/api/cart/${userId}/clear`);
+    alert('已清空購物車！');
+  } catch (err) {
+    console.error('清空購物車失敗', err);
+    alert('清空購物車失敗');
+  }
+}
+
+function changeImage(direction) {
+  if (direction === 'left') {
+    if (currentIndex.value > 0) {
+      currentIndex.value--;
+    }
+  } else {
+    if (currentIndex.value < screenshots.value.length - 1) {
+      currentIndex.value++;
+    }
+  }
+  nextTick(() => scrollToThumbnail(currentIndex.value));
+}
+
+function scrollToThumbnail(index) {
+  const container = thumbnailList.value;
+  const item = container?.children[index];
+  if (item && container) {
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+
+    const isOutOfViewLeft = itemRect.left < containerRect.left;
+    const isOutOfViewRight = itemRect.right > containerRect.right;
+
+    if (isOutOfViewLeft || isOutOfViewRight) {
+      const scrollAmount = item.offsetLeft - container.offsetLeft - container.clientWidth / 2 + item.clientWidth / 2;
+      container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }
+}
+
+onMounted(async () => {
+  loading.value = true;
+  await fetchGameDetail();
+  await fetchRatingSummary();
+  await fetchCategories();
+  await fetchRelatedGames();
+  loading.value = false;
+});
+
+watch(() => route.params.gameId, async newVal => {
+  gameId.value = Number(newVal);
+  loading.value = true;
+  await fetchGameDetail();
+  await fetchRatingSummary();
+  await fetchCategories();
+  await fetchRelatedGames();
+  currentIndex.value = 0;
+  loading.value = false;
+});
 </script>
+
 
 <style scoped>
 /* 新增的介紹區塊樣式 */
@@ -262,7 +357,7 @@ onMounted(() => {
 .game-hero-carousel {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: space-around;
   background: linear-gradient(135deg, #080b17, #230034);
   border: 2px solid var(--color-primary);
   border-radius: 1rem;
@@ -298,12 +393,13 @@ onMounted(() => {
 .thumbnail-list {
   display: flex;
   flex-direction: row;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 0.5rem;
+  gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
   height: 60px;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  scroll-behavior: smooth;
 }
 
 .thumbnail-item {
@@ -330,6 +426,46 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.thumbnail-list::-webkit-scrollbar {
+  height: 6px; /* 隱藏滾動條 */
+}
+.thumbnail-list::-webkit-scrollbar-thumb {
+  background: #00ccff; /* 滾動條顏色 */
+  border-radius: 3px; /* 滾動條圓角 */
+}
+
+.thumbnail-list::-webkit-scrollbar-track {
+  background: transparent; /* 滾動條背景顏色 */
+}
+
+.thumbnail-scroll-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: 1rem;
+}
+
+.scroll-btn {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #7ddafc;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  z-index: 1;
+  height: 60px;
+}
+
+.scroll-btn.left {
+  margin-right: 6px;
+}
+
+.scroll-btn.right {
+  margin-left: 6px;
 }
 
 /* 右側資訊 */
@@ -373,13 +509,15 @@ onMounted(() => {
 }
 
 .tag {
-  background-color: #00ccff;
-  color: #000;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.5rem;
-  margin-left: 0.25rem;
-  font-size: 0.8rem;
-}
+    /* background: #1f1f2e; */
+    border: 1px solid rgb(218, 208, 208);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    color: rgb(218, 208, 208);
+    white-space: nowrap;
+    margin-right: 0.3rem;
+  }
 
 .buy-btn {
   background-color: var(--color-secondary);
@@ -563,6 +701,19 @@ onMounted(() => {
 .comment-text {
   margin-top: 0.5rem;
   color: #ddd;
+}
+
+.cart-btn.danger {
+  background-color: transparent;
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+}
+
+.cart-btn.danger:hover {
+  background-color: #ff4d4f;
+  color: white;
 }
 
 </style>
