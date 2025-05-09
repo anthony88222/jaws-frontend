@@ -86,7 +86,7 @@
         <h2 class="section-title">玩家評論</h2>
         <ul>
           <li v-for="review in sortedReviews" :key="review.id" class="review-item">
-            <strong>玩家 {{ review.userId }}</strong>：
+            <strong>{{ review.username }}</strong>：
             <div class="stars-with-score">
               <div class="stars">
                 <span v-for="n in 5" :key="n">
@@ -697,6 +697,13 @@ watch(() => route.params.gameId, async newVal => {
 .review-box:last-child {
   border-bottom: none;
 }
+
+.review-item {
+  margin-bottom: 1.5rem; /* 加大間距 */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* 可以讓每則評論更分明 */
+}
+
 
 .comment-text {
   margin-top: 0.5rem;

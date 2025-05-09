@@ -11,7 +11,7 @@
         <div class="overlay"></div>
         <div class="hero-content">
           <h1>{{ item.title }}</h1>
-          <a href="#" class="btn-neon">立即探索</a>
+          <a @click.prevent="router.push('/games')" class="btn-neon">立即探索</a>
         </div>
         <button class="carousel-btn left" @click="prevSlide">‹</button>
         <button class="carousel-btn right" @click="nextSlide">›</button>
@@ -22,7 +22,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const items = [
   {
     title: 'JAWS 精選',

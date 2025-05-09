@@ -10,6 +10,7 @@ import ProfileView from '../views/ProfileView.vue'
 import WishListView from '../views/WishlistView.vue'
 import GamePageView from '../views/GamePageView.vue'
 import PromotionView from '../views/PromotionView.vue'
+import AllGamesView from '../views/AllGamesView.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
@@ -21,6 +22,7 @@ const routes = [
   { path: '/gamepage/:gameId', name: 'GamePage', component: () => import('@/views/GamePageView.vue'), props: true },
   { path: '/promotion', name: 'promotion', component: PromotionView },
   {path: '/category/:categoryName', name: 'CategoryView', component: () => import('@/views/CategoryView.vue'), props: true },
+  { path: '/games', name: 'AllGames', component: AllGamesView },
 
 ]
 
