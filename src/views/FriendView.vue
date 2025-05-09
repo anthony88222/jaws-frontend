@@ -20,10 +20,11 @@
         <h2 class="title left-align">我的好友</h2>
         <div class="grid">
           <div v-for="friend in friends" :key="friend.id" class="friend-card">
+            <button class="delete-btn" @click="confirmRemove(friend)">✕</button>
             <div class="friend-content">
               <img class="avatar" :src="friend.avatar" alt="Avatar" />
               <div class="friend-name center">{{ friend.name }}</div>
-              <button class="message-btn" @click="selectChat(friend.name, friend.id)">
+              <button class="message-btn" @click="selectChat(friend.id)">
                 聊天
               </button>
               <div class="friend-date">{{ friend.time }}</div>
@@ -44,6 +45,10 @@ const DEFAULT_AVATAR = '/logo4.png'
 const userId = 1
 const router = useRouter()
 
+function showConfirm(message) {
+  return window.confirm(message)
+}
+
 function refreshPage() {
   window.location.reload()
 }
@@ -63,6 +68,8 @@ const fetchFriends = async () => {
 
       return {
         id: otherId,
+        userId: f.userId,
+        friendId: f.friendId,
         name: f.username,
         avatar: f.avatarUrl || DEFAULT_AVATAR,
         time: formatTime(f.updatedAt) 
@@ -73,7 +80,28 @@ const fetchFriends = async () => {
   }
 }
 
-function selectChat(name, receiverId) {
+async function confirmRemove(friend) {
+  const ok = showConfirm(`確定要刪除好友 ${friend.name} 嗎？`)
+  if (!ok) return
+
+  const res = await fetch('/api/friend/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: friend.userId,
+      friendId: friend.friendId
+    })
+  })
+
+  if (res.ok) {
+    friends.value = friends.value.filter(f => f.id !== friend.id)
+  } else {
+    const msg = await res.text()
+    alert(`刪除失敗：${msg}`)
+  }
+}
+
+function selectChat(receiverId) {
   router.push({
     path: '/chat',
     query: {
@@ -96,6 +124,13 @@ onMounted(fetchFriends)
 
 
 <style scoped>
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
+}
+
 .friend-container {
   display: flex;
   height: 65vh;
@@ -104,6 +139,26 @@ onMounted(fetchFriends)
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 10px var(--color-primary);
+}
+
+.friends-grid {
+  flex: 1;
+  padding: 1rem;
+  background: #1a1a2a;
+  max-height: 82vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  justify-content: flex-start;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 0.25rem 0.5rem 0rem 0.5rem;
 }
 
 .friend-list {
@@ -159,16 +214,6 @@ onMounted(fetchFriends)
   text-shadow: 0 0 4px var(--color-primary);
 }
 
-.friends-grid {
-  flex: 1;
-  padding: 1rem;
-  background: #1a1a2a;
-  max-height: 82vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
 .friends-grid .title {
   color: var(--color-secondary);
   font-size: 1.5rem;
@@ -177,14 +222,10 @@ onMounted(fetchFriends)
   text-align: left;
 }
 
-.grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  justify-content: flex-start;
-  max-height: 80vh;
-  overflow: auto;
-  padding: 0.25rem 0.5rem 0rem 0.5rem;
+.friend-date {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  text-shadow: 0 0 5px;
 }
 
 .friend-card {
@@ -195,6 +236,7 @@ onMounted(fetchFriends)
   box-shadow: 0 0 10px var(--color-primary);
   width: 165px;
   height: 205px;
+  position: relative;
 }
 
 .friend-content {
@@ -225,20 +267,21 @@ onMounted(fetchFriends)
 
 .message-btn:hover {
   color: #1a1a2a;
-  background: #ff00ff;
-  box-shadow: 0 0 6px #ff00ff;
+  background: var(--color-secondary);
+  box-shadow: 0 0 6px var(--color-secondary);
 }
 
-.friend-date {
-  margin-top: 0.75rem;
-  font-size: 1rem;
-  text-shadow: 0 0 5px
-}
-
-.layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 90vh;
+.delete-btn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--color-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 1;
+  text-shadow: 0 0 5px var(--color-secondary);
 }
 
 .grid::-webkit-scrollbar {

@@ -106,6 +106,10 @@ watchEffect(() => {
     }
 })
 
+function showConfirm(message) {
+    return window.confirm(message)
+}
+
 function refreshPage() {
     window.location.reload()
 }
@@ -144,7 +148,7 @@ async function confirmDelete(invite, type) {
             ? `確定要取消對 ${invite.username} 的邀請嗎？`
             : `確定要拒絕 ${invite.username} 的邀請嗎？`
 
-    const ok = window.confirm(message)
+    const ok = showConfirm(message)
     if (!ok) return
 
     const res = await fetch('/api/friend/delete', {
@@ -198,6 +202,13 @@ onMounted(fetchInvites)
 </script>
 
 <style scoped>
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh;
+}
+
 .invite-container {
     display: flex;
     height: 65vh;
@@ -206,6 +217,14 @@ onMounted(fetchInvites)
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
     box-shadow: 0 0 10px var(--color-primary);
+    overflow: hidden;
+}
+
+.invite-panel {
+    flex: 1;
+    padding: 1rem;
+    background: #1a1a2a;
+    height: 82vh;
     overflow: hidden;
 }
 
@@ -246,33 +265,6 @@ onMounted(fetchInvites)
     box-shadow: 0 0 6px var(--color-primary);
 }
 
-.friend-name {
-    font-size: 1.2rem;
-    text-shadow: 0 0 4px var(--color-primary);
-}
-
-.invite-panel {
-    flex: 1;
-    padding: 1rem;
-    background: #1a1a2a;
-    height: 82vh;
-    overflow: hidden;
-}
-
-.title.left-align {
-    color: var(--color-secondary);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 0 8px var(--color-secondary);
-    text-align: left;
-}
-
-.layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 90vh;
-}
-
 .title {
     color: var(--color-secondary);
     font-size: 1.5rem;
@@ -281,11 +273,31 @@ onMounted(fetchInvites)
     text-align: left;
 }
 
+.title.left-align {
+    text-align: left;
+}
+
 .subtitle {
     font-size: 1.2rem;
     color: var(--color-primary);
     margin-bottom: 0.25rem;
     text-shadow: 0 0 3px var(--color-primary);
+}
+
+.friend-name {
+    font-size: 1.2rem;
+    text-shadow: 0 0 4px var(--color-primary);
+}
+
+.name {
+    font-size: 1rem;
+    color: var(--color-primary);
+    text-shadow: 0 0 4px var(--color-primary);
+}
+
+.date {
+    font-size: 1rem;
+    text-shadow: 0 0 5px;
 }
 
 .invite-block {
@@ -348,32 +360,6 @@ onMounted(fetchInvites)
     justify-content: space-between;
 }
 
-.name {
-    font-size: 1rem;
-    color: var(--color-primary);
-    text-shadow: 0 0 4px var(--color-primary);
-}
-
-.date {
-    font-size: 1rem;
-    text-shadow: 0 0 5px
-}
-
-.invite-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.invite-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.invite-list::-webkit-scrollbar-thumb {
-    background-color: var(--color-secondary);
-    border-radius: 6px;
-    background-clip: content-box;
-    border: 2px solid transparent;
-}
-
 .delete-btn {
     position: absolute;
     right: 1rem;
@@ -397,4 +383,20 @@ onMounted(fetchInvites)
     font-size: 2rem;
     cursor: pointer;
 }
+
+.invite-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.invite-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.invite-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
+    border-radius: 6px;
+    background-clip: content-box;
+    border: 2px solid transparent;
+}
+
 </style>

@@ -168,6 +168,13 @@ function formatTime(isoString) {
 </script>
 
 <style scoped>
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
+}
+
 .chat-container {
   display: flex;
   height: 90vh;
@@ -186,15 +193,6 @@ function formatTime(isoString) {
   padding: 1rem;
   border-right: 2px solid var(--color-primary);
   overflow-y: auto;
-}
-
-.friend-list .title,
-.recent-chats .title {
-  color: var(--color-secondary);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  text-shadow: 0 0 8px var(--color-secondary);
-  text-align: left;
 }
 
 .friend-list ul,
@@ -221,6 +219,15 @@ function formatTime(isoString) {
 .recent-chats li:hover {
   background: #222;
   box-shadow: 0 0 6px var(--color-primary);
+}
+
+.friend-list .title,
+.recent-chats .title {
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 8px var(--color-secondary);
+  text-align: left;
 }
 
 .friend-name,
@@ -251,6 +258,32 @@ function formatTime(isoString) {
   gap: 0.5rem;
   padding: 0rem 0.75rem 0rem 0.25rem;
   min-height: 0;
+}
+
+.chat-input {
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-primary);
+  padding-top: 1rem;
+  flex-shrink: 0;
+}
+
+.input-wrapper {
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 10px var(--color-primary);
+  padding: 0.25rem;
+}
+
+.chat-input input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-family);
+  border-radius: var(--border-radius);
+  outline: none;
+  text-shadow: 0 0 1px var(--color-primary);
 }
 
 .bubble {
@@ -286,36 +319,12 @@ function formatTime(isoString) {
     0 0 10px var(--color-primary);
 }
 
-.chat-input {
-  margin-top: 1rem;
-  border-top: 1px solid var(--color-primary);
-  padding-top: 1rem;
-  flex-shrink: 0;
-}
-
-.input-wrapper {
-  border: 2px solid var(--color-primary);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 10px var(--color-primary);
-  padding: 0.25rem;
-}
-
-.chat-input input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: none;
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-family);
-  border-radius: var(--border-radius);
-  outline: none;
-  text-shadow: 0 0 1px var(--color-primary);
-}
-
-.layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 90vh;
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 4px var(--color-primary);
 }
 
 .message-wrapper {
@@ -361,14 +370,6 @@ function formatTime(isoString) {
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: content-box;
-}
-
-.avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 4px var(--color-primary);
 }
 
 </style>
