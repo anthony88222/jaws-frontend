@@ -53,11 +53,11 @@ const cart = ref([])
 const promotionMap = ref({})
 
 const totalPrice = computed(() => {
-  return cart.value.reduce((sum, item) => {
+  return Math.floor(cart.value.reduce((sum, item) => {
     const promo = promotionMap.value[item.gameId]
     const price = promo?.onSale ? promo.discountedPrice : item.price
     return sum + price
-  }, 0).toFixed(0)
+  }, 0)).toString()
 })
 
 async function fetchCart() {
