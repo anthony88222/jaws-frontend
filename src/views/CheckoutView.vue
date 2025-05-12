@@ -62,14 +62,14 @@
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner">付款處理中...</div>
       </div>
-    </div>    
+    </div> 
+    
+      <!-- 返回歷史訂單 -->
+    
+
   </div>
 
-  <!-- 返回歷史訂單 -->
-    
-  <button class="back-to-orders-btn" @click="$router.push('/order-history')">
-  返回歷史訂單
-</button>
+
 
 
      
@@ -81,7 +81,6 @@ import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 import { ref, computed, onMounted, nextTick } from 'vue'
-
 
 const router = useRouter()
 const route = useRoute()
@@ -95,7 +94,6 @@ const total = ref(0)
 const gameList = ref([])
 const ecpayForm = ref('')
 const isLoading = ref(false)
-
 
 const submitOrder = async () => {
   isLoading.value = true
@@ -112,13 +110,13 @@ const submitOrder = async () => {
     if (orderId) {
       // 再次付款
       response = await axios.post(
-        `http://localhost:8080/order/pay-again`,
+        "http://localhost:8080/order/pay-again",
         payload,
         { params: { orderId } }
       )
     } else {
       // 建立新訂單
-      response = await axios.post(`http://localhost:8080/order/create`, payload)
+      response = await axios.post("http://localhost:8080/order/create", payload)
     }
 
     if (response.data.ecpayHtmlForm) {
@@ -149,7 +147,6 @@ const submitOrder = async () => {
     isLoading.value = false
   }
 }
-
 
 const remainingToPay = computed(() => {
   return Math.max(total.value - walletUsed.value, 0)
@@ -192,8 +189,8 @@ onMounted(async () => {
     // 此處你可以 fetchCart() 並轉為 gameList 格式
   }
 })
-
 </script>
+
 
 
 <style scoped>
@@ -369,26 +366,7 @@ onMounted(async () => {
   box-shadow: 0 0 20px var(--color-primary);
 }
 
-/* 固定底部返回按鈕樣式（參考 scroll-top-button） */
-.back-to-orders-btn {
-  position: fixed;
-  left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%);
-  padding: 12px 24px;
-  border: 2px solid #f0f;
-  background: transparent;
-  color: #f0f;
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 100;
-  transition: background 0.3s, color 0.3s;
-}
 
-.back-to-orders-btn:hover {
-  background: #f0f;
-  color: #000;
-}
 
 /* loading 遮罩 */
 .loading-overlay {
@@ -413,3 +391,5 @@ onMounted(async () => {
   box-shadow: 0 0 10px cyan;
 }
 </style>
+
+

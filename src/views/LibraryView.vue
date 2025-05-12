@@ -77,6 +77,7 @@
       <button class="scroll-top-button" @click="scrollToTop">
         回頁首
       </button>
+
     </div> <!-- /.main-content -->
   </div>
 </template>
@@ -350,22 +351,23 @@ onMounted(fetchLibrary)
 
 /* 回到頁首按鈕 */
 .scroll-top-button {
-  position: fixed;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
   padding: 12px 24px;
   border: 2px solid #f0f;
   background: transparent;
   color: #f0f;
   border-radius: 10px;
   cursor: pointer;
-  z-index: 100;
   transition: background 0.3s, color 0.3s;
+  text-shadow: 0 0 6px #f0f;
+  font-size: 1rem;
+  display: block;
+  margin: 3rem auto 2rem;
 }
-
 .scroll-top-button:hover {
   background: #f0f;
   color: #000;
 }
+
+
+
 </style>
