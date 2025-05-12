@@ -44,6 +44,7 @@
             </li>
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
+        
         </div>
       </section>
 
@@ -348,7 +349,7 @@ watch(() => route.params.gameId, async newVal => {
 /* 基本容器 */
 .game-page-container {
   padding: 2rem;
-  font-family: 'Orbitron', sans-serif;
+  /* font-family: 'Orbitron', sans-serif; */
   color: #e0e0e0;
 }
 
@@ -485,6 +486,8 @@ watch(() => route.params.gameId, async newVal => {
   /* color: var(--color-secondary); */
   font-size: 2rem;
   margin: 0.7rem;
+  color: white;
+  text-decoration: none;
   /* text-shadow: 0 0 10px var(white); */
 }
 
