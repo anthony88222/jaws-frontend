@@ -67,91 +67,90 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
-const userId = 1
+const authStore = useAuthStore()
+const userId = computed(() => authStore.user?.id || 0)
+
 const wishlist = ref([])
 const promotionMap = ref({})
-const reviewMap = ref({})
 const tagMap = ref({})
 const ratingMap = ref({})
 
-// ✅ 取得分類資料（從後端）
+// 取得分類
 const fetchCategories = async (gameId) => {
-  try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
-    return res.data.map(c => c.name)
-  } catch (err) {
-    console.warn(`遊戲 ${gameId} 分類取得失敗，使用 mock 資料`, err)
-    return []
-  }
+  const { data } = await axios.get(
+    `http://localhost:8080/api/games/${gameId}/categories`
+  )
+  return data.map((c) => c.name)
 }
 
-// ✅ 折扣資料
-const fetchPromotionStatus = async (gameId) => {
-  try {
-    const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId}`)
-    promotionMap.value[gameId] = res.data
-  } catch (e) {
-    console.warn(`取得遊戲 ${gameId} 折扣狀態失敗`, e)
-  }
-}
+// 折扣
+const fetchPromotion = (gameId) =>
+  axios
+    .get(`http://localhost:8080/api/promotions/status/${gameId}`)
+    .then(({ data }) => (promotionMap.value[gameId] = data))
 
-// ✅ 評分資料
-const fetchRatingSummary = async (gameId) => {
-  try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
-    ratingMap.value[gameId] = res.data
-  } catch (err) {
-    console.warn(`取得評分失敗：gameId=${gameId}`, err)
-    ratingMap.value[gameId] = null
-  }
-}
+// 評分
+const fetchRating = (gameId) =>
+  axios
+    .get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
+    .then(({ data }) => (ratingMap.value[gameId] = data))
+    .catch(() => (ratingMap.value[gameId] = null))
 
-// ✅ 載入 wishlist 主流程
+// 主流程
 const fetchWishlist = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/wishlist/${userId}`)
-    wishlist.value = res.data
+    const { data } = await axios.get(
+      `http://localhost:8080/api/wishlist/${userId.value}`
+    )
+    wishlist.value = data
 
-    for (const item of wishlist.value) {
-      const gameId = item.gameId
-      await fetchPromotionStatus(gameId)
-      await fetchRatingSummary(gameId)
-      tagMap.value[gameId] = await fetchCategories(gameId)
-    }
-  } catch (error) {
-    console.error('載入願望清單失敗', error)
+    // 並行處理每款遊戲的額外資料
+    await Promise.all(
+      wishlist.value.map(async ({ gameId }) => {
+        await Promise.all([
+          fetchPromotion(gameId),
+          fetchRating(gameId),
+          fetchCategories(gameId).then((tags) => (tagMap.value[gameId] = tags)),
+        ])
+      })
+    )
+  } catch (err) {
+    console.error('載入願望清單失敗', err)
   }
 }
 
-// ✅ 移除遊戲
-const removeFromWishlist = async (id) => {
-  try {
-    await axios.delete(`http://localhost:8080/api/wishlist/${userId}/remove/${id}`)
-    wishlist.value = wishlist.value.filter(item => item.gameId !== id)
-    delete promotionMap.value[id]
-    delete reviewMap.value[id]
-    delete tagMap.value[id]
-    delete ratingMap.value[id]
-  } catch (error) {
-    console.error('移除失敗', error)
-  }
+// 移除
+const removeFromWishlist = async (gameId) => {
+  await axios.delete(
+    `http://localhost:8080/api/wishlist/${userId.value}/remove/${gameId}`
+  )
+  wishlist.value = wishlist.value.filter((w) => w.gameId !== gameId)
+  ;[promotionMap, tagMap, ratingMap].forEach((m) => delete m.value[gameId])
 }
 
-// ✅ 加入購物車
+// 加入購物車
 const addToCart = async (gameId) => {
-  try {
-    await axios.post(`http://localhost:8080/api/cart/${userId}/add/${gameId}`)
-    alert('已加入購物車')
-  } catch (error) {
-    console.error('加入購物車失敗', error)
-  }
+  await axios.post(
+    `http://localhost:8080/api/cart/${userId.value}/add/${gameId}`
+  )
+  alert('已加入購物車')
 }
 
-onMounted(fetchWishlist)
+// 登入後自動刷新
+watch(userId, (id) => id && fetchWishlist())
+
+onMounted(() => {
+  if (userId.value) fetchWishlist()
+})
 </script>
+
+<style scoped>
+/* ❗保留原本樣式，若需細調再增刪 */
+</style>
 
 
 <style scoped>

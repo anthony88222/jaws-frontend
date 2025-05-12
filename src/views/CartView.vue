@@ -46,50 +46,72 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'   // ➕ 引入
 
 const router = useRouter()
-const userId = 1
+const authStore = useAuthStore()                     // ➕ 實例化
+const userId = computed(() => authStore.user?.id || 0)
+
 const cart = ref([])
 const promotionMap = ref({})
 
-const totalPrice = computed(() => {
-  return Math.floor(cart.value.reduce((sum, item) => {
-    const promo = promotionMap.value[item.gameId]
-    const price = promo?.onSale ? promo.discountedPrice : item.price
-    return sum + price
-  }, 0)).toString()
+const totalPrice = computed(() =>
+  Math.floor(
+    cart.value.reduce((sum, item) => {
+      const promo = promotionMap.value[item.gameId]
+      const price = promo?.onSale ? promo.discountedPrice : item.price
+      return sum + price
+    }, 0)
+  ).toString()
+)
+
+// ✅ 監聽 userId，一有值就抓購物車
+watch(userId, (newId) => {
+  if (newId) fetchCart()
 })
 
-// ✅ 新增：跳轉至結帳頁面
 function goToCheckout() {
-  router.push({
-    path: '/checkout',
-    query: { total: totalPrice.value }
-  })
+  router.push({ path: '/checkout', query: { total: totalPrice.value } })
 }
 
 async function fetchCart() {
-  const res = await axios.get(`http://localhost:8080/api/cart/${userId}`)
-  cart.value = res.data
-  await fetchPromotions()
-}
-
-async function fetchPromotions() {
-  for (const item of cart.value) {
-    const res = await axios.get(`http://localhost:8080/api/promotions/status/${item.gameId}`)
-    promotionMap.value[item.gameId] = res.data
+  try {
+    const { data } = await axios.get(
+      `http://localhost:8080/api/cart/${userId.value}` // ➡️ .value
+    )
+    cart.value = data
+    await fetchPromotions()
+  } catch (err) {
+    console.error('抓取購物車失敗', err)
   }
 }
 
+async function fetchPromotions() {
+  // 並行請求更快
+  await Promise.all(
+    cart.value.map(async (item) => {
+      const { data } = await axios.get(
+        `http://localhost:8080/api/promotions/status/${item.gameId}`
+      )
+      promotionMap.value[item.gameId] = data
+    })
+  )
+}
+
 async function removeFromCart(gameId) {
-  await axios.delete(`http://localhost:8080/api/cart/${userId}/remove/${gameId}`)
+  await axios.delete(
+    `http://localhost:8080/api/cart/${userId.value}/remove/${gameId}`
+  )
   await fetchCart()
 }
 
-onMounted(fetchCart)
+// 若使用者重新整理但已登入，onMounted 也能直接抓
+onMounted(() => {
+  if (userId.value) fetchCart()
+})
 </script>
 
 

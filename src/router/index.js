@@ -22,9 +22,9 @@ const routes = [
   { path: "/", name: "Home", component: HomeView },
   { path: "/login", name: "LoginPage", component: LoginPage },
   { path: "/register", name: "RegisterPage", component: RegisterPage },
-  { path: "/cart", name: "Cart", component: CartView },
-
+  
   // 需要登入的頁面
+  { path: "/cart", name: "Cart", component: CartView, meta: { requiresAuth: true } },
   { path: "/profile", name: "Profile", component: ProfileView, meta: { requiresAuth: true } },
   { path: "/friend", name: "Friend", component: FriendView, meta: { requiresAuth: true } },
   { path: "/invite", name: "Invite", component: InviteView, meta: { requiresAuth: true } },
