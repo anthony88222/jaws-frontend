@@ -8,7 +8,12 @@
 
         <label for="password">密碼</label>
         <div class="input-group">
-          <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" required />
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="password"
+            v-model="password"
+            required
+          />
           <button type="button" class="toggle-password" @click="showPassword = !showPassword">
             {{ showPassword ? '隱藏' : '顯示' }}
           </button>
@@ -20,10 +25,6 @@
         </div>
 
         <button class="btn-neon" type="submit">LOGIN</button>
-        <!-- 顯示錯誤訊息 -->
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
       </form>
 
       <div class="register-link">
@@ -36,35 +37,15 @@
 </template>
 
 <script setup>
-// 引入必要模組
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+import { ref } from 'vue';
 
-// 定義登入頁面的狀態
-const username = ref('')
-const password = ref('')
-const showPassword = ref(false)
-const rememberMe = ref(false)
-const errorMessage = ref('') // ⬅️ 用來顯示錯誤訊息
+const username = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const rememberMe = ref(false);
 
-// 引入路由和狀態管理
-const router = useRouter()
-const authStore = useAuthStore()
-
-// 登入函式
-async function login() {
-  errorMessage.value = '' // 每次點登入都先清除錯誤訊息
-
-  const success = await authStore.login({ username: username.value, password: password.value })
-
-  if (success) {
-    // 登入成功：跳轉到個人資料頁
-    router.push('/profile')
-  } else {
-    // 登入失敗：顯示錯誤訊息
-    errorMessage.value = '登入失敗，請檢查帳號與密碼'
-  }
+function login() {
+  alert(`登入帳號：${username.value}\n記住我：${rememberMe.value}`);
 }
 </script>
 
@@ -73,19 +54,19 @@ async function login() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80vh;
+  height: 75vh;
   background: url('/assets/bg-login.jpg') no-repeat center center;
   background-size: cover;
   padding: 1rem;
 }
 
 .login-box {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #1a1a2a;
   padding: 2rem;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 20px var(--color-primary);
-  width: 60vh;
+  width: 55vh;
   max-width: 800px;
   text-align: center;
 }
@@ -108,7 +89,7 @@ async function login() {
 
 .login-form input[type='text'],
 .login-form input[type='password'] {
-  width: 100%;
+  width: 90%;
   margin-bottom: 1.2rem;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-primary);
@@ -149,7 +130,7 @@ async function login() {
 
 .btn-neon {
   display: inline-block;
-  width: 100%;
+  width: 35%;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-primary);
   color: var(--color-primary);
@@ -191,12 +172,5 @@ async function login() {
 .divider {
   color: var(--color-muted);
   text-shadow: 0 0 3px var(--color-muted);
-}
-
-.error-message {
-  color: #ff6b6b;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  text-shadow: 0 0 4px red;
 }
 </style>

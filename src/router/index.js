@@ -34,6 +34,7 @@ const routes = [
   { path: "/order/:orderId", name: "OrderDetail", component: OrderDetailView },
   { path: "/category/:categoryName", name: "CategoryView", component: () => import('@/views/CategoryView.vue'), props: true },
   { path: "/checkout", name: "Checkout", component: () => import('@/views/CheckoutView.vue') },
+  { path: "/games", name: "games", component: AllGamesView },
 ]
 
 

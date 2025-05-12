@@ -13,9 +13,7 @@
 
           <li><router-link to="/library">遊戲庫</router-link></li>
 
-          <li><router-link to="/order-history">歷史訂單</router-link></li>
-
-          <li><router-link to="/promotion">商店</router-link></li>
+          <li><router-link to="/promotion">限時特賣</router-link></li>
 
 
           <!-- ✅ 使用者登入狀態切換區 -->
