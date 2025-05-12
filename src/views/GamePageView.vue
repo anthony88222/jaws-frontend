@@ -44,7 +44,6 @@
             </li>
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
-          <button class="cart-btn danger" @click="clearCart">清空購物車</button>
         </div>
       </section>
 
@@ -212,7 +211,7 @@ async function submitReview() {
 }
 
 async function addToCart() {
-  const userId = 3;
+  const userId = 1;
   try {
     await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`);
     alert('成功加入購物車！');

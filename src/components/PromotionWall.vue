@@ -152,8 +152,8 @@
   
   .promo-card {
     min-width: 245px;
-    max-width: 245px;
-    max-height: 211px;
+    max-width: 270px;
+    max-height: 240px;
     flex-shrink: 0;
     background: #000;
     border: 2px solid var(--color-primary);

@@ -198,7 +198,7 @@ export default {
     },
 
     goToGamePage(gameId) {
-      this.$router.push({ name: 'gamepage', params: { gameId } });
+      this.$router.push(`/gamepage/${gameId}`);
     },
 
     nextPage() {
