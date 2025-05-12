@@ -8,7 +8,7 @@
   <section class="section featured-games">
     <h2>熱門遊戲</h2>
     <div class="game-grid">
-      <GameCard v-for="game in hotGames" :key="game.id" :game="game" />
+      <GameCard v-for="game in hotGames.slice(0,9)" :key="game.id" :game="game" />
     </div>
   </section>
   
@@ -32,8 +32,12 @@
     >
       <swiper-slide v-for="cat in categories" :key="cat.name" class="category-button"  @click="goToCategory(cat.name)">
         <div class="category-card">
-          <span>{{ cat.name }}</span>
-        </div>
+    <div
+      class="category-image"
+      :style="{ backgroundImage: `url(${cat.bg})` }"
+    ></div>
+    <div class="category-text">{{ cat.name }}</div>
+  </div>
       </swiper-slide>
     </swiper>
     <!-- 右箭頭 -->
@@ -57,16 +61,16 @@ import 'swiper/css/navigation';
 const hotGames = ref([]);
 const router = useRouter();
 const categories = [
-  { name: '角色扮演', emoji: '🧙' },
-  { name: '動作', emoji: '🎮' },
-  { name: '獨立', emoji: '👾' },
-  { name: '策略', emoji: '🧠' },
-  { name: '沙盒', emoji: '🏗️' },
-  { name: '生存', emoji: '🌿' },
-  { name: '恐怖', emoji: '👻' },
-  { name: '第一人稱射擊', emoji: '🔫' },
-  { name: 'MOBA', emoji: '⚔️' },
-  { name: '冒險', emoji: '🧭' }
+  { name: '角色扮演', bg:'https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg' },
+  { name: '動作', bg:'https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg' },
+  { name: '獨立', bg:'https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg' },
+  { name: '策略', bg:'https://cdn.akamai.steamstatic.com/steam/apps/646570/header.jpg' },
+  { name: '沙盒', bg:'https://cdn.akamai.steamstatic.com/steam/apps/892970/header.jpg' },
+  { name: '生存', bg:'https://cdn.akamai.steamstatic.com/steam/apps/578080/header.jpg' },
+  { name: '恐怖', bg:'https://cdn.akamai.steamstatic.com/steam/apps/304430/header.jpg' },
+  { name: '第一人稱射擊', bg:'https://cdn.akamai.steamstatic.com/steam/apps/620/header.jpg' },
+  { name: 'MOBA', bg:'https://cdn.akamai.steamstatic.com/steam/apps/570/header.jpg' },
+  { name: '冒險', bg:'https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg' }
 ];
 
 function goToCategory(categoryName) {
@@ -132,27 +136,48 @@ onMounted(async () => {
 .category-swiper {
   max-width: 1000px;
   margin: 2rem auto;
-  padding: 0 3rem;
+  padding: 1rem 3rem;
 }
 
 .category-card {
-  background: #1f1f2e;
-  padding: 1rem;
+  width: 220px;
   border: 2px solid var(--color-primary);
-  color: var(--color-primary);
-  border-radius: var(--border-radius);
-  text-shadow: 0 0 4px var(--color-primary);
-  text-align: center;
-  font-size: 1.1rem;
-  transition: transform var(--transition);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: #1f1f2e;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .category-card:hover {
   transform: scale(1.05);
-  background-color: var(--color-secondary);
-  color: #000;
+  box-shadow: 0 0 12px var(--color-secondary);
 }
 
+.category-card .overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.4));
+}
+
+.category-image {
+  height: 120px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.category-text {
+  padding: 0.75rem 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  text-align: center;
+  background-color: #1f1f2e;
+  text-shadow: 0 0 4px var(--color-primary);
+  font-weight: bold;
+}
 </style>
 
 <style>
