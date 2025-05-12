@@ -1,7 +1,7 @@
 <template>
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="user.avatarUrl" alt="User Avatar" class="avatar" />
+      <img :src="auth.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar" @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID: {{ user.id }}</p>
@@ -94,9 +94,14 @@ onMounted(async () => {
 .avatar {
   width: 120px;
   height: 120px;
+  border: 2px solid var(--color-primary, #00a8ff);
   border-radius: 50%;
-  border: 2px solid var(--color-secondary);
   box-shadow: 0 0 10px var(--color-secondary);
+  object-fit: cover;
+  background-color: white;
+  /* 添加白色背景 */
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.5);
+  /* 添加光暈效果 */
 }
 
 .user-info {
@@ -244,4 +249,6 @@ onMounted(async () => {
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
+
+
 </style>

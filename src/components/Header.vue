@@ -29,13 +29,14 @@
                 <span class="username">{{ auth.user.username }}</span>
                 <span class="dropdown-arrow">▼</span>
               </div>
-              <img :src="auth.user.avatarUrl || '/images/default-avatar.png'" alt="Avatar" class="avatar"
+              <img :src="auth.user.avatarUrl || 'default-avatar.png'" alt="Avatar" class="avatar"
                 @click.stop="goProfile" />
             </div>
 
             <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
               <li><router-link to="/profile">檢視我的個人檔案</router-link></li>
               <li><router-link to="/wallet">檢視我的錢包：NT$ {{ auth.user.balance }}</router-link></li>
+              <li><router-link to="/friends">檢視我的好友</router-link></li>
               <li><a href="#" @click.prevent="logout">登出</a></li>
             </ul>
           </li>
@@ -194,11 +195,16 @@ onBeforeUnmount(() => {
   opacity: 0.7;
 }
 
+/* 修改現有的頭像樣式 */
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-primary, #00a8ff);
+  background-color: white;
+  /* 添加白色背景 */
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.5);
+  /* 添加光暈效果 */
 }
 </style>
