@@ -26,4 +26,6 @@ import HomeView from './views/HomeView.vue'
 @import './styles/variables.css';
 @import './styles/layout.css';
 
+
+
 </style>

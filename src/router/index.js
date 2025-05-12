@@ -17,25 +17,31 @@ import WishListView from '../views/WishlistView.vue'
 import GamePageView from '../views/GamePageView.vue'
 import PromotionView from '../views/PromotionView.vue'
 import AllGamesView from '../views/AllGamesView.vue'
-
+import RegisterPage from "../views/RegisterPage.vue";
 const routes = [
   { path: "/", name: "Home", component: HomeView },
   { path: "/login", name: "LoginPage", component: LoginPage },
-  { path: "/profile", name: "Profile", component: ProfileView, meta: { requiresAuth: true } },
-  { path: "/friend", name: "Friend", component: FriendView },
+  { path: "/register", name: "RegisterPage", component: RegisterPage },
   { path: "/cart", name: "Cart", component: CartView },
-  { path: "/invite", name: "Invite", component: InviteView },
-  { path: "/chat", name: "Chat", component: ChatView },
-  { path: "/wishlist", name: "wishlist", component: WishListView },
+
+  // 需要登入的頁面
+  { path: "/profile", name: "Profile", component: ProfileView, meta: { requiresAuth: true } },
+  { path: "/friend", name: "Friend", component: FriendView, meta: { requiresAuth: true } },
+  { path: "/invite", name: "Invite", component: InviteView, meta: { requiresAuth: true } },
+  { path: "/chat", name: "Chat", component: ChatView, meta: { requiresAuth: true } },
+  { path: "/wishlist", name: "Wishlist", component: WishListView, meta: { requiresAuth: true } },
+  { path: "/library", name: "Library", component: LibraryView, meta: { requiresAuth: true } },
+  { path: "/order-history", name: "OrderHistory", component: OrderHistoryView, meta: { requiresAuth: true } },
+  { path: "/order/:orderId", name: "OrderDetail", component: OrderDetailView, meta: { requiresAuth: true } },
+  { path: "/checkout", name: "Checkout", component: () => import('@/views/CheckoutView.vue'), meta: { requiresAuth: true } },
+
+  // 其他公開頁面
+  { path: "/promotion", name: "Promotion", component: PromotionView },
+  { path: "/games", name: "AllGamesView", component: AllGamesView },
   { path: "/gamepage/:gameId", name: "GamePage", component: () => import('@/views/GamePageView.vue'), props: true },
-  { path: "/promotion", name: "promotion", component: PromotionView },
-  { path: "/library", name: "Library", component: LibraryView },
-  { path: "/order-history", name: "OrderHistory", component: OrderHistoryView },
-  { path: "/order/:orderId", name: "OrderDetail", component: OrderDetailView },
   { path: "/category/:categoryName", name: "CategoryView", component: () => import('@/views/CategoryView.vue'), props: true },
-  { path: "/checkout", name: "Checkout", component: () => import('@/views/CheckoutView.vue') },
-  { path: "/games", name: "games", component: AllGamesView },
-]
+];
+
 
 
 

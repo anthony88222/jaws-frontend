@@ -2,6 +2,9 @@
 <template>
   <section class="promotion-view">
     <h1>特別優惠</h1>
+    <div v-if="promotions.length === 0" class="empty-placeholder">
+  正在載入特惠遊戲...
+  </div>
     <PromotionHero :featuredPromotions="featuredPromotions" />
 
     <!-- 類別篩選 -->
@@ -153,14 +156,24 @@ onMounted(() => {
   
   <style scoped>
   /* 整個 promotion 頁面 */
+  .empty-placeholder {
+  min-height: 800px;
+  text-align: center;
+  color: white;
+  font-size: 1.5rem;
+  padding: 4rem 0;
+}
   a {
     text-decoration: none;
     color: white;
   }
   .promotion-view {
-    background: var(--color-bg);
-    padding-bottom: 4rem;
-  }
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 🚀 撐滿整個畫面 */
+  background: var(--color-bg);
+  padding-bottom: 4rem;
+}
 
   h1 {
     font-size: 5rem;
@@ -207,6 +220,7 @@ onMounted(() => {
     margin-left: auto;
     margin-right: auto; 
     margin-bottom: 4rem;
+    flex: 1; 
   }
   .promotion-row {
     display: grid;

@@ -28,28 +28,67 @@
       </form>
 
       <div class="register-link">
-        <a href="#" class="neon-link">建立帳號</a>
+        <router-link to="/register" class="neon-link">建立帳號</router-link>
         <span class="divider">|</span>
-        <a href="#" class="neon-link">忘記密碼？</a>
+        <a href="" class="neon-link">忘記密碼？</a>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+// 引入必要模組
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
-const username = ref('');
-const password = ref('');
-const showPassword = ref(false);
-const rememberMe = ref(false);
+// 定義登入頁面的狀態
+const username = ref('')
+const password = ref('')
+const showPassword = ref(false)
+const rememberMe = ref(false)
+const errorMessage = ref('')
 
-function login() {
-  alert(`登入帳號：${username.value}\n記住我：${rememberMe.value}`);
+// 引入路由和狀態管理
+const router = useRouter()
+const authStore = useAuthStore()
+
+// 頁面載入時檢查是否有儲存的用戶資料
+onMounted(() => {
+  // 檢查 store 中是否有保存的用戶名和記住我狀態
+  if (authStore.rememberMe && authStore.savedUsername) {
+    username.value = authStore.savedUsername;
+    rememberMe.value = true;
+  }
+})
+
+// 登入函式
+async function login() {
+  errorMessage.value = '' // 每次點登入都先清除錯誤訊息
+
+  const success = await authStore.login({
+    username: username.value,
+    password: password.value,
+    rememberMe: rememberMe.value // 傳遞「記住我」的狀態
+  })
+
+  if (success) {
+    // 登入成功：跳轉到個人資料頁
+    router.push('/profile')
+  } else {
+    // 登入失敗：顯示錯誤訊息
+    errorMessage.value = '登入失敗，請檢查帳號與密碼'
+  }
 }
 </script>
 
 <style scoped>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .login-wrapper {
   display: flex;
   align-items: center;
@@ -66,10 +105,9 @@ function login() {
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 20px var(--color-primary);
-  width: 55vh;
-  max-width: 800px;
-  text-align: center;
+  min-width: 480px;
 }
+
 
 .login-title {
   color: var(--color-secondary);
@@ -105,23 +143,24 @@ function login() {
   position: relative;
 }
 
-.input-group .toggle-password {
+.toggle-password {
   position: absolute;
-  right: 0.5rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   background: transparent;
   border: none;
   color: var(--color-primary);
   cursor: pointer;
   text-shadow: 0 0 6px var(--color-primary);
+  padding: 0;
 }
 
 .remember-me {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
   margin-bottom: 1.5rem;
   color: var(--color-text);
   font-size: 0.85rem;

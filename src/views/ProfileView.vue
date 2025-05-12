@@ -1,7 +1,7 @@
 <template>
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="user.avatarUrl" alt="User Avatar" class="avatar" />
+      <img :src="auth.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar" @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID: {{ user.id }}</p>
@@ -16,11 +16,11 @@
     </div>
 
     <div class="profile-actions">
-      <button class="btn-neon-sm">個人資訊設定</button>
-      <button class="btn-neon-sm">隱私設定</button>
-      <button class="btn-neon-sm">錢包餘額 & 加值</button>
-      <button class="btn-neon-sm">購買紀錄</button>
-      <button class="btn-neon-sm">願望清單</button>
+      <router-link to="/editprofile" class="btn-neon-sm">個人資訊設定</router-link>
+      <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
+      <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
+      <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
+      <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
     </div>
 
     <div class="profile-columns">
@@ -48,26 +48,29 @@
 </template>
 
 <script setup>
-const user = {
-  id: 'JAWS2025',
-  username: 'TestUser',
-  avatarUrl: 'https://i.pravatar.cc/100?img=12',
-  signature: 'Yo！',
-  level: 12,
-  expPercent: 68,
-};
+import { ref, onMounted } from 'vue'
+import axios from '@/axios'
+import { useAuthStore } from '@/stores/authStore'
 
-const friends = [
-  { id: 1, name: 'Neo', avatarUrl: 'https://i.pravatar.cc/100?img=3' },
-  { id: 2, name: 'Trinity', avatarUrl: 'https://i.pravatar.cc/100?img=4' },
-  { id: 3, name: 'Morpheus', avatarUrl: 'https://i.pravatar.cc/100?img=5' },
-];
+const auth = useAuthStore()
+const user = ref({})
+const games = ref([])
+const friends = ref([])
 
-const games = [
-  { id: 1, name: 'Cyberpunk 2077', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg' },
-  { id: 2, name: 'Elden Ring', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg' },
-  { id: 3, name: 'Hades', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg' },
-];
+onMounted(async () => {
+  // 拉取個人資料
+  const { data: profile } = await axios.get('/user/me')
+  user.value = profile.data
+  auth.user = profile.data
+
+  // 拉取擁有的遊戲
+  const { data: owned } = await axios.get('/user/me/games')
+  games.value = owned.data
+
+  // 拉取好友列表
+  const { data: fl } = await axios.get('/user/me/friends')
+  friends.value = fl.data
+})
 </script>
 
 <style scoped>
@@ -91,9 +94,14 @@ const games = [
 .avatar {
   width: 120px;
   height: 120px;
+  border: 2px solid var(--color-primary, #00a8ff);
   border-radius: 50%;
-  border: 2px solid var(--color-secondary);
   box-shadow: 0 0 10px var(--color-secondary);
+  object-fit: cover;
+  background-color: white;
+  /* 添加白色背景 */
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.5);
+  /* 添加光暈效果 */
 }
 
 .user-info {
@@ -241,4 +249,6 @@ const games = [
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
+
+
 </style>
