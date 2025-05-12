@@ -10,6 +10,7 @@
 
     <!-- 頁尾 -->
     <Footer />
+  </div>
 </template>
 
 <script setup>
@@ -38,6 +39,5 @@ import HomeView from './views/HomeView.vue'
 
 /* * {
   outline: 1px solid red;
-}
-  */
+} */
 </style>

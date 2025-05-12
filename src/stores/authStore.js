@@ -1,5 +1,4 @@
 // src/stores/authStore.js
-// 這是用來管理使用者登入狀態的 Pinia store，包含登入、登出等功能。
 import { defineStore } from "pinia";
 import axios from "@/axios";
 
@@ -7,53 +6,76 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     token: null, // JWT Token
     user: null, // 使用者資訊
+    rememberMe: false, // 記住我選項狀態
+    savedUsername: null, // 保存的用戶名（專門用於記住我功能）
   }),
 
   actions: {
-    /**
-     * 登入流程：
-     * 1. 傳送帳號密碼給後端
-     * 2. 取得 token 後存起來
-     * 3. 主動呼叫 /user/me 取得使用者資料
-     */
-    async login({ username, password }) {
+    async login({ username, password, rememberMe = false }) {
       try {
-        // 1️⃣ 發送登入請求
+        // 發送登入請求
         const res = await axios.post("/user/login", { username, password });
-        console.log("🚀 登入回傳：", res.data);
-        this.token = res.data.data.accessToken; // 🔁 維持你原本的命名習慣（token）
+        this.token = res.data.data.accessToken;
 
-        // 2️⃣ 用 token 呼叫 /me 拿使用者資訊
+        // 用 token 呼叫 /me 拿使用者資訊
         const profileRes = await axios.get("/user/me", {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
         });
 
-        console.log("✅ /me 回傳：", profileRes.data);
-
-        // 3️⃣ 儲存使用者資訊
+        // 儲存使用者資訊
         this.user = profileRes.data.data;
+
+        // 儲存「記住我」狀態和用戶名
+        this.rememberMe = rememberMe;
+        if (rememberMe) {
+          this.savedUsername = username;
+        } else {
+          this.savedUsername = null;
+        }
 
         return true;
       } catch (err) {
-        console.error("登入失敗:", err);
         return false;
       }
     },
 
-    /**
-     * 登出流程：
-     * 1. 清除狀態中的 token 與 user
-     * 2. 移除 localStorage 中的 pinia 持久化資料
-     */
+    async register({ username, email, password }) {
+      try {
+        const res = await axios.post("/user/register", {
+          username,
+          email,
+          password,
+        });
+        return true;
+      } catch (err) {
+        throw err;
+      }
+    },
+
     logout() {
+      // 保存用戶名和記住我狀態（如果有勾選記住我）
+      const rememberedUsername = this.rememberMe ? this.savedUsername : null;
+      const wasRemembered = this.rememberMe;
+
+      // 清除登入狀態
       this.token = null;
       this.user = null;
-      localStorage.removeItem("pinia-auth"); // 🧼 清除 pinia 持久化資料（安全保險）
+
+      // 如果之前有勾選記住我，則保留這些資訊
+      this.rememberMe = wasRemembered;
+      this.savedUsername = rememberedUsername;
+    },
+
+    // 清除所有狀態（包括記住我）
+    clearAll() {
+      this.token = null;
+      this.user = null;
+      this.rememberMe = false;
+      this.savedUsername = null;
+      localStorage.removeItem("pinia-auth");
     },
   },
-
-  // ✅ 啟用 pinia-plugin-persistedstate（記住登入狀態）
   persist: true,
 });
