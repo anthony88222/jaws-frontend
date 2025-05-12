@@ -3,20 +3,35 @@
     <div class="main-content">
       <h2>訂單詳情</h2>
       <p>訂單編號: {{ order.orderId }}</p>
+      <p>建立時間: {{ formatDate(order.createdAt) }}</p>
       <p>支付狀態: {{ statusText(order.status) }}</p>
       <p>總金額: {{ order.total }} 元</p>
+      <p v-if="order.status !== 1">使用遊戲幣: {{ order.walletUsed }} 元</p>
+      <p v-if="order.status !== 1 && order.total && order.walletUsed !== null">
+        綠界付款: {{ order.total - order.walletUsed }} 元
+      </p>
 
-      <p>遊戲清單:</p>
+      <button
+        v-if="order.status === 1"
+        class="action-btn"
+        @click="goToPayAgain"
+      >再次付款</button>
+
+      <h3>遊戲清單:</h3>
       <div class="game-list">
         <div class="game-card" v-for="(name, index) in order.gameNames" :key="index">
-          <img
-            class="game-image"
-            :src="order.gameImages?.[index]"
-            :alt="name"
-          />
-          <div class="game-title">{{ name }}</div>
+          <img class="game-image" :src="order.gameImages?.[index]" :alt="name" />
+          <div class="game-info">
+            <div class="game-title">{{ name }}</div>
+            <div class="game-price">
+              <span v-if="order.status !== 1">購買金額: NT$ {{ order.gamePrices?.[index] }}</span>
+              <span v-else>價格將依結帳時促銷計算</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <button class="back-btn" @click="goBack">返回歷史訂單</button>
     </div>
   </div>
 
@@ -28,12 +43,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 const order = ref(null)
-
 
 const fetchOrderDetail = async () => {
   try {
@@ -55,15 +70,63 @@ const statusText = (status) => {
   }
 }
 
-onMounted(() => {
-  fetchOrderDetail()
-})
+const formatDate = (dateStr) => {
+  const d = new Date(dateStr)
+  return d.toLocaleString()
+}
+
+const goBack = () => {
+  router.push({ name: 'OrderHistory' })
+}
+
+const payAgain = () => {
+  router.push({ path: '/checkout', query: { orderId: order.value.orderId } })
+}
+
+onMounted(fetchOrderDetail)
 </script>
 
 <style scoped>
 .order-detail {
   padding: 20px;
   color: #0ff;
-  font-weight: bold;
+}
+
+.game-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  background: #111;
+  padding: 10px;
+  border: 1px solid #0ff;
+  border-radius: 8px;
+}
+
+.game-image {
+  width: 100%;
+  border-radius: 4px;
+}
+
+.game-info {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.btn-neon,
+.btn-back {
+  margin-top: 20px;
+  padding: 8px 16px;
+  background-color: #0ff;
+  border: none;
+  color: #000;
+  cursor: pointer;
+  border-radius: 6px;
 }
 </style>
