@@ -1,12 +1,18 @@
 <template>
-  <Header />
-  <div class="layout">
-    <div class="container">
-        <router-view /> <!-- 顯示目前路由的內容 -->
-      </div>
+  <div class="page-wrapper">
+    <!-- 頁首 -->
+    <Header />
+
+    <!-- 主內容 -->
+    <div class="page-content container">
+      <router-view />
     </div>
+
+    <!-- 頁尾 -->
     <Footer />
+  </div>
 </template>
+
 
 <script setup>
 import Header from './components/Header.vue'

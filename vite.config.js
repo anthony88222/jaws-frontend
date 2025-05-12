@@ -1,8 +1,7 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -10,24 +9,31 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  define: {
-    global: 'window'
-  },
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
+    historyApiFallback: true, // 若有使用 Vue Router，需設定為 true
     proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/ws': {
         target: 'http://localhost:8080',
         ws: true,
         changeOrigin: true,
       },
-      '/api': {
+      '/Library': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        secure: false,
-      },
-    },
+        rewrite: (path) => path.replace(/^\/Library/, '/Library'),
+      }
+    }
   },
-})
+  define: {
+    global: 'window',
+  },
+});

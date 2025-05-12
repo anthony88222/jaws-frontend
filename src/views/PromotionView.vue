@@ -60,7 +60,6 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import PromotionHero from '../components/PromotionHero.vue'
-import HotNewReleases from '../components/HotNewReleases.vue'
 
 const promotions = ref([])
 const featuredPromotions = ref([])
