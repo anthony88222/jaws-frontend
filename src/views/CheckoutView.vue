@@ -77,10 +77,11 @@
 
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { ref, computed, onMounted, nextTick } from 'vue'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -94,6 +95,61 @@ const total = ref(0)
 const gameList = ref([])
 const ecpayForm = ref('')
 const isLoading = ref(false)
+
+
+const submitOrder = async () => {
+  isLoading.value = true
+  try {
+    const payload = {
+      userId,
+      paymentType: paymentType.value,
+      walletUsed: (paymentType.value === 2 || paymentType.value === 3) ? walletUsed.value : 0
+    }
+
+    const orderId = route.query.orderId
+    let response
+
+    if (orderId) {
+      // 再次付款
+      response = await axios.post(
+        `http://localhost:8080/order/pay-again`,
+        payload,
+        { params: { orderId } }
+      )
+    } else {
+      // 建立新訂單
+      response = await axios.post(`http://localhost:8080/order/create`, payload)
+    }
+
+    if (response.data.ecpayHtmlForm) {
+      ecpayForm.value = response.data.ecpayHtmlForm
+      nextTick(() => {
+        const div = document.createElement('div')
+        div.innerHTML = ecpayForm.value
+        const form = div.querySelector('form')
+        if (form) {
+          document.body.appendChild(form)
+          form.submit()
+        } else {
+          alert('❌ 綠界表單產生失敗')
+        }
+      })
+    } else if (response.data.status === 3) {
+      alert('✅ 付款完成')
+      router.push('/library')
+    } else {
+      alert('⚠️ 訂單尚未付款完成，請稍後再試')
+      router.push('/order-history')
+    }
+  } catch (err) {
+    console.error(err)
+    alert('❌ 結帳失敗，請稍後再試')
+    router.push('/order-history')
+  } finally {
+    isLoading.value = false
+  }
+}
+
 
 const remainingToPay = computed(() => {
   return Math.max(total.value - walletUsed.value, 0)

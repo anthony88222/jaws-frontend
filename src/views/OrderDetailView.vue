@@ -6,10 +6,11 @@
       <p>建立時間: {{ formatDate(order.createdAt) }}</p>
       <p>支付狀態: {{ statusText(order.status) }}</p>
       <p>總金額: {{ order.total }} 元</p>
-      <p v-if="order.status !== 1">使用遊戲幣: {{ order.walletUsed }} 元</p>
-      <p v-if="order.status !== 1 && order.total && order.walletUsed !== null">
-        綠界付款: {{ order.total - order.walletUsed }} 元
-      </p>
+      <p v-if="order.status !== 1">使用遊戲幣: {{ order.walletUsed ?? 0 }} 元</p>
+<p v-if="order.status !== 1 && order.total != null">
+  綠界付款: {{ order.total - (order.walletUsed ?? 0) }} 元
+</p>
+
 
       <button
         v-if="order.status === 1"
@@ -31,13 +32,17 @@
         </div>
       </div>
 
-      <button class="back-btn" @click="goBack">返回歷史訂單</button>
+      
     </div>
   </div>
 
   <div v-else class="loading">
     <p>載入中...</p>
   </div>
+
+  <!-- 固定底部的返回按鈕 -->
+<button class="back-to-orders-btn" @click="goBack">返回歷史訂單</button>
+
 </template>
 
 
@@ -120,13 +125,24 @@ onMounted(fetchOrderDetail)
 }
 
 .btn-neon,
-.btn-back {
-  margin-top: 20px;
-  padding: 8px 16px;
-  background-color: #0ff;
-  border: none;
-  color: #000;
+.back-to-orders-btn {
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border: 2px solid #f0f;
+  background: transparent;
+  color: #f0f;
+  border-radius: 10px;
   cursor: pointer;
-  border-radius: 6px;
+  z-index: 100;
+  transition: background 0.3s, color 0.3s;
 }
+
+.back-to-orders-btn:hover {
+  background: #f0f;
+  color: #000;
+}
+
 </style>
