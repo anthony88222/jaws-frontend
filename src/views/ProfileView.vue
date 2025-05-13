@@ -23,7 +23,7 @@
       <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
     </div>
 
-    <!-- <div class="profile-columns">
+    <div class="profile-columns">
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
@@ -43,16 +43,18 @@
           </li>
         </ul>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from '@/axios'
 import { useAuthStore } from '@/stores/authStore'
 
+const DEFAULT_AVATAR = '/logo4.png'
 const auth = useAuthStore()
+const userId = computed(() => useAuthStore.user?.id || 0)
 const user = ref({})
 const games = ref([])
 const friends = ref([])
@@ -68,8 +70,20 @@ onMounted(async () => {
   // games.value = owned.data
 
   // // 拉取好友列表
-  // const { data: fl } = await axios.get('/user/me/friends')
-  // friends.value = fl.data
+  // const res = await axios.get(`/api/friend/getFriends?userId=${userId.value}`)
+  // const data = await res.json()
+  // friends.value = data.map(f => {
+  //   const isSelfUser = f.userId === userId.value
+  //   const otherId = isSelfUser ? f.friendId : f.userId
+
+  //   return {
+  //     id: otherId,
+  //     name: f.username,
+  //     avatar: f.avatarUrl || DEFAULT_AVATAR,
+  //     time: formatTime(f.updatedAt)
+  //   }
+  // })
+
 })
 </script>
 
@@ -249,6 +263,4 @@ onMounted(async () => {
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
-
-
 </style>

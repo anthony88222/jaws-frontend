@@ -37,12 +37,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
+const authStore = useAuthStore()   
 const friends = ref([])
 const DEFAULT_AVATAR = '/logo4.png'
-const userId = 1
+const userId = computed(() => authStore.user?.id || 0)
 const router = useRouter()
 
 function showConfirm(message) {
@@ -59,11 +61,11 @@ function navigateTo(path) {
 
 const fetchFriends = async () => {
   try {
-    const res = await fetch(`/api/friend/getFriends?userId=${userId}`)
+    const res = await fetch(`/api/friend/getFriends?userId=${userId.value}`)
     const data = await res.json()
 
     friends.value = data.map(f => {
-      const isSelfUser = f.userId === userId
+      const isSelfUser = f.userId === userId.value
       const otherId = isSelfUser ? f.friendId : f.userId
 
       return {
@@ -105,7 +107,7 @@ function selectChat(receiverId) {
   router.push({
     path: '/chat',
     query: {
-      senderId: userId,
+      senderId: userId.value,
       receiverId
     }
   })

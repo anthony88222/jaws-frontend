@@ -62,11 +62,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, onMounted, watchEffect , computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
+const authStore = useAuthStore()
+const userId = computed(() => authStore.user?.id || 0)
 const DEFAULT_AVATAR = '/logo4.png'
-const userId = 1
 const router = useRouter()
 const sentInvites = ref([])
 const receivedInvites = ref([])
@@ -119,7 +121,7 @@ function navigateTo(path) {
 }
 
 const fetchInvites = async () => {
-    const res = await fetch(`/api/friend/getInvites?userId=${userId}`)
+    const res = await fetch(`/api/friend/getInvites?userId=${userId.value}`)
     const data = await res.json()
 
     sentInvites.value = []
@@ -134,9 +136,9 @@ const fetchInvites = async () => {
             time: formatTime(invite.createdAt)
         }
 
-        if (invite.userId === userId) {
+        if (invite.userId === userId.value) {
             sentInvites.value.push(item)
-        } else if (invite.friendId === userId) {
+        } else if (invite.friendId === userId.value) {
             receivedInvites.value.push(item)
         }
     })

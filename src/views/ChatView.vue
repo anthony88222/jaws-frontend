@@ -18,13 +18,20 @@
 
       <aside class="recent-chats">
         <h2 class="title">聊天</h2>
-        <ul>
-          <li v-for="chat in recentChats" :key="chat.id" class="clickable" @click="selectChat(chat.name)">
-            <div class="chat-info">
-              <span class="chat-name">{{ chat.name }}</span>
-            </div>
-          </li>
-        </ul>
+
+        <div class="recent-chats-scroll">
+          <ul>
+            <li v-for="chat in recentChats" :key="chat.friendId" class="chat-item" @click="selectChat(chat)">
+              <div class="chat-header">
+                <span class="chat-username">{{ chat.username }}</span>
+                <span class="chat-time">{{ formatTime(chat.latestMessageTime) }}</span>
+              </div>
+              <div class="chat-message">
+                {{ chat.latestMessage }}
+              </div>
+            </li>
+          </ul>
+        </div>
       </aside>
 
       <section class="chat-box">
@@ -49,36 +56,49 @@
 
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed ,watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 
-const recentChats = ref([
-  { id: 1, name: '好友名稱 1' },
-  { id: 2, name: '好友名稱 2' },
-  { id: 3, name: '好友名稱 3' },
-])
-
+const recentChats = ref([])
+const authStore = useAuthStore()
 const DEFAULT_AVATAR = '/logo4.png'
-
 const messages = ref([])
 const newMessage = ref('')
 const messageList = ref(null)
-
 const router = useRouter()
 const route = useRoute()
-const senderId = route.query.senderId
-const receiverId = route.query.receiverId
+const userId = computed(() => authStore.user?.id || 0)
+const senderId = Number(route.query.senderId)
+const receiverId = Number(route.query.receiverId)
+
 
 let stompClient = null
 
 function refreshPage() {
-    window.location.reload()
+  window.location.reload()
 }
 
 function navigateTo(path) {
-    router.push(path)
+  router.push(path)
+}
+
+const fetchRecentChats = async () => {
+  const res = await fetch(`/api/chat/recent?userId=${userId.value}`)
+  const data = await res.json()
+  recentChats.value = data
+}
+
+function selectChat(chat) {
+  router.push({
+    path: '/chat',
+    query: {
+      senderId: userId.value,
+      receiverId: chat.friendId
+    }
+  })
 }
 
 const getHistory = async () => {
@@ -94,6 +114,10 @@ const getHistory = async () => {
 }
 
 const connect = () => {
+
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect()
+  }
   const socket = new SockJS('/ws')
   stompClient = Stomp.over(socket)
 
@@ -114,6 +138,7 @@ const connect = () => {
       })
 
       scrollToBottom()
+      fetchRecentChats()
     })
 
   })
@@ -147,16 +172,19 @@ const scrollToBottom = () => {
   })
 }
 
+watch(() => route.query.receiverId, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    refreshPage()
+  }
+})
+
 onMounted(async () => {
+  fetchRecentChats()
   await getHistory()
   connect()
   await nextTick()
   scrollToBottom()
 })
-
-function selectChat(name) {
-  alert(`開啟與 ${name} 的聊天`)
-}
 
 function formatTime(isoString) {
   const date = new Date(isoString)
@@ -168,7 +196,6 @@ function formatTime(isoString) {
 </script>
 
 <style scoped>
-
 * {
   margin: 0;
   padding: 0;
@@ -214,7 +241,6 @@ function formatTime(isoString) {
   color: var(--color-primary);
   border-bottom: 1px solid #222;
   display: flex;
-  align-items: center;
   gap: 0.5rem;
   justify-content: space-between;
   transition: background 0.2s;
@@ -378,4 +404,60 @@ function formatTime(isoString) {
   background-clip: content-box;
 }
 
+.recent-chats {
+  flex-basis: 25%;
+  display: flex;
+  flex-direction: column;
+  max-height: 82vh;
+}
+
+.recent-chats-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+}
+
+.recent-chats-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recent-chats-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.chat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-time {
+  color: #aaa;
+}
+
+.chat-username {
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-message {
+  font-size: 1rem;
+  color: var(--color-text);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>
