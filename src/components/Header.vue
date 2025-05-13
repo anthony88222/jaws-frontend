@@ -7,28 +7,43 @@
         </router-link>
       </div>
 
+      
       <nav>
-        <ul>
-          <li><router-link to="/">首頁</router-link></li>
-
+        <ul class="main-nav">
+          <li class="search-li">
+            <SearchBar />
+          </li>
           <li><router-link to="/library">遊戲庫</router-link></li>
-
           <li><router-link to="/promotion">限時特賣</router-link></li>
+          
+
 
 
           <!-- 登入後 -->
           <li v-if="auth.user" class="dropdown user-dropdown" ref="dropdownRef">
-            <div class="user-info" @click="toggleMenu">
-              <div class="username-container">
-                <span class="username">{{ auth.user.username }}</span>
-                <span class="dropdown-arrow">▼</span>
+            <div class="user-actions">
+              <!-- 願望清單按鈕 -->
+
+              <!-- 購物車按鈕 -->
+              <li><router-link to="/cart">購物車</router-link></li>
+
+              <!-- 使用者資訊 -->
+              <div class="user-info" @click="toggleMenu">
+                <div class="username-container">
+                  <span class="username">{{ auth.user.username }}</span>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                <img
+                  :src="auth.user.avatarUrl || 'default-avatar.png'"
+                  alt="Avatar"
+                  class="avatar"
+                  @click.stop="goProfile"
+                />
               </div>
-              <img :src="auth.user.avatarUrl || 'default-avatar.png'" alt="Avatar" class="avatar"
-                @click.stop="goProfile" />
             </div>
 
             <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
-              <li><router-link to="/profile">檢視我的個人檔案</router-link></li>
+              <li><router-link to="/wishlist">願望清單</router-link></li>
               <li><router-link to="/wallet">檢視我的錢包：NT$ {{ auth.user.balance }}</router-link></li>
               <li><router-link to="/friends">檢視我的好友</router-link></li>
               <li><a href="#" @click.prevent="logout">登出</a></li>
@@ -49,6 +64,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import SearchBar from '@/components/SearchBar.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -191,8 +207,8 @@ onBeforeUnmount(() => {
 
 /* 修改現有的頭像樣式 */
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-primary, #00a8ff);
@@ -201,4 +217,31 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 8px rgba(0, 168, 255, 0.5);
   /* 添加光暈效果 */
 }
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-actions a {
+  color: var(--color-primary);
+  text-shadow: 0 0 3px var(--color-primary);
+}
+
+.user-actions a:hover {
+  color: yellow;
+  text-shadow: 0 0 3px yellow;
+}
+
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 </style>

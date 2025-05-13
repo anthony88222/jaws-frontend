@@ -1,6 +1,9 @@
 <template>
     <section class="all-games-container">
       <h2 class="section-title">所有遊戲</h2>
+      <div v-if="games.length === 0" class="empty-placeholder">
+      正在載入所有遊戲...
+      </div>
       <div class="game-grid">
         <router-link
           v-for="game in games"
@@ -32,11 +35,22 @@
   </script>
   
   <style scoped>
+
+  .empty-placeholder {
+    min-height: 800px;
+    text-align: center;
+    color: white;
+    font-size: 1.5rem;
+    padding: 4rem 0;
+  }
   .all-games-container {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
   
   .section-title {

@@ -49,19 +49,18 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
+    // ① 瀏覽器返回 / 前進 → 還原舊位置（延遲 100 ms）
     if (savedPosition) {
-      return new Promise((resolve) => {
-        // 先滾到頂部
-        window.scrollTo({ top: 0, behavior: 'auto' })
-
-        // 延遲 100ms 再跳回 savedPosition
-        setTimeout(() => {
-          resolve(savedPosition)
-        }, 300)
+      return new Promise(resolve => {
+        // 等待下一輪 repaint，確保新頁面已經掛載
+        requestAnimationFrame(() => {
+          setTimeout(() => resolve({ ...savedPosition, behavior: 'auto' }), 400)
+        })
       })
-    } else {
-      return { top: 0 }
     }
+
+    // ② 一般導航 → 直接滾到頂端
+    return { left: 0, top: 0 }
   }
 })
 

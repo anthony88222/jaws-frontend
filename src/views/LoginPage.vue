@@ -74,7 +74,7 @@ async function login() {
 
   if (success) {
     // 登入成功：跳轉到個人資料頁
-    router.push('/profile')
+    router.push('/')
   } else {
     // 登入失敗：顯示錯誤訊息
     errorMessage.value = '登入失敗，請檢查帳號與密碼'

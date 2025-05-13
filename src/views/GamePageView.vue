@@ -212,24 +212,13 @@ async function submitReview() {
 }
 
 async function addToCart() {
-  const userId = 1;
+  const userId = 22;
   try {
     await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`);
     alert('成功加入購物車！');
   } catch (err) {
     console.error('加入購物車失敗', err);
     alert('加入購物車失敗');
-  }
-}
-
-async function clearCart() {
-  const userId = 3;
-  try {
-    await axios.delete(`http://localhost:8080/api/cart/${userId}/clear`);
-    alert('已清空購物車！');
-  } catch (err) {
-    console.error('清空購物車失敗', err);
-    alert('清空購物車失敗');
   }
 }
 
