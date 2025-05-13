@@ -23,7 +23,7 @@
       <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
     </div>
 
-    <div class="profile-columns">
+    <!-- <div class="profile-columns">
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
@@ -43,7 +43,7 @@
           </li>
         </ul>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -63,13 +63,13 @@ onMounted(async () => {
   user.value = profile.data
   auth.user = profile.data
 
-  // 拉取擁有的遊戲
-  const { data: owned } = await axios.get('/user/me/games')
-  games.value = owned.data
+  // // 拉取擁有的遊戲
+  // const { data: owned } = await axios.get('/user/me/games')
+  // games.value = owned.data
 
-  // 拉取好友列表
-  const { data: fl } = await axios.get('/user/me/friends')
-  friends.value = fl.data
+  // // 拉取好友列表
+  // const { data: fl } = await axios.get('/user/me/friends')
+  // friends.value = fl.data
 })
 </script>
 

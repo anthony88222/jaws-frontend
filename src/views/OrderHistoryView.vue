@@ -57,7 +57,7 @@ const statusFilter = ref('')
 
 const fetchOrders = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/order/findByUser?userId=${userId}`)
+    const response = await axios.get(`http://localhost:8080/api/order/findByUser?userId=${userId}`)
     orders.value = response.data
   } catch (error) {
     console.error('無法獲取訂單資料:', error)
@@ -82,7 +82,7 @@ const payAgain = (orderId) => {
 
 const cancelOrder = async (orderId) => {
   try {
-    await axios.post(`http://localhost:8080/order/${orderId}/cancel`)
+    await axios.post(`http://localhost:8080/api/order/${orderId}/cancel`)
     alert('訂單已取消')
     fetchOrders()
   } catch (error) {
