@@ -1,6 +1,6 @@
 <template>
   <footer>
-    <p>&copy; 2025 JAWS. 所有權利保留。</p>
+    <p> © 2025 JAWS｜成果展示用，非商業網站｜素材版權屬原作者所有</p>
   </footer>
 </template>
 

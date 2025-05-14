@@ -42,9 +42,29 @@
             <li>分類：
               <span class="tag" v-for="cat in categories" :key="cat.id">{{ cat.name }}</span>
             </li>
+            
+            <li class="price-box">價格：
+              <template v-if="promotionStatus.onSale">
+                <span class="discount-tag">
+                  -{{ Math.round(promotionStatus.discountRate * 100) }}%
+                </span>
+                <span class="original-price">
+                  NT$ {{ game.price }}
+                </span>
+                <span class="final-price">
+                  NT$ {{ Math.floor(promotionStatus.discountedPrice) }}
+                </span>
+              </template>
+              <template v-else>
+                <span class="final-price">NT$ {{ game.price }}</span>
+              </template>
+            </li>
+
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
-        
+          <button class="wishlist-btn" @click="addToWishlist">
+            {{ inWishlist ? '已加入願望清單' : '加入願望清單' }}
+          </button>
         </div>
       </section>
 
@@ -108,11 +128,12 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
-
+const authStore = useAuthStore();
 const gameId = ref(Number(route.params.gameId));
 const loading = ref(true);
 const submitting = ref(false);
@@ -126,6 +147,16 @@ const currentIndex = ref(0);
 const categories = ref([]);
 const relatedGames = ref([]);
 const thumbnailList = ref(null);
+const inWishlist = ref(false); // 假設有一個狀態來判斷是否在願望清單中
+
+const promotionStatus = ref({
+  gameId:0,
+  discountRate: 0,
+  finalPrice: 0,
+  originalPrice: 0,
+  isPromoted: false,
+});
+
 
 const sortedReviews = computed(() => {
   return game.value.reviews;
@@ -174,6 +205,16 @@ const fetchRelatedGames = async () => {
   }
 };
 
+const fetchPromotionStatus = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId.value}`);
+    console.log('促銷狀態:', res.data);
+    promotionStatus.value = res.data;
+  } catch (err) {
+    console.warn('無促銷活動或讀取失敗', err);
+  }
+};
+
 function goToGamePage(targetId) {
   if (targetId !== gameId.value) {
     router.push(`/gamepage/${targetId}`);
@@ -186,23 +227,35 @@ async function submitReview() {
     return;
   }
 
+  if (!authStore.token) {
+    alert('請先登入才能發表評論');
+    router.push('/login');
+    return;
+  }
+
   submitting.value = true;
+
   try {
-    const response = await axios.post(`http://localhost:8080/api/reviews/game/${game.value.id}`, {
-      userId: 1, // ⚠️ 請根據登入狀態調整
-      rate: newRate.value,
-      comment: newComment.value
-    });
+    console.log(gameId.value)
+    await axios.post(
+      `http://localhost:8080/api/reviews/game/${gameId.value}`,
+      {
+        // gameId: gameId.value,
+        userId: authStore.user?.id,   // ✅ 補上這個
+        rate: newRate.value,
+        comment: newComment.value
+      },
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${authStore.token}`
+      //   }
+      // }
+    );
 
-    // 新增評論後手動加入到最前面，假設 response.data 為新評論物件
-    if (response.data && response.data.id) {
-      game.value.reviews.unshift(response.data); // 直接新增到陣列開頭
-    } else {
-      await fetchGameDetail(); // 備案：重新抓資料
-    }
-
+    await fetchGameDetail(); // 新增成功後重新載入評論
     newComment.value = '';
     newRate.value = 5;
+    alert('評論已成功發表！');
   } catch (err) {
     console.error('新增評論失敗', err);
     alert('新增評論失敗');
@@ -212,13 +265,34 @@ async function submitReview() {
 }
 
 async function addToCart() {
-  const userId = 22;
+  const userId = authStore.user?.id;
+  if(!userId) {
+    alert('請先登入才能加入購物車');
+    router.push('/login');
+    return;
+  }
   try {
     await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`);
     alert('成功加入購物車！');
   } catch (err) {
     console.error('加入購物車失敗', err);
     alert('加入購物車失敗');
+  }
+}
+
+async function clearCart() {
+  const userId = authStore.user?.id;
+  if(!userId) {
+    alert('請先登入才能清空購物車');
+    router.push('/login');
+    return;
+  }
+  try {
+    await axios.delete(`http://localhost:8080/api/cart/${userId}/clear`);
+    alert('已清空購物車！');
+  } catch (err) {
+    console.error('清空購物車失敗', err);
+    alert('清空購物車失敗');
   }
 }
 
@@ -252,13 +326,35 @@ function scrollToThumbnail(index) {
   }
 }
 
+async function addToWishlist() {
+  const userId = authStore.user?.id;
+  if (!userId) {
+    alert('請先登入才能加入願望清單');
+    router.push('/login');
+    return;
+  }
+
+  try {
+    await axios.post(`http://localhost:8080/api/wishlist/${userId}/add/${game.value.id}`);
+    alert('已加入願望清單！');
+    inWishlist.value = true;
+    localStorage.setItem(`wishlist-${game.value.id}`, 'true');
+  } catch (err) {
+    console.error('加入願望清單失敗', err);
+    alert('加入願望清單失敗');
+  }
+}
+
 onMounted(async () => {
   loading.value = true;
   await fetchGameDetail();
   await fetchRatingSummary();
   await fetchCategories();
   await fetchRelatedGames();
+  await fetchPromotionStatus();
   loading.value = false;
+  const stored = localStorage.getItem(`wishlist-${gameId.value}`);
+  inWishlist.value = stored === 'true';
 });
 
 watch(() => route.params.gameId, async newVal => {
@@ -268,11 +364,11 @@ watch(() => route.params.gameId, async newVal => {
   await fetchRatingSummary();
   await fetchCategories();
   await fetchRelatedGames();
+  await fetchPromotionStatus(); // << 加這行
   currentIndex.value = 0;
   loading.value = false;
 });
 </script>
-
 
 <style scoped>
 /* 新增的介紹區塊樣式 */
@@ -597,7 +693,6 @@ watch(() => route.params.gameId, async newVal => {
 .price-text {
   display: flex;
   flex-direction: column;
-  text-align: right;
 }
 
 .price-text.green .final-price {
@@ -619,6 +714,8 @@ watch(() => route.params.gameId, async newVal => {
 .final-price {
   font-size: 1.2rem;
   font-weight: bold;
+  color: #bfff00;
+  text-shadow: 0 0 6px #bfff00;
 }
 
 /* 加入購物車按鈕 */
@@ -714,4 +811,24 @@ watch(() => route.params.gameId, async newVal => {
   color: white;
 }
 
+
+/* 加入購物車按鈕 */
+.wishlist-btn {
+  background: transparent;
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  /* text-shadow: 0 0 4px var(--color-secondary); */
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.wishlist-btn:hover {
+  background-color: var(--color-secondary);
+  color: #000;
+  box-shadow: 0 0 12px var(--color-secondary);
+}
 </style>
