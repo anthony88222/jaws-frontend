@@ -51,15 +51,16 @@
                 <span class="original-price">
                   NT$ {{ game.price }}
                 </span>
-                <span class="final-price">
+                <span class="final-price green">
                   NT$ {{ Math.floor(promotionStatus.discountedPrice) }}
                 </span>
               </template>
               <template v-else>
-                <span class="final-price">NT$ {{ game.price }}</span>
+                <span class="final-price white">
+                  NT$ {{ game.price }}
+                </span>
               </template>
             </li>
-
           </ul>
           <button class="cart-btn" @click="addToCart">加入購物車</button>
           <button class="wishlist-btn" @click="addToWishlist">
@@ -245,11 +246,6 @@ async function submitReview() {
         rate: newRate.value,
         comment: newComment.value
       },
-      // {
-      //   headers: {
-      //     Authorization: `Bearer ${authStore.token}`
-      //   }
-      // }
     );
 
     await fetchGameDetail(); // 新增成功後重新載入評論
@@ -315,10 +311,8 @@ function scrollToThumbnail(index) {
   if (item && container) {
     const containerRect = container.getBoundingClientRect();
     const itemRect = item.getBoundingClientRect();
-
     const isOutOfViewLeft = itemRect.left < containerRect.left;
     const isOutOfViewRight = itemRect.right > containerRect.right;
-
     if (isOutOfViewLeft || isOutOfViewRight) {
       const scrollAmount = item.offsetLeft - container.offsetLeft - container.clientWidth / 2 + item.clientWidth / 2;
       container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
@@ -333,7 +327,6 @@ async function addToWishlist() {
     router.push('/login');
     return;
   }
-
   try {
     await axios.post(`http://localhost:8080/api/wishlist/${userId}/add/${game.value.id}`);
     alert('已加入願望清單！');
@@ -695,14 +688,14 @@ watch(() => route.params.gameId, async newVal => {
   flex-direction: column;
 }
 
-.price-text.green .final-price {
+.final-price.green {
   color: #bfff00;
   text-shadow: 0 0 6px #bfff00;
 }
 
-.price-text.white .final-price {
-  color: #fff;
-  text-shadow: none;
+.final-price.white {
+  color: #ffffff;
+  text-shadow: 0 0 6px var(--color-primary);
 }
 
 .original-price {
