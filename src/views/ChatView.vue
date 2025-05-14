@@ -18,16 +18,27 @@
 
       <aside class="recent-chats">
         <h2 class="title">聊天</h2>
-        <ul>
-          <li v-for="chat in recentChats" :key="chat.id" class="clickable" @click="selectChat(chat.name)">
-            <div class="chat-info">
-              <span class="chat-name">{{ chat.name }}</span>
-            </div>
-          </li>
-        </ul>
+
+        <div class="recent-chats-scroll">
+          <ul>
+            <li v-for="chat in recentChats" :key="chat.friendId" class="chat-item" @click="selectChat(chat)">
+              <div class="chat-header">
+                <span class="chat-username">{{ chat.username }}</span>
+                <span class="chat-time">{{ formatTime(chat.latestMessageTime) }}</span>
+              </div>
+              <div class="chat-message">
+                {{ chat.latestMessage }}
+              </div>
+            </li>
+          </ul>
+        </div>
       </aside>
 
       <section class="chat-box">
+        <div class="chat-with">
+          <span class="chat-username">{{ currentChatUsername }}</span>
+        </div>
+
         <div class="chat-messages" ref="messageList">
           <div v-for="msg in messages" :key="msg.id" class="message-wrapper" :class="msg.from">
             <img v-if="msg.from === 'them'" :src="msg.avatar" class="avatar" />
@@ -49,37 +60,55 @@
 
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 
-const recentChats = ref([
-  { id: 1, name: '好友名稱 1' },
-  { id: 2, name: '好友名稱 2' },
-  { id: 3, name: '好友名稱 3' },
-])
-
+const recentChats = ref([])
+const authStore = useAuthStore()
 const DEFAULT_AVATAR = '/logo4.png'
-
 const messages = ref([])
 const newMessage = ref('')
 const messageList = ref(null)
-
 const router = useRouter()
 const route = useRoute()
-const senderId = route.query.senderId
-const receiverId = route.query.receiverId
+const userId = computed(() => authStore.user?.id || 0)
+const senderId = Number(route.query.senderId)
+const receiverId = Number(route.query.receiverId)
+
 
 let stompClient = null
 
 function refreshPage() {
-    window.location.reload()
+  window.location.reload()
 }
 
 function navigateTo(path) {
-    router.push(path)
+  router.push(path)
 }
+
+const fetchRecentChats = async () => {
+  const res = await fetch(`/api/chat/recent?userId=${userId.value}`)
+  const data = await res.json()
+  recentChats.value = data
+}
+
+function selectChat(chat) {
+  router.push({
+    path: '/chat',
+    query: {
+      senderId: userId.value,
+      receiverId: chat.friendId
+    }
+  })
+}
+
+const currentChatUsername = computed(() => {
+  const chat = recentChats.value.find(c => c.friendId === receiverId)
+  return chat?.username || '好友聊天'
+})
 
 const getHistory = async () => {
   const res = await fetch(`/api/chat/history?senderId=${senderId}&receiverId=${receiverId}`)
@@ -94,6 +123,10 @@ const getHistory = async () => {
 }
 
 const connect = () => {
+
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect()
+  }
   const socket = new SockJS('/ws')
   stompClient = Stomp.over(socket)
 
@@ -114,6 +147,7 @@ const connect = () => {
       })
 
       scrollToBottom()
+      fetchRecentChats()
     })
 
   })
@@ -147,16 +181,21 @@ const scrollToBottom = () => {
   })
 }
 
-onMounted(async () => {
-  await getHistory()
-  connect()
-  await nextTick()
-  scrollToBottom()
+watch(() => route.query.receiverId, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    refreshPage()
+  }
 })
 
-function selectChat(name) {
-  alert(`開啟與 ${name} 的聊天`)
-}
+onMounted(async () => {
+  fetchRecentChats()
+  if (receiverId) {
+    await getHistory()
+    connect()
+    await nextTick()
+    scrollToBottom()
+  }
+})
 
 function formatTime(isoString) {
   const date = new Date(isoString)
@@ -168,6 +207,11 @@ function formatTime(isoString) {
 </script>
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 .layout {
   display: flex;
@@ -186,60 +230,6 @@ function formatTime(isoString) {
   overflow: hidden;
 }
 
-.friend-list,
-.recent-chats {
-  flex-basis: 15%;
-  background-color: #111;
-  padding: 1rem;
-  border-right: 2px solid var(--color-primary);
-  overflow-y: auto;
-}
-
-.friend-list ul,
-.recent-chats ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.friend-list li,
-.recent-chats li {
-  padding: 0.5rem 0.75rem;
-  color: var(--color-primary);
-  border-bottom: 1px solid #222;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: space-between;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-
-.friend-list li:hover,
-.recent-chats li:hover {
-  background: #222;
-  box-shadow: 0 0 6px var(--color-primary);
-}
-
-.friend-list .title,
-.recent-chats .title {
-  color: var(--color-secondary);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  text-shadow: 0 0 8px var(--color-secondary);
-  text-align: left;
-}
-
-.friend-name,
-.chat-name {
-  text-shadow: 0 0 5px var(--color-primary);
-  font-size: 1.2rem;
-}
-
-.chat-info {
-  width: 100%;
-}
-
 .chat-box {
   flex: 1;
   display: flex;
@@ -250,14 +240,15 @@ function formatTime(isoString) {
   overflow: hidden;
 }
 
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
+.chat-header {
+  font-size: 1rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0rem 0.75rem 0rem 0.25rem;
-  min-height: 0;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-info {
+  width: 100%;
 }
 
 .chat-input {
@@ -265,13 +256,6 @@ function formatTime(isoString) {
   border-top: 1px solid var(--color-primary);
   padding-top: 1rem;
   flex-shrink: 0;
-}
-
-.input-wrapper {
-  border: 2px solid var(--color-primary);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 10px var(--color-primary);
-  padding: 0.25rem;
 }
 
 .chat-input input {
@@ -286,75 +270,28 @@ function formatTime(isoString) {
   text-shadow: 0 0 1px var(--color-primary);
 }
 
-.bubble {
-  max-width: 60%;
-  padding: 0.8rem 1.2rem;
-  border-radius: 1.5rem;
-  margin: 0.2rem 0;
+.chat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-message {
   font-size: 1rem;
   color: var(--color-text);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
-.bubble.them {
-  align-self: flex-start;
-  background: var(--color-secondary);
-  color: #000;
-  text-shadow: 0 0 4px #fff;
-  box-shadow:
-    0 0 5px var(--color-secondary),
-    0 0 10px var(--color-secondary);
-}
-
-.bubble.me {
-  align-self: flex-end;
-  background: var(--color-primary);
-  color: #000;
-  text-shadow: 0 0 4px #fff;
-  box-shadow:
-    0 0 5px var(--color-primary),
-    0 0 10px var(--color-primary);
-}
-
-.avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 4px var(--color-primary);
-}
-
-.message-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.message-wrapper.them {
-  flex-direction: row;
-}
-
-.message-wrapper.me {
-  flex-direction: row-reverse;
-}
-
-.timestamp {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin-bottom: 0.25rem;
+  max-width: 100%;
   white-space: nowrap;
-  align-self: flex-end;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.message-wrapper.me .timestamp {
-  margin-right: 0.25rem;
-}
-
-.message-wrapper.them .timestamp {
-  margin-left: 0.25rem;
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0rem 0.75rem 0rem 0.25rem;
+  min-height: 0;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -370,6 +307,183 @@ function formatTime(isoString) {
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: content-box;
+}
+
+.chat-name {
+  text-shadow: 0 0 5px var(--color-primary);
+  font-size: 1.2rem;
+}
+
+.chat-time {
+  color: #aaa;
+}
+
+.chat-username {
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-with {
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 8px var(--color-secondary);
+  text-align: left;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-primary);
+}
+
+.bubble {
+  max-width: 60%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 1.5rem;
+  margin: 0.2rem 0;
+  font-size: 1rem;
+  color: var(--color-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.bubble.me {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: #000;
+  text-shadow: 0 0 4px #fff;
+  box-shadow:
+    0 0 5px var(--color-primary),
+    0 0 10px var(--color-primary);
+}
+
+.bubble.them {
+  align-self: flex-start;
+  background: var(--color-secondary);
+  color: #000;
+  text-shadow: 0 0 4px #fff;
+  box-shadow:
+    0 0 5px var(--color-secondary),
+    0 0 10px var(--color-secondary);
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 4px var(--color-primary);
+}
+
+.friend-list,
+.recent-chats {
+  flex-basis: 15%;
+  background-color: #111;
+  padding: 1rem;
+  border-right: 2px solid var(--color-primary);
+  overflow-y: auto;
+}
+
+.friend-list li,
+.recent-chats li {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-primary);
+  border-bottom: 1px solid #222;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.friend-list li:hover,
+.recent-chats li:hover {
+  background: #222;
+  box-shadow: 0 0 6px var(--color-primary);
+}
+
+.friend-list ul,
+.recent-chats ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.friend-list .title,
+.recent-chats .title {
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 8px var(--color-secondary);
+  text-align: left;
+}
+
+.friend-name {
+  text-shadow: 0 0 5px var(--color-primary);
+  font-size: 1.2rem;
+}
+
+.input-wrapper {
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 10px var(--color-primary);
+  padding: 0.25rem;
+}
+
+.message-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.message-wrapper.me {
+  flex-direction: row-reverse;
+}
+
+.message-wrapper.them {
+  flex-direction: row;
+}
+
+.message-wrapper.me .timestamp {
+  margin-right: 0.25rem;
+}
+
+.message-wrapper.them .timestamp {
+  margin-left: 0.25rem;
+}
+
+.recent-chats {
+  flex-basis: 25%;
+  display: flex;
+  flex-direction: column;
+  max-height: 82vh;
+}
+
+.recent-chats-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+}
+
+.recent-chats-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recent-chats-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  align-self: flex-end;
 }
 
 </style>

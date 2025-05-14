@@ -16,13 +16,22 @@
           </li>
         </ul>
       </aside>
+
       <section class="friends-grid">
-        <h2 class="title left-align">我的好友</h2>
+        <div class="friend-header-row">
+          <h2 class="title left-align">我的好友</h2>
+          <div class="friend-search-bar">
+            <input type="text" v-model="searchKeyword" placeholder="搜尋好友名稱..." />
+          </div>
+        </div>
+
         <div class="grid">
-          <div v-for="friend in friends" :key="friend.id" class="friend-card">
+          <div v-for="friend in filteredFriends" :key="friend.id" class="friend-card">
             <button class="delete-btn" @click="confirmRemove(friend)">✕</button>
             <div class="friend-content">
-              <img class="avatar" :src="friend.avatar" alt="Avatar" />
+              <button class="avatar-btn" @click="onAvatarClick(friend)">
+                <img class="avatar" :src="friend.avatar" alt="Avatar" />
+              </button>
               <div class="friend-name center">{{ friend.name }}</div>
               <button class="message-btn" @click="selectChat(friend.id)">
                 聊天
@@ -37,13 +46,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
+const authStore = useAuthStore()
 const friends = ref([])
 const DEFAULT_AVATAR = '/logo4.png'
-const userId = 1
+const userId = computed(() => authStore.user?.id || 0)
 const router = useRouter()
+const searchKeyword = ref('')
 
 function showConfirm(message) {
   return window.confirm(message)
@@ -59,11 +71,11 @@ function navigateTo(path) {
 
 const fetchFriends = async () => {
   try {
-    const res = await fetch(`/api/friend/getFriends?userId=${userId}`)
+    const res = await fetch(`/api/friend/getFriends?userId=${userId.value}`)
     const data = await res.json()
 
     friends.value = data.map(f => {
-      const isSelfUser = f.userId === userId
+      const isSelfUser = f.userId === userId.value
       const otherId = isSelfUser ? f.friendId : f.userId
 
       return {
@@ -72,13 +84,19 @@ const fetchFriends = async () => {
         friendId: f.friendId,
         name: f.username,
         avatar: f.avatarUrl || DEFAULT_AVATAR,
-        time: formatTime(f.updatedAt) 
+        time: formatTime(f.updatedAt)
       }
     })
   } catch (err) {
     console.error('取得好友失敗', err)
   }
 }
+
+const filteredFriends = computed(() =>
+  friends.value.filter(f =>
+    f.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  )
+)
 
 async function confirmRemove(friend) {
   const ok = showConfirm(`確定要刪除好友 ${friend.name} 嗎？`)
@@ -101,11 +119,18 @@ async function confirmRemove(friend) {
   }
 }
 
+function onAvatarClick(friend) {
+  router.push({
+    path: '/profile',
+    query: { userId: friend.id }
+  })
+}
+
 function selectChat(receiverId) {
   router.push({
     path: '/chat',
     query: {
-      senderId: userId,
+      senderId: userId.value,
       receiverId
     }
   })
@@ -124,6 +149,11 @@ onMounted(fetchFriends)
 
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 .layout {
   display: flex;
@@ -155,10 +185,12 @@ onMounted(fetchFriends)
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
+  align-content: start;
   justify-content: flex-start;
   max-height: 80vh;
   overflow: auto;
-  padding: 0.25rem 0.5rem 0rem 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+  flex: 1;
 }
 
 .friend-list {
@@ -297,6 +329,52 @@ onMounted(fetchFriends)
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: content-box;
+}
+
+.friend-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.friend-search-bar {
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+  min-width: 250px;
+}
+
+.friend-header-row .title {
+  margin-bottom: 0;
+  flex-shrink: 1;
+  max-width: 50%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.friend-search-bar input {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background-color: #111;
+  color: var(--color-primary);
+  font-size: 1rem;
+  outline: none;
+  width: 15rem;
+  box-shadow: inset 0 0 6px var(--color-primary);
+}
+
+.avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 </style>

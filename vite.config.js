@@ -11,7 +11,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5174,
+    port: 5173,
     strictPort: true,
     historyApiFallback: true, // 若有使用 Vue Router，需設定為 true
     proxy: {
@@ -19,15 +19,10 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/ws': {
         target: 'http://localhost:8080',
         ws: true,
-        changeOrigin: true,
-      },
-      '/Library': {
-        target: 'http://localhost:8080',
         changeOrigin: true,
       }
     }

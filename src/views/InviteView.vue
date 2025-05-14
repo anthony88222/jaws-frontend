@@ -19,7 +19,13 @@
             </aside>
 
             <section class="invite-panel">
-                <h2 class="title">好友邀請</h2>
+                <div class="invite-header-row">
+                    <h2 class="title">好友邀請</h2>
+                    <div class="invite-search-bar">
+                        <input type="text" v-model="inviteUsername" placeholder="輸入使用者名稱..." />
+                        <button @click="sendInvite">送出邀請</button>
+                    </div>
+                </div>
 
                 <div class="invite-block">
                     <h3 class="subtitle">已送出的邀請</h3>
@@ -62,11 +68,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, onMounted, watchEffect, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
+const authStore = useAuthStore()
+const userId = computed(() => authStore.user?.id || 0)
+const inviteUsername = ref('')
 const DEFAULT_AVATAR = '/logo4.png'
-const userId = 1
 const router = useRouter()
 const sentInvites = ref([])
 const receivedInvites = ref([])
@@ -118,8 +127,40 @@ function navigateTo(path) {
     router.push(path)
 }
 
+async function sendInvite() {
+  const friendUsername = inviteUsername.value.trim()
+  if (!friendUsername) {
+    alert('請輸入使用者名稱')
+    return
+  }
+
+  try {
+    const res = await fetch('/api/friend/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userId.value,
+        friendUsername
+      })
+    })
+
+    if (!res.ok) {
+      const msg = await res.text()
+      alert(`送出邀請失敗`)
+      return
+    }
+
+    alert(`已送出邀請給 ${friendUsername}`)
+    inviteUsername.value = ''
+    await fetchInvites()
+
+  } catch (err) {
+    alert(`發生錯誤`)
+  }
+}
+
 const fetchInvites = async () => {
-    const res = await fetch(`/api/friend/getInvites?userId=${userId}`)
+    const res = await fetch(`/api/friend/getInvites?userId=${userId.value}`)
     const data = await res.json()
 
     sentInvites.value = []
@@ -134,9 +175,9 @@ const fetchInvites = async () => {
             time: formatTime(invite.createdAt)
         }
 
-        if (invite.userId === userId) {
+        if (invite.userId === userId.value) {
             sentInvites.value.push(item)
-        } else if (invite.friendId === userId) {
+        } else if (invite.friendId === userId.value) {
             receivedInvites.value.push(item)
         }
     })
@@ -202,30 +243,48 @@ onMounted(fetchInvites)
 </script>
 
 <style scoped>
-
-.layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 90vh;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.invite-container {
-    display: flex;
-    height: 65vh;
-    margin: 2rem auto;
-    width: 60vw;
-    border: 2px solid var(--color-primary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 0 10px var(--color-primary);
-    overflow: hidden;
+.accept-btn {
+    position: absolute;
+    right: 5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
-.invite-panel {
-    flex: 1;
-    padding: 1rem;
-    background: #1a1a2a;
-    height: 82vh;
-    overflow: hidden;
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem;
+    box-shadow: 0 0 6px var(--color-primary);
+}
+
+.date {
+    font-size: 1rem;
+    text-shadow: 0 0 5px;
+}
+
+.delete-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-secondary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 .friend-list {
@@ -241,12 +300,6 @@ onMounted(fetchInvites)
     font-size: 1.5rem;
     margin-bottom: 1rem;
     text-shadow: 0 0 8px var(--color-secondary);
-}
-
-.friend-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
 }
 
 .friend-list li {
@@ -265,23 +318,10 @@ onMounted(fetchInvites)
     box-shadow: 0 0 6px var(--color-primary);
 }
 
-.title {
-    color: var(--color-secondary);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 0 8px var(--color-secondary);
-    text-align: left;
-}
-
-.title.left-align {
-    text-align: left;
-}
-
-.subtitle {
-    font-size: 1.2rem;
-    color: var(--color-primary);
-    margin-bottom: 0.25rem;
-    text-shadow: 0 0 3px var(--color-primary);
+.friend-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .friend-name {
@@ -289,48 +329,15 @@ onMounted(fetchInvites)
     text-shadow: 0 0 4px var(--color-primary);
 }
 
-.name {
-    font-size: 1rem;
-    color: var(--color-primary);
-    text-shadow: 0 0 4px var(--color-primary);
-}
-
-.date {
-    font-size: 1rem;
-    text-shadow: 0 0 5px;
+.info-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .invite-block {
     margin-bottom: 2rem;
-}
-
-.underline {
-    border: none;
-    border-top: 2px solid var(--color-secondary);
-    width: 100%;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 0 5px var(--color-secondary);
-    border-radius: 2px;
-}
-
-.invite-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
-    min-height: 0;
-    max-height: 16.5rem;
-    overflow-y: auto;
-}
-
-.invite-item {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
 }
 
 .invite-card {
@@ -344,52 +351,56 @@ onMounted(fetchInvites)
     justify-content: space-between;
 }
 
-.avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 1rem;
-    box-shadow: 0 0 6px var(--color-primary);
+.invite-container {
+    display: flex;
+    height: 65vh;
+    margin: 2rem auto;
+    width: 60vw;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--border-radius);
+    box-shadow: 0 0 10px var(--color-primary);
+    overflow: hidden;
 }
 
-.info-row {
-    flex: 1;
+.invite-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.invite-header-row .title {
+    margin-bottom: 0;
+    flex-shrink: 1;
+    max-width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.invite-item {
+    position: relative;
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    box-sizing: border-box;
 }
 
-.delete-btn {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-secondary);
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-}
-
-.accept-btn {
-    position: absolute;
-    right: 5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-primary);
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
+.invite-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
+    min-height: 0;
+    max-height: 16.5rem;
+    overflow-y: auto;
 }
 
 .invite-list::-webkit-scrollbar {
     width: 6px;
-}
-
-.invite-list::-webkit-scrollbar-track {
-    background: transparent;
 }
 
 .invite-list::-webkit-scrollbar-thumb {
@@ -397,6 +408,97 @@ onMounted(fetchInvites)
     border-radius: 6px;
     background-clip: content-box;
     border: 2px solid transparent;
+}
+
+.invite-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.invite-panel {
+    flex: 1;
+    padding: 1rem;
+    background: #1a1a2a;
+    height: 82vh;
+    overflow: hidden;
+}
+
+.invite-search-bar {
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+    min-width: 250px;
+}
+
+.invite-search-bar button {
+    background: #1a1a2a;
+    border: 1px solid var(--color-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--color-secondary);
+    transition: 0.2s;
+}
+
+.invite-search-bar button:hover {
+    color: #1a1a2a;
+    background: var(--color-secondary);
+    box-shadow: 0 0 6px var(--color-secondary);
+}
+
+.invite-search-bar input {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: none;
+    background-color: #111;
+    color: var(--color-primary);
+    font-size: 1rem;
+    outline: none;
+    width: 15rem;
+    box-shadow: inset 0 0 6px var(--color-primary);
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh;
+}
+
+.name {
+    font-size: 1rem;
+    color: var(--color-primary);
+    text-shadow: 0 0 4px var(--color-primary);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+    text-shadow: 0 0 3px var(--color-primary);
+}
+
+.title {
+    color: var(--color-secondary);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 8px var(--color-secondary);
+    text-align: left;
+}
+
+.title.left-align {
+    text-align: left;
+}
+
+.underline {
+    border: none;
+    border-top: 2px solid var(--color-secondary);
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 5px var(--color-secondary);
+    border-radius: 2px;
 }
 
 </style>

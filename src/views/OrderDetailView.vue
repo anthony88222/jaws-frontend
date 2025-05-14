@@ -64,7 +64,7 @@ const promotionMap = ref({})
 
 const fetchOrderDetail = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/order/${route.params.orderId}`)
+    const res = await axios.get(`http://localhost:8080/api/order/${route.params.orderId}`)
     order.value = res.data
   } catch (err) {
     console.error('取得訂單失敗', err)

@@ -110,13 +110,13 @@ const submitOrder = async () => {
     if (orderId) {
       // 再次付款
       response = await axios.post(
-        "http://localhost:8080/order/pay-again",
+        "http://localhost:8080/api/order/pay-again",
         payload,
         { params: { orderId } }
       )
     } else {
       // 建立新訂單
-      response = await axios.post("http://localhost:8080/order/create", payload)
+      response = await axios.post("http://localhost:8080/api/order/create", payload)
     }
 
     if (response.data.ecpayHtmlForm) {
@@ -170,7 +170,7 @@ const canSubmit = computed(() => {
 onMounted(async () => {
   const orderId = route.query.orderId
   if (orderId) {
-    const res = await axios.get(`http://localhost:8080/order/${orderId}`)
+    const res = await axios.get(`http://localhost:8080/api/order/${orderId}`)
     const order = res.data
     total.value = order.total
     gameList.value = order.gameIds.map((id, idx) => ({

@@ -1,7 +1,8 @@
 <template>
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="auth.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar" @click.stop="goProfile" />
+      <img :src="authStore.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar"
+        @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID: {{ user.id }}</p>
@@ -15,7 +16,7 @@
       </div>
     </div>
 
-    <div class="profile-actions">
+    <div class="profile-actions" v-if="isMyProfile">
       <router-link to="/editprofile" class="btn-neon-sm">個人資訊設定</router-link>
       <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
       <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
@@ -37,10 +38,10 @@
       <div class="profile-section">
         <h3 class="section-title">好友列表</h3>
         <ul class="friend-list">
-          <li v-for="friend in friends" :key="friend.id">
+          <button v-for="friend in friends" :key="friend.id" class="friend-button" @click="goToUserProfile(friend.id)">
             <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
             <span class="friend-name">{{ friend.name }}</span>
-          </li>
+          </button>
         </ul>
       </div>
     </div>
@@ -48,49 +49,80 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from '@/axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useRoute, useRouter } from 'vue-router'
 
-const auth = useAuthStore()
+const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+
+const DEFAULT_AVATAR = 'logo4.png'
 const user = ref({})
 const games = ref([])
 const friends = ref([])
 
-onMounted(async () => {
-  // 拉取個人資料
-  const { data: profile } = await axios.get('/user/me')
-  user.value = profile.data
-  auth.user = profile.data
+const isMyProfile = computed(() => targetUserId.value === authStore.user?.id)
+const targetUserId = computed(() => Number(route.query.userId) || authStore.user?.id || 0)
 
-  // 拉取擁有的遊戲
-  const { data: owned } = await axios.get('/user/me/games')
-  games.value = owned.data
+async function fetchUserProfile(userId) {
+  try {
+    const res = await fetch(`/api/user/profile/${userId}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    if (!res.ok) throw new Error('取得使用者資料失敗')
+    return await res.json()
+  } catch {
+    return null
+  }
+}
 
-  // 拉取好友列表
-  const { data: fl } = await axios.get('/user/me/friends')
-  friends.value = fl.data
+async function loadUserProfile() {
+  if (!targetUserId.value) return
+  const profile = await fetchUserProfile(targetUserId.value)
+  if (profile) user.value = profile
+}
+
+const fetchFriends = async () => {
+  try {
+    const res = await fetch(`/api/friend/getFriends?userId=${targetUserId.value}`)
+    const data = await res.json()
+
+    friends.value = data.map(f => {
+      const isSelfUser = f.userId === targetUserId.value
+      const otherId = isSelfUser ? f.friendId : f.userId
+
+      return {
+        id: otherId,
+        name: f.username,
+        avatarUrl: f.avatarUrl || DEFAULT_AVATAR
+      }
+    })
+  } catch (err) {
+    console.error('取得好友失敗', err)
+  }
+}
+
+const goToUserProfile = (userId) => {
+  router.push({ path: '/profile', query: { userId } })
+}
+
+onMounted(() => {
+  watch(
+    () => targetUserId.value,
+    async () => {
+      await loadUserProfile()
+      await fetchFriends()
+    },
+    { immediate: true }
+  )
 })
+
 </script>
 
 <style scoped>
-.profile-container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #1a1a2a;
-  border: 2px solid var(--color-primary);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 20px var(--color-primary);
-}
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
 .avatar {
   width: 120px;
   height: 120px;
@@ -99,62 +131,7 @@ onMounted(async () => {
   box-shadow: 0 0 10px var(--color-secondary);
   object-fit: cover;
   background-color: white;
-  /* 添加白色背景 */
   box-shadow: 0 0 8px rgba(0, 168, 255, 0.5);
-  /* 添加光暈效果 */
-}
-
-.user-info {
-  color: var(--color-text);
-  flex: 1;
-}
-
-.username {
-  font-size: 2rem;
-  color: var(--color-primary);
-  text-shadow: 0 0 6px var(--color-primary);
-}
-
-.user-id,
-.signature {
-  font-size: 0.95rem;
-  color: var(--color-muted);
-  text-shadow: 0 0 4px var(--color-muted);
-}
-
-.level-bar {
-  margin-top: 0.75rem;
-}
-
-.level-bar span {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--color-secondary);
-  margin-bottom: 0.2rem;
-}
-
-.exp-bar {
-  height: 12px;
-  width: 100%;
-  background: #222;
-  border: 1px solid var(--color-primary);
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 0 6px var(--color-primary);
-}
-
-.exp-fill {
-  height: 100%;
-  background: var(--color-primary);
-  transition: width 0.4s ease;
-}
-
-.profile-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  justify-content: center;
 }
 
 .btn-neon-sm {
@@ -175,57 +152,78 @@ onMounted(async () => {
   box-shadow: 0 0 12px var(--color-primary);
 }
 
-.profile-columns {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.profile-section {
-  flex: 1 1 48%;
-}
-
-.section-title {
-  font-size: 1.4rem;
-  color: var(--color-secondary);
-  text-shadow: 0 0 5px var(--color-secondary);
-  margin-bottom: 1rem;
-}
-
-.friend-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  list-style: none;
-  padding: 0;
-}
-
-.friend-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #1a1a2a;
-  padding: 0.5rem 1rem;
+.exp-bar {
+  height: 12px;
+  width: 100%;
+  background: #222;
   border: 1px solid var(--color-primary);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 8px var(--color-primary);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 6px var(--color-primary);
+}
+
+.exp-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.4s ease;
 }
 
 .friend-avatar {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
+}
+
+.friend-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  background: #222;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.friend-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 12px var(--color-secondary);
+}
+
+.friend-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-height: 25rem;
+  overflow-x: hidden;
+  padding: 1rem;
+  scroll-behavior: smooth;
+  overflow-y: visible;
+}
+
+.friend-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.friend-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.friend-list::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .friend-name {
   color: var(--color-text);
-  font-size: 0.95rem;
-}
-
-.games-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  font-size: 1rem;
 }
 
 .game-card {
@@ -250,5 +248,87 @@ onMounted(async () => {
   text-shadow: 0 0 4px var(--color-text);
 }
 
+.games-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.level-bar {
+  margin-top: 0.75rem;
+}
+
+.level-bar span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+  margin-bottom: 0.2rem;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.profile-columns {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.profile-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1a1a2a;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 20px var(--color-primary);
+  min-height: 80vh;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.profile-section {
+  flex: 1 1 48%;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  color: var(--color-secondary);
+  text-shadow: 0 0 5px var(--color-secondary);
+  margin-bottom: 1rem;
+}
+
+.signature {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  text-shadow: 0 0 4px var(--color-muted);
+}
+
+.user-id {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  text-shadow: 0 0 4px var(--color-muted);
+}
+
+.user-info {
+  color: var(--color-text);
+  flex: 1;
+}
+
+.username {
+  font-size: 2rem;
+  color: var(--color-primary);
+  text-shadow: 0 0 6px var(--color-primary);
+}
 
 </style>
