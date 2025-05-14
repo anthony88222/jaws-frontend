@@ -1,7 +1,7 @@
 <template>
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="auth.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar" @click.stop="goProfile" />
+      <img :src="authStore.user.avatarUrl || 'default-avatar2.png'" alt="Avatar" class="avatar" @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID: {{ user.id }}</p>
@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div class="profile-actions">
+    <div class="profile-actions" v-if="isMyProfile">
       <router-link to="/editprofile" class="btn-neon-sm">個人資訊設定</router-link>
       <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
       <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
@@ -48,43 +48,48 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from '@/axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useRoute } from 'vue-router'
 
-const DEFAULT_AVATAR = '/logo4.png'
-const auth = useAuthStore()
-const userId = computed(() => useAuthStore.user?.id || 0)
+const route = useRoute()
+const authStore = useAuthStore()
+
 const user = ref({})
 const games = ref([])
 const friends = ref([])
 
-onMounted(async () => {
-  // 拉取個人資料
-  const { data: profile } = await axios.get('/user/me')
-  user.value = profile.data
-  auth.user = profile.data
+const isMyProfile = computed(() => targetUserId.value === authStore.user?.id)
+const targetUserId = computed(() => Number(route.query.userId) || authStore.user?.id || 0)
 
-  // // 拉取擁有的遊戲
-  // const { data: owned } = await axios.get('/user/me/games')
-  // games.value = owned.data
+async function fetchUserProfile(userId) {
+  try {
+    const res = await fetch(`/api/user/profile/${userId}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    if (!res.ok) throw new Error('取得使用者資料失敗')
+    return await res.json()
+  } catch {
+    return null
+  }
+}
 
-  // // 拉取好友列表
-  // const res = await axios.get(`/api/friend/getFriends?userId=${userId.value}`)
-  // const data = await res.json()
-  // friends.value = data.map(f => {
-  //   const isSelfUser = f.userId === userId.value
-  //   const otherId = isSelfUser ? f.friendId : f.userId
+async function loadUserProfile() {
+  if (!targetUserId.value) return
+  const profile = await fetchUserProfile(targetUserId.value)
+  if (profile) user.value = profile
+}
 
-  //   return {
-  //     id: otherId,
-  //     name: f.username,
-  //     avatar: f.avatarUrl || DEFAULT_AVATAR,
-  //     time: formatTime(f.updatedAt)
-  //   }
-  // })
-
+onMounted(() => {
+  watch(
+    () => targetUserId.value,
+    () => loadUserProfile(),
+    { immediate: true }
+  )
 })
+
 </script>
 
 <style scoped>

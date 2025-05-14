@@ -29,7 +29,9 @@
           <div v-for="friend in filteredFriends" :key="friend.id" class="friend-card">
             <button class="delete-btn" @click="confirmRemove(friend)">✕</button>
             <div class="friend-content">
-              <img class="avatar" :src="friend.avatar" alt="Avatar" />
+              <button class="avatar-btn" @click="onAvatarClick(friend)">
+                <img class="avatar" :src="friend.avatar" alt="Avatar" />
+              </button>
               <div class="friend-name center">{{ friend.name }}</div>
               <button class="message-btn" @click="selectChat(friend.id)">
                 聊天
@@ -115,6 +117,13 @@ async function confirmRemove(friend) {
     const msg = await res.text()
     alert(`刪除失敗：${msg}`)
   }
+}
+
+function onAvatarClick(friend) {
+  router.push({
+    path: '/profile',
+    query: { userId: friend.id }
+  })
 }
 
 function selectChat(receiverId) {
@@ -359,6 +368,13 @@ onMounted(fetchFriends)
   outline: none;
   width: 15rem;
   box-shadow: inset 0 0 6px var(--color-primary);
+}
+
+.avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 </style>

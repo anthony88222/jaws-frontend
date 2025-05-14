@@ -189,10 +189,12 @@ watch(() => route.query.receiverId, async (newId, oldId) => {
 
 onMounted(async () => {
   fetchRecentChats()
-  await getHistory()
-  connect()
-  await nextTick()
-  scrollToBottom()
+  if (receiverId) {
+    await getHistory()
+    connect()
+    await nextTick()
+    scrollToBottom()
+  }
 })
 
 function formatTime(isoString) {
