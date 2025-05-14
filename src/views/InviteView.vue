@@ -249,29 +249,42 @@ onMounted(fetchInvites)
     box-sizing: border-box;
 }
 
-.layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 90vh;
+.accept-btn {
+    position: absolute;
+    right: 5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
-.invite-container {
-    display: flex;
-    height: 65vh;
-    margin: 2rem auto;
-    width: 60vw;
-    border: 2px solid var(--color-primary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 0 10px var(--color-primary);
-    overflow: hidden;
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem;
+    box-shadow: 0 0 6px var(--color-primary);
 }
 
-.invite-panel {
-    flex: 1;
-    padding: 1rem;
-    background: #1a1a2a;
-    height: 82vh;
-    overflow: hidden;
+.date {
+    font-size: 1rem;
+    text-shadow: 0 0 5px;
+}
+
+.delete-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-secondary);
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 .friend-list {
@@ -287,12 +300,6 @@ onMounted(fetchInvites)
     font-size: 1.5rem;
     margin-bottom: 1rem;
     text-shadow: 0 0 8px var(--color-secondary);
-}
-
-.friend-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
 }
 
 .friend-list li {
@@ -311,23 +318,10 @@ onMounted(fetchInvites)
     box-shadow: 0 0 6px var(--color-primary);
 }
 
-.title {
-    color: var(--color-secondary);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 0 8px var(--color-secondary);
-    text-align: left;
-}
-
-.title.left-align {
-    text-align: left;
-}
-
-.subtitle {
-    font-size: 1.2rem;
-    color: var(--color-primary);
-    margin-bottom: 0.25rem;
-    text-shadow: 0 0 3px var(--color-primary);
+.friend-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .friend-name {
@@ -335,48 +329,15 @@ onMounted(fetchInvites)
     text-shadow: 0 0 4px var(--color-primary);
 }
 
-.name {
-    font-size: 1rem;
-    color: var(--color-primary);
-    text-shadow: 0 0 4px var(--color-primary);
-}
-
-.date {
-    font-size: 1rem;
-    text-shadow: 0 0 5px;
+.info-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .invite-block {
     margin-bottom: 2rem;
-}
-
-.underline {
-    border: none;
-    border-top: 2px solid var(--color-secondary);
-    width: 100%;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 0 5px var(--color-secondary);
-    border-radius: 2px;
-}
-
-.invite-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
-    min-height: 0;
-    max-height: 16.5rem;
-    overflow-y: auto;
-}
-
-.invite-item {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
 }
 
 .invite-card {
@@ -390,59 +351,15 @@ onMounted(fetchInvites)
     justify-content: space-between;
 }
 
-.avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 1rem;
-    box-shadow: 0 0 6px var(--color-primary);
-}
-
-.info-row {
-    flex: 1;
+.invite-container {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.delete-btn {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-secondary);
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-}
-
-.accept-btn {
-    position: absolute;
-    right: 5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-primary);
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-}
-
-.invite-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.invite-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.invite-list::-webkit-scrollbar-thumb {
-    background-color: var(--color-secondary);
-    border-radius: 6px;
-    background-clip: content-box;
-    border: 2px solid transparent;
+    height: 65vh;
+    margin: 2rem auto;
+    width: 60vw;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--border-radius);
+    box-shadow: 0 0 10px var(--color-primary);
+    overflow: hidden;
 }
 
 .invite-header-row {
@@ -454,15 +371,6 @@ onMounted(fetchInvites)
     margin-bottom: 1.25rem;
 }
 
-.invite-search-bar {
-    margin: auto;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-    min-width: 250px;
-}
-
 .invite-header-row .title {
     margin-bottom: 0;
     flex-shrink: 1;
@@ -472,16 +380,55 @@ onMounted(fetchInvites)
     text-overflow: ellipsis;
 }
 
-.invite-search-bar input {
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    border: none;
-    background-color: #111;
-    color: var(--color-primary);
-    font-size: 1rem;
-    outline: none;
-    width: 15rem;
-    box-shadow: inset 0 0 6px var(--color-primary);
+.invite-item {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.invite-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
+    min-height: 0;
+    max-height: 16.5rem;
+    overflow-y: auto;
+}
+
+.invite-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.invite-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
+    border-radius: 6px;
+    background-clip: content-box;
+    border: 2px solid transparent;
+}
+
+.invite-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.invite-panel {
+    flex: 1;
+    padding: 1rem;
+    background: #1a1a2a;
+    height: 82vh;
+    overflow: hidden;
+}
+
+.invite-search-bar {
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+    min-width: 250px;
 }
 
 .invite-search-bar button {
@@ -500,4 +447,58 @@ onMounted(fetchInvites)
     background: var(--color-secondary);
     box-shadow: 0 0 6px var(--color-secondary);
 }
+
+.invite-search-bar input {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: none;
+    background-color: #111;
+    color: var(--color-primary);
+    font-size: 1rem;
+    outline: none;
+    width: 15rem;
+    box-shadow: inset 0 0 6px var(--color-primary);
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh;
+}
+
+.name {
+    font-size: 1rem;
+    color: var(--color-primary);
+    text-shadow: 0 0 4px var(--color-primary);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+    text-shadow: 0 0 3px var(--color-primary);
+}
+
+.title {
+    color: var(--color-secondary);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 8px var(--color-secondary);
+    text-align: left;
+}
+
+.title.left-align {
+    text-align: left;
+}
+
+.underline {
+    border: none;
+    border-top: 2px solid var(--color-secondary);
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 5px var(--color-secondary);
+    border-radius: 2px;
+}
+
 </style>
