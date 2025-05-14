@@ -35,6 +35,10 @@
       </aside>
 
       <section class="chat-box">
+        <div class="chat-with">
+          <span class="chat-username">{{ currentChatUsername }}</span>
+        </div>
+
         <div class="chat-messages" ref="messageList">
           <div v-for="msg in messages" :key="msg.id" class="message-wrapper" :class="msg.from">
             <img v-if="msg.from === 'them'" :src="msg.avatar" class="avatar" />
@@ -56,7 +60,7 @@
 
 
 <script setup>
-import { ref, onMounted, nextTick, computed ,watch } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import SockJS from 'sockjs-client'
@@ -100,6 +104,11 @@ function selectChat(chat) {
     }
   })
 }
+
+const currentChatUsername = computed(() => {
+  const chat = recentChats.value.find(c => c.friendId === receiverId)
+  return chat?.username || '好友聊天'
+})
 
 const getHistory = async () => {
   const res = await fetch(`/api/chat/history?senderId=${senderId}&receiverId=${receiverId}`)
@@ -460,4 +469,15 @@ function formatTime(isoString) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.chat-with {
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 8px var(--color-secondary);
+  text-align: left;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-primary);
+}
+
 </style>

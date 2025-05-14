@@ -19,7 +19,13 @@
             </aside>
 
             <section class="invite-panel">
-                <h2 class="title">好友邀請</h2>
+                <div class="invite-header-row">
+                    <h2 class="title">好友邀請</h2>
+                    <div class="invite-search-bar">
+                        <input type="text" v-model="inviteUsername" placeholder="輸入使用者名稱..." />
+                        <button @click="sendInvite">送出邀請</button>
+                    </div>
+                </div>
 
                 <div class="invite-block">
                     <h3 class="subtitle">已送出的邀請</h3>
@@ -62,12 +68,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect , computed } from 'vue'
+import { ref, onMounted, watchEffect, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
 const userId = computed(() => authStore.user?.id || 0)
+const inviteUsername = ref('')
 const DEFAULT_AVATAR = '/logo4.png'
 const router = useRouter()
 const sentInvites = ref([])
@@ -118,6 +125,38 @@ function refreshPage() {
 
 function navigateTo(path) {
     router.push(path)
+}
+
+async function sendInvite() {
+  const friendUsername = inviteUsername.value.trim()
+  if (!friendUsername) {
+    alert('請輸入使用者名稱')
+    return
+  }
+
+  try {
+    const res = await fetch('/api/friend/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userId.value,
+        friendUsername
+      })
+    })
+
+    if (!res.ok) {
+      const msg = await res.text()
+      alert(`送出邀請失敗`)
+      return
+    }
+
+    alert(`已送出邀請給 ${friendUsername}`)
+    inviteUsername.value = ''
+    await fetchInvites()
+
+  } catch (err) {
+    alert(`發生錯誤`)
+  }
 }
 
 const fetchInvites = async () => {
@@ -204,11 +243,10 @@ onMounted(fetchInvites)
 </script>
 
 <style scoped>
-
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 .layout {
@@ -407,4 +445,59 @@ onMounted(fetchInvites)
     border: 2px solid transparent;
 }
 
+.invite-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.invite-search-bar {
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+    min-width: 250px;
+}
+
+.invite-header-row .title {
+    margin-bottom: 0;
+    flex-shrink: 1;
+    max-width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.invite-search-bar input {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: none;
+    background-color: #111;
+    color: var(--color-primary);
+    font-size: 1rem;
+    outline: none;
+    width: 15rem;
+    box-shadow: inset 0 0 6px var(--color-primary);
+}
+
+.invite-search-bar button {
+    background: #1a1a2a;
+    border: 1px solid var(--color-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--color-secondary);
+    transition: 0.2s;
+}
+
+.invite-search-bar button:hover {
+    color: #1a1a2a;
+    background: var(--color-secondary);
+    box-shadow: 0 0 6px var(--color-secondary);
+}
 </style>
