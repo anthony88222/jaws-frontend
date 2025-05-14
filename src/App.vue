@@ -27,5 +27,7 @@ import HomeView from './views/HomeView.vue'
 @import './styles/layout.css';
 
 
-
+/* * {
+  outline: 1px solid red;
+} */
 </style>
