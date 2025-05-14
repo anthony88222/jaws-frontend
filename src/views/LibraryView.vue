@@ -87,12 +87,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+
 
 const libraries = ref([])
 const keyword = ref('')
 const sortBy = ref("")
-const userId = 1
 const selectedCategory = ref('')
+const authStore = useAuthStore()
+const userId = computed(() => authStore.user?.id)
+
 
 const categoryList = [
   "角色扮演",
@@ -133,13 +137,17 @@ const formatDate = (dateString) => {
 
 // ✅ 拉取並展平資料
 const fetchLibrary = async () => {
+  if (!userId.value) return // 尚未登入，不送請求
   try {
-    const response = await axios.get(`http://localhost:8080/api/Library/user/${userId}/list-dto?status=1`)
+    const response = await axios.get(
+      `http://localhost:8080/api/Library/user/${userId.value}/list-dto?status=1`
+    )
     libraries.value = response.data
   } catch (error) {
     console.error('❌ 載入遊戲庫資料失敗', error)
   }
 }
+
 
 
 
@@ -182,7 +190,10 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-onMounted(fetchLibrary)
+onMounted(() => {
+  if (userId.value) fetchLibrary()
+})
+
 </script>
 
 
@@ -336,7 +347,7 @@ onMounted(fetchLibrary)
 
 .game-title {
   color: var(--color-primary);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-bottom: 5px;
   text-shadow: 0 0 4px var(--color-primary);
 }
@@ -344,9 +355,10 @@ onMounted(fetchLibrary)
 .game-date,
 .game-category,
 .game-price {
-  font-size: 0.9rem;
-  color: #f0f;
-  text-shadow: 0 0 4px var(--color-secondary);
+  font-size: 1rem;
+  color:white; 
+  text-shadow: 0 0 0px white;
+  font-weight: 400;
 }
 
 /* 回到頁首按鈕 */
