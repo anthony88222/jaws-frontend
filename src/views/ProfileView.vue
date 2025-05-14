@@ -1,17 +1,21 @@
 <template>
+
+<!--  -->
+<!-- 因為可能會查詢好友的所有資料用 user.   如我確定是要登入者的資訊才用auth.user by anthony-->
+<!--  -->
   <div class="profile-container">
       <div class="profile-header">
-          <img :src="auth.user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
+          <img :src="user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
           <div class="user-info">
-              <h2 class="username">{{ auth.user.username }}</h2>
-              <p class="user-id">ID：{{ auth.user.id }}</p>
-              <p class="signature">個人簽名：{{ auth.user.signature }}</p>
+              <h2 class="username">{{ user.username }}</h2>
+              <p class="user-id">ID：{{ user.id }}</p>
+              <p class="signature">個人簽名：{{ user.signature }}</p>
               <div class="level-bar">
-                  <span>Lv. {{ auth.user.level ?? 0 }}</span>
+                  <span>Lv. {{ user.level ?? 0 }}</span>
                   <div class="exp-bar">
-                      <div class="exp-fill" :style="{ width: (auth.user.expPercent || 0) + '%' }"></div>
+                      <div class="exp-fill" :style="{ width: (user.expPercent || 0) + '%' }"></div>
                       <span class="exp-text">
-                          {{ auth.user.currentExp || 0 }} / {{ auth.user.expPerLevel || 1000 }} EXP
+                          {{ user.currentExp || 0 }} / {{ user.expPerLevel || 1000 }} EXP
                       </span>
                   </div>
               </div>
