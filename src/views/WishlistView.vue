@@ -1,69 +1,121 @@
 <template>
   <div class="container">
     <div class="wishlist-wrapper">
+      <!-- 標題 -->
       <h1 class="wishlist-title">WISHLIST</h1>
 
-      <div v-if="wishlist.length > 0" class="wishlist-list">
+      <!-- 🔔 霓虹 Toast（僅在 toast.visible 時顯示） -->
+      <transition name="toast-fade">
+        <div v-if="toast.visible" class="neon-toast">
+          {{ toast.msg }}
+        </div>
+      </transition>
+
+      <!-- 願望清單 -->
+      <div v-if="wishlist.length" class="wishlist-list">
         <div v-for="item in wishlist" :key="item.id" class="wishlist-row">
+          <!-- 左：遊戲縮圖 -->
           <router-link :to="`/gamepage/${item.gameId}`">
             <img :src="item.coverImageUrl" :alt="item.gameName" class="wishlist-thumb" />
           </router-link>
 
+          <!-- 中：遊戲資訊 -->
           <div class="wishlist-info">
+            <!-- 遊戲名稱 -->
             <router-link :to="`/gamepage/${item.gameId}`" class="game-name">
-              <h2 class="game-name">{{ item.gameName }}</h2>
+              <h2>{{ item.gameName }}</h2>
             </router-link>
 
-            <!-- ✅ 評分顯示 -->
+            <!-- 評分 -->
             <div class="rating-display">
               <template v-if="ratingMap[item.gameId]">
-                <span class="avg">{{ ratingMap[item.gameId].averageRating.toFixed(1) }}</span>
-                <span class="stars">
-                  <span
-                    v-for="n in 5"
-                    :key="n"
-                    class="star"
-                    :class="{ full: n <= Math.round(ratingMap[item.gameId].averageRating) }"
-                  >★</span>
+                <span class="avg">
+                  {{ ratingMap[item.gameId].averageRating.toFixed(1) }}
                 </span>
-                <span class="count">({{ ratingMap[item.gameId].totalReviews.toLocaleString() }})</span>
+                <span class="stars">
+                  <span v-for="n in 5" :key="n" class="star" :class="{
+                    full:
+                      n <=
+                      Math.round(
+                        ratingMap[item.gameId].averageRating
+                      ),
+                  }">★</span>
+                </span>
+                <span class="count">
+                  ({{
+                    ratingMap[item.gameId].totalReviews.toLocaleString()
+                  }})
+                </span>
               </template>
               <template v-else>
                 <span class="review-text">尚無評分</span>
               </template>
             </div>
 
+            <!-- 描述 -->
             <p class="game-description">{{ item.description }}</p>
+
+            <!-- 標籤 -->
             <div class="tag-list">
-              <span class="tag" v-for="tag in tagMap[item.gameId] || []" :key="tag">{{ tag }}</span>
+              <span v-for="tag in tagMap[item.gameId] || []" :key="tag" class="tag">
+                {{ tag }}
+              </span>
             </div>
           </div>
 
+          <!-- 右：價格與按鈕 -->
           <div class="wishlist-actions">
             <div class="price-button-row">
+              <!-- 價格區 -->
               <div v-if="promotionMap[item.gameId]?.onSale" class="price-box-horizontal">
-                <div class="discount-tag">-{{ Math.floor(promotionMap[item.gameId].discountRate * 100) }}%</div>
+                <div class="discount-tag">
+                  -{{
+                    Math.floor(
+                      promotionMap[item.gameId].discountRate * 100
+                    )
+                  }}%
+                </div>
                 <div class="price-text">
-                  <div class="original-price">NT$ {{ item.price }}</div>
-                  <div class="final-price">NT$ {{ Math.floor(promotionMap[item.gameId].discountedPrice) }}</div>
+                  <div class="original-price">
+                    NT$ {{ item.price }}
+                  </div>
+                  <div class="final-price">
+                    NT$
+                    {{
+                      Math.floor(
+                        promotionMap[item.gameId].discountedPrice
+                      )
+                    }}
+                  </div>
                 </div>
               </div>
+
               <div v-else class="price-box-horizontal">
                 <div class="no-sale-price">NT$ {{ item.price }}</div>
               </div>
 
-              <button class="add-btn" @click="addToCart(item.gameId)">加入購物車</button>
+              <!-- 加入購物車：觸發自製 Toast -->
+              <button class="add-btn" @click="addToCart(item.gameId)">
+                加入購物車
+              </button>
             </div>
 
-            <button class="remove-btn" @click="removeFromWishlist(item.gameId)">Remove</button>
+            <!-- 從願望清單移除 -->
+            <button class="remove-btn" @click="removeFromWishlist(item.gameId)">
+              Remove
+            </button>
           </div>
         </div>
       </div>
 
-      <p v-else class="empty-message">目前尚未收藏任何遊戲</p>
+      <!-- 空清單訊息 -->
+      <p v-else class="empty-message">
+        目前尚未收藏任何遊戲
+      </p>
     </div>
   </div>
 </template>
+
 
 
 <script setup>
@@ -71,36 +123,41 @@ import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
+/* ===== 使用者資訊 ===== */
 const authStore = useAuthStore()
 const userId = computed(() => authStore.user?.id || 0)
 
-const wishlist = ref([])
+/* ===== 主要狀態 ===== */
+const wishlist     = ref([])
 const promotionMap = ref({})
-const tagMap = ref({})
-const ratingMap = ref({})
+const tagMap       = ref({})
+const ratingMap    = ref({})
 
-// 取得分類
-const fetchCategories = async (gameId) => {
-  const { data } = await axios.get(
-    `http://localhost:8080/api/games/${gameId}/categories`
-  )
-  return data.map((c) => c.name)
+/* ===== 霓虹 Toast 狀態與函式 ===== */
+const toast = ref({ visible: false, msg: '' })
+function showToast (msg) {
+  toast.value = { visible: true, msg }
+  setTimeout(() => (toast.value.visible = false), 2000) // 2 秒後隱藏
 }
 
-// 折扣
+/* ===== API 輔助函式 ===== */
+const fetchCategories = (gameId) =>
+  axios
+    .get(`http://localhost:8080/api/games/${gameId}/categories`)
+    .then(({ data }) => data.map((c) => c.name))
+
 const fetchPromotion = (gameId) =>
   axios
     .get(`http://localhost:8080/api/promotions/status/${gameId}`)
     .then(({ data }) => (promotionMap.value[gameId] = data))
 
-// 評分
 const fetchRating = (gameId) =>
   axios
     .get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
     .then(({ data }) => (ratingMap.value[gameId] = data))
     .catch(() => (ratingMap.value[gameId] = null))
 
-// 主流程
+/* ===== 主要流程：載入願望清單 ===== */
 const fetchWishlist = async () => {
   try {
     const { data } = await axios.get(
@@ -108,14 +165,14 @@ const fetchWishlist = async () => {
     )
     wishlist.value = data
 
-    // 並行處理每款遊戲的額外資料
     await Promise.all(
       wishlist.value.map(async ({ gameId }) => {
-        await Promise.all([
+        const [ , , tags ] = await Promise.all([
           fetchPromotion(gameId),
           fetchRating(gameId),
-          fetchCategories(gameId).then((tags) => (tagMap.value[gameId] = tags)),
+          fetchCategories(gameId)
         ])
+        tagMap.value[gameId] = tags
       })
     )
   } catch (err) {
@@ -123,30 +180,43 @@ const fetchWishlist = async () => {
   }
 }
 
-// 移除
+/* ===== 從願望清單移除 ===== */
 const removeFromWishlist = async (gameId) => {
-  await axios.delete(
-    `http://localhost:8080/api/wishlist/${userId.value}/remove/${gameId}`
-  )
-  wishlist.value = wishlist.value.filter((w) => w.gameId !== gameId)
-  ;[promotionMap, tagMap, ratingMap].forEach((m) => delete m.value[gameId])
+  try {
+    await axios.delete(
+      `http://localhost:8080/api/wishlist/${userId.value}/remove/${gameId}`
+    )
+    wishlist.value = wishlist.value.filter((w) => w.gameId !== gameId)
+    ;[promotionMap, tagMap, ratingMap].forEach((m) => delete m.value[gameId])
+    showToast('已自願望清單移除')
+  } catch (err) {
+    console.error(err)
+    showToast('移除失敗')
+  }
 }
 
-// 加入購物車
+/* ===== 加入購物車 ===== */
 const addToCart = async (gameId) => {
-  await axios.post(
-    `http://localhost:8080/api/cart/${userId.value}/add/${gameId}`
-  )
-  alert('已加入購物車')
+  try {
+    await axios.post(
+      `http://localhost:8080/api/cart/${userId.value}/add/${gameId}`
+    )
+    showToast('✔ 已加入購物車！')
+  } catch (err) {
+    console.error(err)
+    showToast('加入購物車失敗')
+  }
 }
 
-// 登入後自動刷新
+/* ===== 監聽登入狀態，登入後自動載入清單 ===== */
 watch(userId, (id) => id && fetchWishlist())
 
+/* ===== 初始掛載 ===== */
 onMounted(() => {
   if (userId.value) fetchWishlist()
 })
 </script>
+
 
 <style scoped>
 /* ❗保留原本樣式，若需細調再增刪 */
@@ -154,9 +224,11 @@ onMounted(() => {
 
 
 <style scoped>
-.container {  
+.container {
   height: 100%;
+  min-height: 75vh;
 }
+
 .wishlist-wrapper {
   width: 1050px;
   max-width: 100%;
@@ -279,6 +351,7 @@ onMounted(() => {
   text-shadow: 0 0 4px var(--color-muted);
   padding: 2rem 0;
 }
+
 .sale-badge {
   width: 24px;
   height: 24px;
@@ -367,6 +440,7 @@ onMounted(() => {
   color: #000;
   box-shadow: 0 0 8px var(--color-primary);
 }
+
 .user-review {
   font-size: 0.85rem;
   margin-bottom: 0.3rem;
@@ -466,5 +540,32 @@ onMounted(() => {
 .rating-display .count {
   font-size: 0.85rem;
   color: var(--color-muted);
+}
+
+/* ===== Toast 動畫 ===== */
+.toast-fade-enter-active,
+.toast-fade-leave-active {
+  transition: opacity 0.4s, transform 0.4s;
+}
+.toast-fade-enter-from,
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translateY(20%);
+}
+
+/* ===== 霓虹 Toast 樣式 ===== */
+.neon-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #1a1a2a;
+  border: 2px solid #ff00ff;
+  padding: 0.8rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #ffb3ff;
+  text-shadow: 0 0 6px #ff00ff;
+  box-shadow: 0 0 12px #ff00ff;
+  z-index: 9999;
 }
 </style>
