@@ -2,15 +2,12 @@
     <section class="all-games-container">
       <h2 class="section-title">所有遊戲</h2>
       <div class="game-grid">
-        <router-link
+        <GameCard
           v-for="game in games"
           :key="game.id"
-          :to="{ name: 'GamePage', params: { gameId: game.id } }"
-          class="game-card"
-        >
-          <img :src="game.coverImageUrl" :alt="game.name" />
-          <h3>{{ game.name }}</h3>
-        </router-link>
+          :game="game"
+          :promotion="game.promotionStatus"
+        />
       </div>
     </section>
   </template>
@@ -18,6 +15,7 @@
   <script setup>
   import { ref, onMounted } from 'vue';
   import axios from 'axios';
+  import GameCard from '@/components/GameCard.vue';  
   
   const games = ref([]);
   
@@ -25,6 +23,15 @@
     try {
       const res = await axios.get('http://localhost:8080/api/games/game');
       games.value = res.data;
+      // 對每個遊戲查詢促銷狀態
+      for (const game of games.value) {
+        try {
+        const promoRes = await axios.get(`http://localhost:8080/api/promotions/status/${game.id}`);
+        game.promotionStatus = promoRes.data;
+        } catch {
+        game.promotionStatus = { onSale: false }; // 沒有促銷也要設預設
+          }
+     }
     } catch (err) {
       console.error('取得所有遊戲失敗', err);
     }
