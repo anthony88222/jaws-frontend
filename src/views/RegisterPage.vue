@@ -125,7 +125,7 @@ async function registerUser() {
 }
 
 .register-box {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: #1a1a2a;
     padding: 2rem;
     border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);

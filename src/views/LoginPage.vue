@@ -8,12 +8,7 @@
 
         <label for="password">密碼</label>
         <div class="input-group">
-          <input
-            :type="showPassword ? 'text' : 'password'"
-            id="password"
-            v-model="password"
-            required
-          />
+          <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" required />
           <button type="button" class="toggle-password" @click="showPassword = !showPassword">
             {{ showPassword ? '隱藏' : '顯示' }}
           </button>
@@ -25,6 +20,11 @@
         </div>
 
         <button class="btn-neon" type="submit">LOGIN</button>
+
+        <!-- 顯示錯誤訊息 -->
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
       </form>
 
       <div class="register-link">
@@ -74,7 +74,7 @@ async function login() {
 
   if (success) {
     // 登入成功：跳轉到個人資料頁
-    router.push('/')
+    router.push('/profile')
   } else {
     // 登入失敗：顯示錯誤訊息
     errorMessage.value = '登入失敗，請檢查帳號與密碼'
@@ -83,32 +83,38 @@ async function login() {
 </script>
 
 <style scoped>
+/* 統一邊框盒模型，避免寬度與內距相加導致跑版 */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* 外層容器：置中對齊，背景圖設定，高度採用 80vh 提供較佳視覺居中 */
 .login-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 75vh;
+  height: 80vh;
   background: url('/assets/bg-login.jpg') no-repeat center center;
   background-size: cover;
   padding: 1rem;
 }
 
+/* 登入區塊設定：半透明背景、陰影、邊框、最小寬度與最大寬度限制 */
 .login-box {
-  background-color: #1a1a2a;
+  background-color: rgba(0, 0, 0, 0.8);
   padding: 2rem;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
   box-shadow: 0 0 20px var(--color-primary);
   min-width: 480px;
+  /* max-width: 800px; */
+  /* width: 100%; */
+  text-align: center;
 }
 
-
+/* 標題樣式：字體大小與光暈效果 */
 .login-title {
   color: var(--color-secondary);
   text-shadow: 0 0 12px var(--color-secondary);
@@ -117,6 +123,7 @@ async function login() {
   letter-spacing: 2px;
 }
 
+/* 標籤文字樣式：靠左對齊、有文字陰影 */
 .login-form label {
   display: block;
   text-align: left;
@@ -125,9 +132,10 @@ async function login() {
   text-shadow: 0 0 4px var(--color-primary);
 }
 
+/* 輸入框樣式：100% 寬度、透明背景、邊框圓角、字體、陰影 */
 .login-form input[type='text'],
 .login-form input[type='password'] {
-  width: 90%;
+  width: 100%;
   margin-bottom: 1.2rem;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-primary);
@@ -139,10 +147,12 @@ async function login() {
   outline: none;
 }
 
+/* 輸入框包裹區：用於放置眼睛圖示 */
 .input-group {
   position: relative;
 }
 
+/* 顯示/隱藏密碼按鈕樣式：置右置中，透明背景，文字有陰影 */
 .toggle-password {
   position: absolute;
   right: 0.75rem;
@@ -157,19 +167,21 @@ async function login() {
   padding: 0;
 }
 
+/* 記住我區塊：橫向排列、字體較小、文字陰影 */
 .remember-me {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
   color: var(--color-text);
   font-size: 0.85rem;
   text-shadow: 0 0 4px var(--color-primary);
 }
 
+/* 登入按鈕樣式：滿版寬度、邊框、漸變陰影、滑鼠互動效果 */
 .btn-neon {
   display: inline-block;
-  width: 35%;
+  width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-primary);
   color: var(--color-primary);
@@ -187,6 +199,7 @@ async function login() {
   box-shadow: 0 0 20px var(--color-primary);
 }
 
+/* 註冊連結區塊：橫向排列，自動換行，置中對齊 */
 .register-link {
   margin-top: 1.5rem;
   display: flex;
@@ -195,6 +208,7 @@ async function login() {
   flex-wrap: wrap;
 }
 
+/* 連結文字樣式：文字光暈、hover 效果 */
 .neon-link {
   color: var(--color-secondary);
   font-size: 0.9rem;
@@ -208,8 +222,17 @@ async function login() {
   text-shadow: 0 0 8px var(--color-primary);
 }
 
+/* 分隔線樣式：輔助文字顏色與陰影 */
 .divider {
   color: var(--color-muted);
   text-shadow: 0 0 3px var(--color-muted);
+}
+
+/* 錯誤訊息樣式：紅色顯眼提示 */
+.error-message {
+  color: #ff6b6b;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-shadow: 0 0 4px red;
 }
 </style>
