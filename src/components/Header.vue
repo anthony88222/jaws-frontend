@@ -42,7 +42,7 @@
 
     <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
       <li><router-link to="/wishlist">願望清單</router-link></li>
-      <li><router-link to="/wallet">檢視我的錢包：NT$ {{ auth.user.balance }}</router-link></li>
+      <li><router-link to="/wallet">檢視我的錢包：NT$ {{ (auth.user.wallet || 0).toLocaleString() }}</router-link></li>
       <li><router-link to="/friend">檢視我的好友</router-link></li>
       <li><a href="#" @click.prevent="logout">登出</a></li>
     </ul>
