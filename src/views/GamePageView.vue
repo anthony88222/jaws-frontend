@@ -10,13 +10,9 @@
           <div class="thumbnail-scroll-wrapper">
             <button class="scroll-btn left" @click="changeImage('left')">◀</button>
             <div class="thumbnail-list" ref="thumbnailList">
-              <div
-                v-for="(img, index) in screenshots"
-                :key="index"
-                class="thumbnail-item"
+              <div v-for="(img, index) in screenshots" :key="index" class="thumbnail-item"
                 :class="{ active: currentIndex === index }"
-                @click="currentIndex = index; nextTick(() => scrollToThumbnail(index))"
-              >
+                @click="currentIndex = index; nextTick(() => scrollToThumbnail(index))">
                 <img :src="img" :alt="`縮圖${index}`" />
               </div>
             </div>
@@ -42,7 +38,7 @@
             <li>分類：
               <span class="tag" v-for="cat in categories" :key="cat.id">{{ cat.name }}</span>
             </li>
-            
+
             <li class="price-box">價格：
               <template v-if="promotionStatus.onSale">
                 <span class="discount-tag">
@@ -72,12 +68,8 @@
       <section class="related-games">
         <h2 class="section-title">相似遊戲</h2>
         <div class="thumbnail-list">
-          <div
-            v-for="related in relatedGames"
-            :key="related.id"
-            class="thumbnail-item"
-            @click="goToGamePage(related.id)"
-          >
+          <div v-for="related in relatedGames" :key="related.id" class="thumbnail-item"
+            @click="goToGamePage(related.id)">
             <img :src="related.coverImageUrl" :alt="related.name" />
           </div>
         </div>
@@ -140,7 +132,7 @@ const loading = ref(true);
 const submitting = ref(false);
 const newComment = ref('');
 const newRate = ref(5);
-const game = ref({reviews: [],});
+const game = ref({ reviews: [], });
 const averageRating = ref(0);
 const ratingSummary = ref({ averageRating: 0, totalReviews: 0 });
 const screenshots = ref([]);
@@ -151,7 +143,7 @@ const thumbnailList = ref(null);
 const inWishlist = ref(false); // 假設有一個狀態來判斷是否在願望清單中
 
 const promotionStatus = ref({
-  gameId:0,
+  gameId: 0,
   discountRate: 0,
   finalPrice: 0,
   originalPrice: 0,
@@ -253,8 +245,8 @@ async function submitReview() {
     newRate.value = 5;
     alert('評論已成功發表！');
   } catch (err) {
-    console.error('新增評論失敗', err);
-    alert('新增評論失敗');
+    const message = err?.response?.data?.message || '新增評論失敗';
+    alert(message);
   } finally {
     submitting.value = false;
   }
@@ -262,7 +254,7 @@ async function submitReview() {
 
 async function addToCart() {
   const userId = authStore.user?.id;
-  if(!userId) {
+  if (!userId) {
     alert('請先登入才能加入購物車');
     router.push('/login');
     return;
@@ -278,7 +270,7 @@ async function addToCart() {
 
 async function clearCart() {
   const userId = authStore.user?.id;
-  if(!userId) {
+  if (!userId) {
     alert('請先登入才能清空購物車');
     router.push('/login');
     return;
@@ -415,11 +407,11 @@ watch(() => route.params.gameId, async newVal => {
 }
 
 :root {
-    --color-primary: #00fff7;
-    --color-secondary: #ff00ff;
-  }
-  
-  :root {
+  --color-primary: #00fff7;
+  --color-secondary: #ff00ff;
+}
+
+:root {
   --color-primary: #00fff7;
   --color-secondary: #ff00ff;
 }
@@ -507,15 +499,20 @@ watch(() => route.params.gameId, async newVal => {
 }
 
 .thumbnail-list::-webkit-scrollbar {
-  height: 6px; /* 隱藏滾動條 */
+  height: 6px;
+  /* 隱藏滾動條 */
 }
+
 .thumbnail-list::-webkit-scrollbar-thumb {
-  background: #00ccff; /* 滾動條顏色 */
-  border-radius: 3px; /* 滾動條圓角 */
+  background: #00ccff;
+  /* 滾動條顏色 */
+  border-radius: 3px;
+  /* 滾動條圓角 */
 }
 
 .thumbnail-list::-webkit-scrollbar-track {
-  background: transparent; /* 滾動條背景顏色 */
+  background: transparent;
+  /* 滾動條背景顏色 */
 }
 
 .thumbnail-scroll-wrapper {
@@ -589,15 +586,15 @@ watch(() => route.params.gameId, async newVal => {
 }
 
 .tag {
-    /* background: #1f1f2e; */
-    border: 1px solid rgb(218, 208, 208);
-    border-radius: 4px;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.72rem;
-    color: rgb(218, 208, 208);
-    white-space: nowrap;
-    margin-right: 0.3rem;
-  }
+  /* background: #1f1f2e; */
+  border: 1px solid rgb(218, 208, 208);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  color: rgb(218, 208, 208);
+  white-space: nowrap;
+  margin-right: 0.3rem;
+}
 
 .buy-btn {
   background-color: var(--color-secondary);
@@ -780,9 +777,11 @@ watch(() => route.params.gameId, async newVal => {
 }
 
 .review-item {
-  margin-bottom: 1.5rem; /* 加大間距 */
+  margin-bottom: 1.5rem;
+  /* 加大間距 */
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* 可以讓每則評論更分明 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  /* 可以讓每則評論更分明 */
 }
 
 
