@@ -7,7 +7,7 @@
         </router-link>
       </div>
 
-      
+
       <nav>
         <ul class="main-nav">
           <li class="search-li">
@@ -15,7 +15,7 @@
           </li>
           <li><router-link to="/library">遊戲庫</router-link></li>
           <li><router-link to="/promotion">限時特賣</router-link></li>
-          
+
 
 
 
@@ -25,37 +25,35 @@
               <!-- 願望清單按鈕 -->
 
               <!-- 購物車按鈕 -->
-              <li><router-link to="/cart">購物車</router-link></li>
+          <li><router-link to="/cart">購物車</router-link></li>
 
-              <!-- 使用者資訊 -->
-              <div class="user-info" @click="toggleMenu">
-                <div class="username-container">
-                  <span class="username">{{ auth.user.username }}</span>
-                  <span class="dropdown-arrow">▼</span>
-                </div>
-                <img
-                  :src="auth.user.avatarUrl || 'default-avatar.png'"
-                  alt="Avatar"
-                  class="avatar"
-                  @click.stop="goProfile"
-                />
-              </div>
+          <!-- 使用者資訊 -->
+          <div class="user-info" @click="toggleMenu">
+            <div class="username-container">
+              <span class="username">{{ auth.user.username }}</span>
+              <span class="dropdown-arrow">▼</span>
             </div>
+            <img :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()" alt="Avatar" class="avatar"
+              @click.stop="goProfile" />
 
-            <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
-              <li><router-link to="/wishlist">願望清單</router-link></li>
-              <li><router-link to="/wallet">檢視我的錢包：NT$ {{ auth.user.balance }}</router-link></li>
-              <li><router-link to="/friend">檢視我的好友</router-link></li>
-              <li><a href="#" @click.prevent="logout">登出</a></li>
-            </ul>
-          </li>
 
-          <!-- 未登入 -->
-          <li v-else>
-            <router-link to="/login">登入 / 註冊</router-link>
-          </li>
-        </ul>
-      </nav>
+          </div>
+    </div>
+
+    <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
+      <li><router-link to="/wishlist">願望清單</router-link></li>
+      <li><router-link to="/wallet">檢視我的錢包：NT$ {{ auth.user.balance }}</router-link></li>
+      <li><router-link to="/friend">檢視我的好友</router-link></li>
+      <li><a href="#" @click.prevent="logout">登出</a></li>
+    </ul>
+    </li>
+
+    <!-- 未登入 -->
+    <li v-else>
+      <router-link to="/login">登入 / 註冊</router-link>
+    </li>
+    </ul>
+    </nav>
     </div>
   </header>
 </template>
@@ -75,6 +73,13 @@ const dropdownRef = ref(null)
 function toggleMenu() {
   console.log('Toggle menu clicked')
   showMenu.value = !showMenu.value
+}
+
+function avatarFullUrl(path) {
+  if (!path) return '/default-avatar.png';
+  if (path.startsWith('http')) return path;
+  // 補上你的後端 domain
+  return `http://localhost:8080${path}`;
 }
 
 // 點擊大頭貼跳到個人資料頁
@@ -243,5 +248,4 @@ onBeforeUnmount(() => {
   padding: 0;
   margin: 0;
 }
-
 </style>
