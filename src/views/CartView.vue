@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="cart-wrapper">
-      <h1 class="cart-title">SHOPPING CART</h1>
+      <h1 class="cart-title">購物車</h1>
 
       <div v-if="cart.length === 0" class="empty-cart">
         <p class="text-lg text-gray-400">您的購物車目前是空的。</p>
@@ -36,9 +36,9 @@
         </div>
 
         <div class="cart-summary">
-          <p>Total: NT$ {{ totalPrice }}</p>
+          <p>總計: NT$ {{ totalPrice }}</p>
           <!-- ✅ 加上跳轉結帳頁邏輯 -->
-          <button class="btn-neon checkout-btn" @click="goToCheckout">CHECKOUT</button>
+          <button class="btn-neon checkout-btn" @click="goToCheckout">結帳</button>
         </div>
       </div>
     </div>

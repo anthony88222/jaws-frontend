@@ -2,7 +2,7 @@
   <div class="container">
     <div class="wishlist-wrapper">
       <!-- 標題 -->
-      <h1 class="wishlist-title">WISHLIST</h1>
+      <h1 class="wishlist-title">願望清單</h1>
 
       <!-- 🔔 霓虹 Toast（僅在 toast.visible 時顯示） -->
       <transition name="toast-fade">
@@ -102,7 +102,7 @@
 
             <!-- 從願望清單移除 -->
             <button class="remove-btn" @click="removeFromWishlist(item.gameId)">
-              Remove
+              移除
             </button>
           </div>
         </div>
