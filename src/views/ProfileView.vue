@@ -1,5 +1,5 @@
 <template>
-
+  <!-- <pre>{{ user }}</pre> -->
   <!--  -->
   <!-- 因為可能會查詢好友的所有資料用 user.   如我確定是要登入者的資訊才用auth.user by anthony-->
   <!--  -->
@@ -94,7 +94,20 @@ async function fetchUserProfile(userId) {
 async function loadUserProfile() {
   if (!targetUserId.value) return
   const profile = await fetchUserProfile(targetUserId.value)
-  if (profile) user.value = profile
+  if (profile) {
+    const expPerLevel = 1000
+    const totalExp = profile.experience || 0
+    const level = Math.floor(totalExp / expPerLevel)
+    const currentExp = totalExp % expPerLevel
+    const expPercent = (currentExp / expPerLevel) * 100
+
+    profile.level = level
+    profile.expPercent = Math.min(100, expPercent)
+    profile.expPerLevel = expPerLevel
+    profile.currentExp = currentExp
+
+    user.value = profile
+  }
 }
 
 const fetchFriends = async () => {
@@ -141,6 +154,7 @@ onMounted(async () => {
     profile.currentExp = totalExp % expPerLevel
 
     // 3. 更新 auth.user
+    user.value = profile
     auth.user = profile
 
     // 4. 取得遊戲和好友資料
