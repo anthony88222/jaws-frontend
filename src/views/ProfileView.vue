@@ -23,10 +23,8 @@
     </div>
 
     <div class="profile-actions" v-if="isMyProfile">
-      <button class="btn-neon-sm">個人資訊設定</button>
-      <button class="btn-neon-sm">隱私設定</button>
-      <!-- <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
-      <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link> -->
+      <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
+      <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
       <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
       <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
       <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>

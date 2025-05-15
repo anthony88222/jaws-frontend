@@ -128,7 +128,7 @@ const formatDate = (dateString) => {
 const fetchLibrary = async () => {
   if (!userId.value) return
   try {
-    const response = await axios.get(`/api/Library/user/${userId}/list-dto?status=1`)
+    const response = await axios.get(`/api/Library/user/${userId.value}/list-dto?status=1`)
     libraries.value = response.data
   } catch (error) {
     console.error('❌ 載入遊戲庫資料失敗', error)
