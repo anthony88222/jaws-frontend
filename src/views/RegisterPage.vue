@@ -16,7 +16,7 @@
                 <div class="form-group">
                     <label>密碼</label>
                     <div class="input-group">
-                        <input :type="showPassword ? 'text' : 'password'" v-model="oldPassword" required
+                        <input :type="showPassword ? 'text' : 'password'" v-model="password" required
                             class="form-input" />
                         <button type="button" class="toggle-password" @click="showPassword = !showPassword"
                             :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
@@ -29,7 +29,7 @@
                 <div class="form-group">
                     <label>確認密碼</label>
                     <div class="input-group">
-                        <input :type="showPassword ? 'text' : 'password'" v-model="oldPassword" required
+                        <input :type="showPassword ? 'text' : 'password'" v-model="confirmPassword" required
                             class="form-input" />
                         <button type="button" class="toggle-password" @click="showPassword = !showPassword"
                             :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
@@ -37,6 +37,7 @@
                         </button>
                     </div>
                 </div>
+
 
                 <!-- 註冊按鈕 -->
                 <button class="btn-neon" type="submit">註冊</button>
