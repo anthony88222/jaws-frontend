@@ -74,8 +74,10 @@ export const useAuthStore = defineStore("auth", {
       this.user = null;
       this.rememberMe = false;
       this.savedUsername = null;
-      localStorage.removeItem("pinia-auth");
+      localStorage.removeItem("auth");
     },
   },
-  persist: true,
+  persist: {
+    key: "auth",
+  },
 });
