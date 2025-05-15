@@ -83,7 +83,7 @@
 
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -131,7 +131,13 @@ const fetchLibrary = async () => {
     const response = await axios.get(`/api/Library/user/${userId.value}/list-dto?status=1`)
     libraries.value = response.data
   } catch (error) {
-    console.error('❌ 載入遊戲庫資料失敗', error)
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      alert('登入狀態已過期，請重新登入')
+      authStore.logout?.()
+      window.location.href = '/login'
+    } else {
+      console.error('❌ 載入遊戲庫資料失敗', error)
+    }
   }
 }
 
@@ -185,7 +191,13 @@ const scrollToTop = () => {
 onMounted(() => {
   if (userId.value) fetchLibrary()
 })
+
+// ✅ 偵測登入者 userId 有變化時補抓遊戲庫
+watch(userId, (newVal) => {
+  if (newVal) fetchLibrary()
+})
 </script>
+
 
 
 <style scoped>
