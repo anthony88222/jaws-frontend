@@ -268,6 +268,7 @@ onMounted(fetchInvites)
     object-fit: cover;
     margin-right: 1rem;
     box-shadow: 0 0 6px var(--color-primary);
+    background-color: white;
 }
 
 .date {

@@ -116,7 +116,7 @@ const getHistory = async () => {
   messages.value = history.map(m => ({
     id: Date.now() + Math.random(),
     from: m.senderId == senderId ? 'me' : 'them',
-    avatar: m.senderId == senderId ? null : DEFAULT_AVATAR,
+    avatar: m.senderId == senderId ? null : (m.avatar || DEFAULT_AVATAR),
     text: m.message,
     time: formatTime(m.sendAt)
   }))
@@ -374,6 +374,7 @@ function formatTime(isoString) {
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 0 4px var(--color-primary);
+  background-color: white;
 }
 
 .friend-list,

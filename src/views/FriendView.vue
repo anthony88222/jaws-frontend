@@ -284,6 +284,7 @@ onMounted(fetchFriends)
   border-radius: 50%;
   margin-bottom: 0.5rem;
   box-shadow: 0 0 10px var(--color-primary);
+  background-color: white;
 }
 
 .message-btn {
