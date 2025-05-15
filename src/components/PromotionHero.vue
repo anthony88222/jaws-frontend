@@ -166,7 +166,7 @@ function scrollToTop() {
   
   /* 遊戲名稱 */
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     color: var(--color-primary);
     margin-bottom: 0.8rem;
     /* height: 100px; */
