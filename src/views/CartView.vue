@@ -117,8 +117,8 @@ onMounted(() => {
 
 <style scoped>
 .container {
-  height: 100%;
-  min-height: 75vh;
+  /* height: 100%; */
+  min-height: 85vh;
 }
 .cart-wrapper {
   width: 1050px;
