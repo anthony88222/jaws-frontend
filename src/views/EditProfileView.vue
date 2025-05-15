@@ -18,9 +18,21 @@
                     </div>
 
                     <div class="form-group">
-                        <label>大頭貼 URL</label>
-                        <input type="text" v-model="avatarUrl" class="form-input" />
+                        <label>大頭貼</label>
+                        <!-- 預覽圖 -->
+                        <div v-if="avatarPreview || avatarUrl" class="avatar-preview" style="margin-bottom: 0.5rem;">
+                            <img :src="avatarPreview || avatarFullUrl(avatarUrl)" alt="頭像預覽"
+                                style="width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary); background: #fff;" />
+
+                        </div>
+                        <!-- 上傳按鈕 -->
+                        <input type="file" accept="image/*" @change="handleAvatarFile" />
+                        <!-- 刪除按鈕 -->
+                        <button v-if="avatarUrl || avatarPreview" @click.prevent="removeAvatar" class="btn-secondary"
+                            style="margin-top:0.5rem;">移除大頭貼</button>
+
                     </div>
+
 
                     <div class="form-group">
                         <label>個人簽名</label>
@@ -98,6 +110,19 @@ import axios from '@/axios'
 const auth = useAuthStore()
 const { user } = storeToRefs(auth)
 
+// 大頭貼
+const avatarFile = ref(null)
+const avatarPreview = ref('')
+
+function handleAvatarFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // 檔案即時預覽（前端）
+    avatarPreview.value = URL.createObjectURL(file)
+    avatarFile.value = file
+}
+
 // 個人資料欄位
 const email = ref(user.value?.email || '')
 const avatarUrl = ref(user.value?.avatarUrl || '')
@@ -115,18 +140,42 @@ const togglePasswordVisibility = () => {
 
 const message = ref('')
 
+function avatarFullUrl(path) {
+    if (!path) return '/default-avatar.png'   // 這裡記得換你實際預設頭貼
+    if (path.startsWith('http')) return path
+    return `http://localhost:8080${path}`
+}
+
+function removeAvatar() {
+    avatarUrl.value = ''
+    avatarFile.value = null
+    avatarPreview.value = ''
+}
+
+
 // ✅ 更新個人資料
 async function updateProfile() {
     try {
+        let uploadedAvatarUrl = avatarUrl.value
+        if (avatarFile.value) {
+            const formData = new FormData()
+            formData.append('file', avatarFile.value)
+            const res = await axios.post('/user/upload-avatar', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            uploadedAvatarUrl = res.data.data.url
+        }
         await axios.put('/user/me', {
             email: email.value,
-            avatarUrl: avatarUrl.value,
+            avatarUrl: uploadedAvatarUrl,
             signature: signature.value,
         })
-
         const profileRes = await axios.get('/user/me')
         auth.user = profileRes.data.data
-
+        avatarUrl.value = auth.user.avatarUrl
+        console.log('user.avatarUrl after update:', auth.user.avatarUrl)
+        avatarFile.value = null
+        avatarPreview.value = ''
         message.value = '資料更新成功 ✅'
     } catch (err) {
         console.error('更新失敗', err)
@@ -276,5 +325,14 @@ async function changePassword() {
     cursor: pointer;
     text-shadow: 0 0 6px var(--color-primary);
     padding: 0;
+}
+
+.avatar-preview img {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-primary);
+    background: #fff;
 }
 </style>
