@@ -1,7 +1,6 @@
 <template>
     <div class="privacy-view container">
         <h1 class="privacy-title">隱私設定</h1>
-
         <div class="privacy-section">
             <h2 class="section-title">隱私選項</h2>
             <form @submit.prevent="savePrivacy" class="privacy-form">
@@ -31,7 +30,7 @@
             <h2 class="danger-title">刪除帳號</h2>
             <form @submit.prevent="deleteAccount" class="delete-form">
                 <div class="form-group">
-                    <label>請輸入密碼以確認刪除：</label>
+                    <label>請輸入密碼以確認刪除</label>
                     <input type="password" v-model="deletePassword" required class="form-input" />
                 </div>
 
@@ -138,24 +137,23 @@ async function deleteAccount() {
 
 .privacy-view {
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--color-primary);
+    background: #1a1a2a;
+    border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
-    max-width: 800px;
+    max-width: 1000px;
     margin: 2rem auto;
+    box-shadow: 0 0 20px var(--color-primary);
 }
 
 .privacy-title {
     color: #00ffff;
-    margin-bottom: 2rem;
     text-align: center;
-    font-size: 1.8rem;
 }
 
 .section-title {
-    color: #ffffff;
     margin-bottom: 1.5rem;
-    font-size: 1.4rem;
+    color: var(--color-primary);
+
 }
 
 .privacy-section {
@@ -207,7 +205,7 @@ async function deleteAccount() {
     background-color: #00ffff;
     border: none;
     border-radius: var(--border-radius);
-    color: #1e1e2e;
+    color: #1a1a2a;
     cursor: pointer;
     font-weight: bold;
     width: 100%;
