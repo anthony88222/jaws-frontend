@@ -94,7 +94,7 @@ async function loadUserProfile() {
 
 const fetchUserGames = async () => {
   try {
-    const res = await fetch(`/api/user/public/${targetUserId.value}`)
+    const res = await fetch(`/api/Library/public/${targetUserId.value}`)
     const data = await res.json()
 
     games.value = data.map(g => ({
@@ -316,6 +316,26 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 25rem;
+  overflow-x: hidden;
+  padding: 1rem;
+  scroll-behavior: smooth;
+  overflow-y: visible;
+}
+
+.games-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.games-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.games-grid::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .game-card {
