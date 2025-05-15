@@ -7,12 +7,32 @@
 
         <!-- 基本資訊 -->
         <table class="order-info-table">
-          <tr><th>訂單編號</th><td>{{ order.orderId }}</td></tr>
-          <tr><th>建立時間</th><td>{{ formatDate(order.createdAt) }}</td></tr>
-          <tr><th>訂單狀態</th><td>{{ statusText(order.status) }}</td></tr>
-          <tr><th>總金額</th><td>{{ order.total }} 元</td></tr>
-          <tr v-if="order.status !== 1"><th>使用遊戲幣</th><td>{{ order.walletUsed ?? 0 }} 元</td></tr>
-          <tr v-if="order.status !== 1 && order.total != null"><th>綠界付款</th><td>{{ order.total - (order.walletUsed ?? 0) }} 元</td></tr>
+          <tbody>
+            <tr>
+              <th>訂單編號</th>
+              <td>{{ order.orderId }}</td>
+            </tr>
+            <tr>
+              <th>建立時間</th>
+              <td>{{ formatDate(order.createdAt) }}</td>
+            </tr>
+            <tr>
+              <th>訂單狀態</th>
+              <td>{{ statusText(order.status) }}</td>
+            </tr>
+            <tr>
+              <th>總金額</th>
+              <td>{{ order.total }} 元</td>
+            </tr>
+            <tr v-if="order.status !== 1">
+              <th>使用遊戲幣</th>
+              <td>{{ order.walletUsed ?? 0 }} 元</td>
+            </tr>
+            <tr v-if="order.status !== 1 && order.total != null">
+              <th>綠界付款</th>
+              <td>{{ order.total - (order.walletUsed ?? 0) }} 元</td>
+            </tr>
+          </tbody>
         </table>
 
         <!-- 遊戲清單 -->
@@ -31,7 +51,8 @@
                 </div>
                 <div class="price-text">
                   <div class="original-price">NT$ {{ order.gamePrices?.[index] }}</div>
-                  <div class="final-price">NT$ {{ Math.floor(promotionMap[order.gameIds[index]].discountedPrice) }}</div>
+                  <div class="final-price">NT$ {{ Math.floor(promotionMap[order.gameIds[index]].discountedPrice) }}
+                  </div>
                 </div>
               </div>
               <div v-else class="price-box">
@@ -73,7 +94,7 @@ const promotionMap = ref({})
 
 const fetchOrderDetail = async () => {
   try {
-    const res = await axios.get(`/api/order/${route.params.orderId}`)
+    const res = await axios.get(`http://localhost:8080/api/order/${route.params.orderId}`)
     order.value = res.data
   } catch (err) {
     console.error('取得訂單失敗', err)
@@ -84,7 +105,7 @@ const fetchPromotions = async () => {
   if (!order.value?.gameIds) return
   for (let i = 0; i < order.value.gameIds.length; i++) {
     const gameId = order.value.gameIds[i]
-    const res = await axios.get(`/api/promotions/status/${gameId}`)
+    const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId}`)
     promotionMap.value[gameId] = res.data
   }
 }
@@ -195,7 +216,8 @@ onMounted(async () => {
 }
 
 .checkout-thumb {
-  width: 280px;  /* 擴大圖片寬度 */
+  width: 280px;
+  /* 擴大圖片寬度 */
   height: auto;
   object-fit: cover;
   border-radius: var(--border-radius);
@@ -209,7 +231,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; /* 置中 */
+  align-items: center;
+  /* 置中 */
 }
 
 .checkout-game-name {
@@ -220,7 +243,8 @@ onMounted(async () => {
 }
 
 .game-price-display {
-  display: none; /* 👈 移除左側金額 */
+  display: none;
+  /* 👈 移除左側金額 */
 }
 
 .checkout-game-right {
@@ -232,7 +256,4 @@ onMounted(async () => {
   justify-content: center;
   min-width: 100px;
 }
-
-
-
 </style>

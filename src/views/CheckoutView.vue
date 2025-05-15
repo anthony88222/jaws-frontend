@@ -66,7 +66,6 @@
   </div>
 </div>
 
-              <div class="checkout-price-text">
           </div>
         </div>
       </div>
@@ -162,7 +161,6 @@ const finalWalletUsed = ([2, 3].includes(Number(paymentType.value)))
         { params: { orderId } }
       )
     } else {
-      // 建立新訂單
       response = await axios.post("/api/order/create", payload)
     }
 
@@ -246,7 +244,7 @@ onMounted(async () => {
 
   // 取得使用者遊戲幣餘額
   try {
-    const userRes = await axios.get(`http://localhost:8080/api/user/${userId.value}`)
+    const userRes = await axios.get(`/api/user/${userId.value}`)
     walletBalance.value = userRes.data.wallet ?? 0
   } catch (e) {
     console.warn('❌ 無法取得使用者餘額', e)
@@ -259,7 +257,7 @@ onMounted(async () => {
   if (orderId) {
     // ✅ 再次付款模式：從訂單載入資料（價格已是正確折扣價）
     try {
-      const res = await axios.get(`http://localhost:8080/api/order/${orderId}`)
+      const res = await axios.get(`/api/order/${orderId}`)
       const order = res.data
       total.value = order.total
       gameList.value = order.gameIds.map((id, idx) => ({
@@ -276,7 +274,7 @@ onMounted(async () => {
   } else {
     // ✅ 首次結帳：從購物車載入資料 + 查詢促銷折扣
     try {
-      const cartRes = await axios.get(`http://localhost:8080/api/cart/${userId.value}`)
+      const cartRes = await axios.get(`/api/cart/${userId.value}`)
       gameList.value = cartRes.data.map(item => ({
         gameId: item.gameId,
         name: item.name,
@@ -289,7 +287,7 @@ onMounted(async () => {
       // 查詢所有遊戲的促銷狀態，若有折扣則更新折扣資料
       for (const item of gameList.value) {
         try {
-          const promoRes = await axios.get(`http://localhost:8080/api/promotions/status/${item.gameId}`)
+          const promoRes = await axios.get(`/api/promotions/status/${item.gameId}`)
           const promo = promoRes.data
           if (promo.onSale) {
             item.originalPrice = item.price

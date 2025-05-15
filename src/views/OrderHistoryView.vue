@@ -50,52 +50,42 @@
             </ul>
           </td>
           <td>
-  <button @click="viewOrder(ord.orderId)">查看詳情</button>
-  <button v-if="ord.status === 1" @click="payAgain(ord.orderId)">再次付款</button>
-  <button v-if="ord.status === 1" @click="cancelOrder(ord.orderId)">取消訂單</button>
-  <button
-    v-if="(ord.status === 3 || ord.status === 5) && isRefundable(ord)"
-    @click="openRefundModal(ord)"
-  >
-    申請退款
-  </button>
-</td>
+            <button @click="viewOrder(ord.orderId)">查看詳情</button>
+            <button v-if="ord.status === 1" @click="payAgain(ord.orderId)">再次付款</button>
+            <button v-if="ord.status === 1" @click="cancelOrder(ord.orderId)">取消訂單</button>
+            <button v-if="(ord.status === 3 || ord.status === 5) && isRefundable(ord)" @click="openRefundModal(ord)">
+              申請退款
+            </button>
+          </td>
 
         </tr>
       </tbody>
     </table>
 
     <!-- ✅ 退款彈出視窗 -->
-<div v-if="showRefundModal" class="refund-confirm-overlay">
-  <div class="refund-confirm-box">
-    <h3>選擇欲退款的遊戲</h3>
+    <div v-if="showRefundModal" class="refund-confirm-overlay">
+      <div class="refund-confirm-box">
+        <h3>選擇欲退款的遊戲</h3>
 
-    <div class="checkbox-list">
-      <label
-  v-for="(name, idx) in selectedRefundOrder?.gameNames"
-  :key="selectedRefundOrder.gameIds[idx]"
-  :class="{ disabled: refundedGameIds.includes(selectedRefundOrder.gameIds[idx]) }"
->
-  <input
-    type="checkbox"
-    :value="selectedRefundOrder.gameIds[idx]"
-    v-model="selectedRefundGames"
-    :disabled="refundedGameIds.includes(selectedRefundOrder.gameIds[idx])"
-  />
-  {{ name }} - NT$ {{ selectedRefundOrder.gamePrices[idx] }}
-</label>
+        <div class="checkbox-list">
+          <label v-for="(name, idx) in selectedRefundOrder?.gameNames" :key="selectedRefundOrder.gameIds[idx]"
+            :class="{ disabled: refundedGameIds.includes(selectedRefundOrder.gameIds[idx]) }">
+            <input type="checkbox" :value="selectedRefundOrder.gameIds[idx]" v-model="selectedRefundGames"
+              :disabled="refundedGameIds.includes(selectedRefundOrder.gameIds[idx])" />
+            {{ name }} - NT$ {{ selectedRefundOrder.gamePrices[idx] }}
+          </label>
 
 
+        </div>
+
+        <p class="summary">退款總額：NT$ {{ refundTotal }}，將以遊戲幣退還</p>
+
+        <div class="button-group">
+          <button @click="submitRefund">確認退款</button>
+          <button @click="cancelRefund">取消</button>
+        </div>
+      </div>
     </div>
-
-    <p class="summary">退款總額：NT$ {{ refundTotal }}，將以遊戲幣退還</p>
-
-    <div class="button-group">
-      <button @click="submitRefund">確認退款</button>
-      <button @click="cancelRefund">取消</button>
-    </div>
-  </div>
-</div>
 
   </div>
 </template>
@@ -159,7 +149,7 @@ const submitRefund = async () => {
       orderId: selectedRefundOrder.value.orderId,
       refundGameIds: selectedRefundGames.value
     }
-    const res = await axios.post('http://localhost:8080/api/order/refund', payload)
+    const res = await axios.post('/api/order/refund', payload)
     alert(`退款成功，遊戲幣增加：${res.data.refundAmount} 元`)
     cancelRefund()
     await fetchOrders()
@@ -179,7 +169,7 @@ const fetchOrders = async () => {
   }
 
   try {
-    const response = await axios.get(`http://localhost:8080/api/order/findByUser?userId=${userId.value}`)
+    const response = await axios.get(`/api/order/findByUser?userId=${userId.value}`)
     orders.value = response.data
   } catch (error) {
     console.error('無法獲取訂單資料:', error)
@@ -331,7 +321,10 @@ button:hover {
 /* ✅ 退款彈窗樣式 */
 .refund-confirm-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
@@ -392,6 +385,4 @@ button:hover {
   opacity: 0.5;
   pointer-events: none;
 }
-
-
 </style>
