@@ -12,6 +12,7 @@
         <option value="count_desc">遊戲數：多到少</option>
         <option value="count_asc">遊戲數：少到多</option>
       </select>
+
       <select v-model="statusFilter">
         <option value="">所有狀態</option>
         <option value="1">待付款</option>
@@ -109,6 +110,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const userId = computed(() => authStore.user?.id)
 const orders = ref([])
+
 
 const searchTerm = ref('')
 const sortBy = ref('time_desc')

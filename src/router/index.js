@@ -20,6 +20,8 @@ import AllGamesView from '../views/AllGamesView.vue'
 import RegisterPage from "../views/RegisterPage.vue";
 import EditProfileView from "../views/EditProfileView.vue";
 import PrivacySettingsView from "../views/PrivacySettingsView.vue";
+import CheckoutView from "../views/CheckoutView.vue";
+import WalletView from "../views/WalletView.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
@@ -38,8 +40,8 @@ const routes = [
   { path: "/library", name: "Library", component: LibraryView, meta: { requiresAuth: true } },
   { path: "/order-history", name: "OrderHistory", component: OrderHistoryView, meta: { requiresAuth: true } },
   { path: "/order/:orderId", name: "OrderDetail", component: OrderDetailView, meta: { requiresAuth: true } },
-  { path: "/checkout", name: "Checkout", component: () => import('@/views/CheckoutView.vue'), meta: { requiresAuth: true } },
-
+  { path: "/checkout", name: "Checkout", component:CheckoutView, meta: { requiresAuth: true } },
+  {path:  "/wallet",name:"Wallet",component:WalletView,meta:{ requiresAuth: true } },
   // 其他公開頁面
   { path: "/promotion", name: "Promotion", component: PromotionView },
   { path: "/games", name: "AllGamesView", component: AllGamesView },

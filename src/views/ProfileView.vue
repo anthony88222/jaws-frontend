@@ -25,8 +25,8 @@
       <div class="profile-actions" v-if="isMyProfile">
           <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
           <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
-          <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
-          <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
+          <router-link to="/wallet" class="btn-neon-sm">錢包加值</router-link>
+          <router-link to="/order-history" class="btn-neon-sm">歷史訂單</router-link>
           <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
       </div>
 
@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from '@/axios'
 import { useAuthStore } from '@/stores/authStore'
 import { useRoute, useRouter } from 'vue-router'
@@ -73,42 +73,54 @@ const friends = ref([])
 const isMyProfile = computed(() => targetUserId.value === auth.user?.id)
 const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id || 0)
 
+
+
 async function fetchUserProfile(userId) {
   try {
-      const res = await fetch(`/api/user/profile/${userId}`, {
-          method: 'GET',
-          credentials: 'include'
-      })
-      if (!res.ok) throw new Error('取得使用者資料失敗')
-      return await res.json()
+    const res = await axios.get(`/user/profile/${userId}`)
+    return res.data
   } catch {
-      return null
+    return null
   }
 }
 
-async function loadUserProfile() {
-  if (!targetUserId.value) return
-  const profile = await fetchUserProfile(targetUserId.value)
-  if (profile) user.value = profile
+let isFetchingFriends = false
+const fetchFriends = async (userId) => {
+  if (isFetchingFriends) return
+  isFetchingFriends = true
+  try {
+    const res = await fetch(`/api/friend/getFriends?userId=${userId}`)
+    const data = await res.json()
+
+    friends.value = data.map(f => {
+      const isSelfUser = f.userId === userId
+      const otherId = isSelfUser ? f.friendId : f.userId
+
+      return {
+        id: otherId,
+        name: f.username,
+        avatarUrl: f.avatarUrl || defaultAvatarUrl
+      }
+    })
+  } catch (err) {
+    console.error('取得好友失敗', err)
+  } finally {
+    isFetchingFriends = false
+  }
 }
 
-const fetchFriends = async () => {
+// ✅ 統一使用公開 API 載入遊戲
+const fetchUserGames = async (userId) => {
   try {
-      const res = await fetch(`/api/friend/getFriends?userId=${targetUserId.value}`)
-      const data = await res.json()
-
-      friends.value = data.map(f => {
-          const isSelfUser = f.userId === targetUserId.value
-          const otherId = isSelfUser ? f.friendId : f.userId
-
-          return {
-              id: otherId,
-              name: f.username,
-              avatarUrl: f.avatarUrl || defaultAvatarUrl
-          }
-      })
+    const res = await axios.get(`/Library/public/${userId}`)
+    games.value = res.data.map(game => ({
+      id: game.gameId,
+      name: game.gameName,
+      cover: game.coverImageUrl || '/placeholder.png'
+    }))
   } catch (err) {
-      console.error('取得好友失敗', err)
+    console.error('載入使用者遊戲庫失敗', err)
+    games.value = []
   }
 }
 
@@ -117,49 +129,27 @@ const goToUserProfile = (userId) => {
 }
 
 onMounted(async () => {
+  if (!targetUserId.value) return
+
   try {
-      // 1. 取得使用者資料
-      const resProfile = await axios.get('/user/me')
-      const profile = resProfile.data.data
+    const profile = await fetchUserProfile(targetUserId.value)
+    if (profile) {
+      user.value = profile
+      if (isMyProfile.value) {
+        auth.user = profile // ✅ 同步給 Header 用（包含 wallet）
+      }
+    }
 
-      // 2. 等級系統邏輯（這是我新增的）
-      const expPerLevel = 1000                            // 每升一級需要經驗值
-      const totalExp = profile.experience || 0            // 使用者目前總經驗值
-
-      const level = Math.floor(totalExp / expPerLevel)    // 算出目前等級
-      const currentExp = totalExp % expPerLevel           // 算出這一級內累積了多少
-      const expPercent = (currentExp / expPerLevel) * 100 // 算出百分比進度條
-
-      profile.level = level                               // 加到 profile 裡
-      profile.expPercent = Math.min(100, expPercent)      // 保險機制避免超過
-      profile.expPerLevel = expPerLevel
-      profile.currentExp = totalExp % expPerLevel
-
-      // 3. 更新 auth.user
-      auth.user = profile
-
-      // 4. 取得遊戲和好友資料
-      const resGames = await axios.get('/user/me/games')
-      games.value = resGames.data.data
-
-      const resFriends = await axios.get('/user/me/friends')
-      friends.value = resFriends.data.data
+    await fetchUserGames(targetUserId.value)
+    await fetchFriends(targetUserId.value)
 
   } catch (error) {
-      console.error('載入使用者資料失敗', error)
+    console.error('載入使用者資料失敗', error)
   }
-
-  watch(
-      () => targetUserId.value,
-      async () => {
-          await loadUserProfile()
-          await fetchFriends()
-      },
-      { immediate: true }
-  )
 })
-
 </script>
+
+
 
 <style scoped>
 .profile-container {
@@ -300,9 +290,13 @@ onMounted(async () => {
 }
 
 .games-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
+  max-height: 25rem;
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
 }
 
 .game-card {
