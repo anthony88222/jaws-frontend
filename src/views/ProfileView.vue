@@ -5,7 +5,7 @@
   <!--  -->
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
+      <img :src="avatarFullUrl(user.avatarUrl)" alt="Avatar" class="avatar" @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID：{{ user.id }}</p>
@@ -45,7 +45,7 @@
         <h3 class="section-title">好友列表</h3>
         <ul class="friend-list">
           <button v-for="friend in friends" :key="friend.id" class="friend-button" @click="goToUserProfile(friend.id)">
-            <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
+            <img :src="avatarFullUrl(friend.avatarUrl)" alt="friend avatar" class="friend-avatar" />
             <span class="friend-name">{{ friend.name }}</span>
           </button>
         </ul>
@@ -71,6 +71,12 @@ const friends = ref([])
 
 const isMyProfile = computed(() => targetUserId.value === auth.user?.id)
 const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id || 0)
+
+function avatarFullUrl(path) {
+  if (!path) return '/default-avatar2.png'; // 預設頭貼
+  if (path.startsWith('http')) return path;
+  return `http://localhost:8080${path}`;
+}
 
 async function fetchUserProfile(userId) {
   try {
@@ -156,6 +162,7 @@ onMounted(async () => {
     },
     { immediate: true }
   )
+  console.log('目前 user.avatarUrl', user.avatarUrl)
 })
 
 </script>
