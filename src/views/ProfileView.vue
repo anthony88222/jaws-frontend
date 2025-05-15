@@ -1,5 +1,5 @@
 <template>
-  <!-- <pre>{{ user }}</pre> -->
+
   <!--  -->
   <!-- 因為可能會查詢好友的所有資料用 user.   如我確定是要登入者的資訊才用auth.user by anthony-->
   <!--  -->
@@ -26,7 +26,7 @@
       <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
       <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
       <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
-      <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
+      <router-link to="/order-history" class="btn-neon-sm">購買紀錄</router-link>
       <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
     </div>
 
@@ -34,9 +34,9 @@
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
-          <div class="game-card" v-for="game in games" :key="game.id">
-            <img :src="game.cover" alt="game cover" class="game-cover" />
-            <p class="game-title">{{ game.name }}</p>
+          <div class="game-card" v-for="game in games" :key="game.coverImageUrl">
+            <img :src="game.coverImageUrl" alt="game cover" class="game-cover" />
+            <p class="game-title">{{ game.gameName }}</p>
           </div>
         </div>
       </div>
@@ -65,6 +65,7 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const defaultAvatarUrl = '/default-avatar2.png'
+const friendAvatar = 'logo4.png'
 const user = ref({})
 const games = ref([])
 const friends = ref([])
@@ -107,6 +108,22 @@ async function loadUserProfile() {
     profile.currentExp = currentExp
 
     user.value = profile
+  }
+  if (profile) user.value = profile
+}
+
+const fetchUserGames = async () => {
+  try {
+    const res = await fetch(`/api/Library/public/${targetUserId.value}`)
+    const data = await res.json()
+
+    games.value = data.map(g => ({
+      coverImageUrl: g.coverImageUrl,
+      gameName: g.gameName
+    }))
+  } catch (error) {
+    console.error('取得遊戲失敗', error)
+    games.value = []
   }
 }
 
@@ -172,6 +189,7 @@ onMounted(async () => {
     () => targetUserId.value,
     async () => {
       await loadUserProfile()
+      await fetchUserGames()
       await fetchFriends()
     },
     { immediate: true }
@@ -331,6 +349,26 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 25rem;
+  overflow-x: hidden;
+  padding: 1rem;
+  scroll-behavior: smooth;
+  overflow-y: visible;
+}
+
+.games-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.games-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.games-grid::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .game-card {
@@ -419,10 +457,45 @@ onMounted(async () => {
   width: 60px;
   height: 60px;
   border-radius: 50%;
+  background-color: white;
 }
 
 .friend-name {
   color: var(--color-text);
   font-size: 1rem;
 }
+
+/* jacky */
+.games-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-height: 25rem;
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
+}
+
+.game-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: #1a1a2a;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.game-cover {
+  width: 80px;
+  border-radius: var(--border-radius);
+}
+
+.game-title {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  text-shadow: 0 0 4px var(--color-text);
+}
+
 </style>

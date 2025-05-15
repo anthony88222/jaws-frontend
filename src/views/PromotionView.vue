@@ -82,7 +82,7 @@ const categoryMap = ref({})
 // 取得促銷資料與分類
 const fetchPromotions = async () => {
   try {
-    const res = await axios.get('http://localhost:8080/api/promotions/active')
+    const res = await axios.get('/api/promotions/active')
     const allGames = res.data.flatMap(p => p.promotionGame || [])
     promotions.value = allGames
     featuredPromotions.value = allGames.slice(0, 10)
@@ -92,7 +92,7 @@ const fetchPromotions = async () => {
       const gameId = item.game.id
       if (!categoryMap.value[gameId]) {
         try {
-          const catRes = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+          const catRes = await axios.get(`/api/games/${gameId}/categories`)
           categoryMap.value[gameId] = catRes.data.map(c => c.name)
         } catch (err) {
           console.error(`取得 gameId=${gameId} 分類失敗`, err)

@@ -79,7 +79,7 @@ function goToCategory(categoryName) {
 
 
 onMounted(async () => {
-  const res1 = await axios.get('http://localhost:8080/api/games/hot');
+  const res1 = await axios.get('/api/games/hot');
   hotGames.value = res1.data;
 });
 </script>

@@ -35,7 +35,7 @@ async function search() {
     const kw = keyword.value.trim()
     if (!kw) { results.value = []; return }
 
-    const { data } = await axios.get('http://localhost:8080/api/games/search', {
+    const { data } = await axios.get('/api/games/search', {
         params: { kw, limit: 8 }
     })
     results.value = data.slice(0, 4)

@@ -1,77 +1,108 @@
 <template>
   <header>
     <div class="container">
+      <!-- Logo -->
       <div class="logo-container">
         <router-link to="/" class="site-logo">
           <img src="@/assets/logo2.png" alt="JAWS Logo" />
         </router-link>
       </div>
 
-
       <nav>
         <ul class="main-nav">
+          <!-- 搜尋列 -->
           <li class="search-li">
             <SearchBar />
           </li>
+
+          <!-- 常駐連結 -->
           <li><router-link to="/library">遊戲庫</router-link></li>
           <li><router-link to="/promotion">限時特賣</router-link></li>
 
 
-
-
-          <!-- 登入後 -->
+          <!-- 已登入時：使用者下拉 -->
           <li v-if="auth.user" class="dropdown user-dropdown" ref="dropdownRef">
             <div class="user-actions">
-              <!-- 願望清單按鈕 -->
-
               <!-- 購物車按鈕 -->
-          <li><router-link to="/cart">購物車</router-link></li>
+              <router-link to="/cart" class="cart-link">購物車</router-link>
 
-          <!-- 使用者資訊 -->
-          <div class="user-info" @click="toggleMenu">
-            <div class="username-container">
-              <span class="username">{{ auth.user.username }}</span>
-              <span class="dropdown-arrow">▼</span>
+              <!-- 點擊頭像區 -->
+              <div class="user-info" @click="toggleMenu">
+                <div class="username-container">
+                  <span class="username">{{ auth.user.username }}</span>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                <img
+                  :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()"
+                  alt="Avatar"
+                  class="avatar"
+                  @click.stop="goProfile"
+                />
+              </div>
+                
             </div>
-            <img :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()" alt="Avatar" class="avatar"
-              @click.stop="goProfile" />
-
-
-          </div>
-    </div>
-
-    <ul class="dropdown-menu right-align" :class="{ 'show': showMenu }">
-      <li><router-link to="/wishlist">願望清單</router-link></li>
-      <li><router-link to="/wallet">檢視我的錢包：NT$ {{ (auth.user.wallet || 0).toLocaleString() }}</router-link></li>
-      <li><router-link to="/friend">檢視我的好友</router-link></li>
-      <li><a href="#" @click.prevent="logout">登出</a></li>
-    </ul>
-    </li>
-
-    <!-- 未登入 -->
-    <li v-else>
-      <router-link to="/login">登入 / 註冊</router-link>
-    </li>
-    </ul>
+            <!-- 下拉選單內容 -->
+            <ul class="dropdown-menu right-align" :class="{ show: showMenu }">
+              <li><router-link to="/wishlist">願望清單</router-link></li>
+              <li>
+                <router-link to="/wallet">
+                  檢視我的錢包：NT$ {{ (wallet || 0).toLocaleString() }}
+                </router-link>
+              </li>
+              <li><router-link to="/order-history">歷史訂單</router-link></li>
+              <li><router-link to="/friend">檢視我的好友</router-link></li>
+              <li>
+                <a href="#" @click.prevent="logout">登出</a>
+              </li>
+            </ul>
+          </li>
+          <!-- 未登入 -->
+          <li v-else>
+            <router-link to="/login">登入 / 註冊</router-link>
+          </li>
+        </ul>
     </nav>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+// Vue Composition API
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import axios from '@/axios'            // ← 和 WalletView 一樣
 import SearchBar from '@/components/SearchBar.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+
+// 下拉選單狀態
 const showMenu = ref(false)
 const dropdownRef = ref(null)
 
-// 點擊頭像區塊切換顯示狀態
+// 直接用跟 WalletView.vue 一樣的 ref 存錢包
+const wallet = ref(0)
+
+// 跟 WalletView 相同：mounted 時呼叫，並用 /user/${id}
+async function fetchWallet() {
+  if (!auth.user?.id) return
+  try {
+    const res = await axios.get(`/user/${auth.user.id}`)
+    wallet.value = typeof res.data.wallet === 'number'
+      ? res.data.wallet
+      : 0
+  } catch (e) {
+    console.error('取得錢包餘額錯誤', e)
+    wallet.value = 0
+  }
+}
+
+// 監聽 user 變動（登入、登出都會觸發）
+watch(() => auth.user, fetchWallet, { immediate: true })
+
+// 切換下拉顯示
 function toggleMenu() {
-  console.log('Toggle menu clicked')
   showMenu.value = !showMenu.value
 }
 
@@ -84,33 +115,29 @@ function avatarFullUrl(path) {
 
 // 點擊大頭貼跳到個人資料頁
 function goProfile() {
-  console.log('Profile clicked')
   router.push('/profile')
 }
 
-// 登出後清空狀態並跳回首頁
+// 登出並回首頁
 function logout() {
   auth.logout()
   router.push('/')
 }
 
-// 點擊非 dropdown 區域時自動關閉選單
-function handleClickOutside(event) {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+// 點擊外面要自動關閉下拉
+function handleClickOutside(e) {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
     showMenu.value = false
   }
 }
 
-// 註冊與移除 click 事件
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
-
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
-
 
 <style scoped>
 .site-logo {

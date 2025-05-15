@@ -18,7 +18,7 @@
   const games = ref([])
   
   onMounted(async () => {
-    const res = await axios.get(`http://localhost:8080/api/games/category/${categoryName}`)
+    const res = await axios.get(`/api/games/category/${categoryName}`)
     games.value = res.data
   })
   </script>

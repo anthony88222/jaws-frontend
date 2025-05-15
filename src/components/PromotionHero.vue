@@ -84,7 +84,7 @@ const stopAutoSlide = () => clearInterval(autoSlideInterval.value)
 // 取得促銷遊戲
 const fetchPromotions = async () => {
   try {
-    const res = await axios.get('http://localhost:8080/api/promotions/active')
+    const res = await axios.get('/api/promotions/active')
     featuredGames.value = res.data.flatMap(p => p.promotionGame || [])
   } catch (error) {
     console.error('取得促銷失敗', error)
@@ -95,7 +95,7 @@ const fetchPromotions = async () => {
 const getCategories = async (gameId) => {
   if (!categoriesMap.value[gameId]) {
     try {
-      const res = await axios.get(`http://localhost:8080/api/games/${gameId}/categories`)
+      const res = await axios.get(`/api/games/${gameId}/categories`)
       categoriesMap.value[gameId] = res.data.map(c => c.name)
     } catch (err) {
       console.error(`取得遊戲 ${gameId} 的分類失敗`, err)
@@ -166,7 +166,7 @@ function scrollToTop() {
   
   /* 遊戲名稱 */
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     color: var(--color-primary);
     margin-bottom: 0.8rem;
     /* height: 100px; */
