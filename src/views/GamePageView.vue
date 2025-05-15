@@ -254,7 +254,8 @@ async function submitReview() {
     alert('評論已成功發表！');
   } catch (err) {
     console.error('新增評論失敗', err);
-    alert('新增評論失敗');
+    const message = err?.response?.data?.message || '新增評論失敗';
+    alert(message);
   } finally {
     submitting.value = false;
   }
