@@ -1,30 +1,29 @@
 <!-- 整合：個人資料 + 修改密碼 -->
 <template>
     <div class="profile-view container">
-        <h1 class="page-title">歡迎回來，{{ user?.username }}</h1>
-
+        <h1 class="page-title">個人資訊設定</h1>
         <div class="profile-layout">
             <!-- 左側：個人資料 -->
             <div class="profile-section">
-                <h2 class="section-title">個人資料</h2>
+                <h2 class="section-title">個人資訊</h2>
                 <form @submit.prevent="updateProfile" class="profile-form">
                     <div class="form-group">
-                        <label>帳號（無法修改）：</label>
+                        <label>帳號（無法修改）</label>
                         <input type="text" :value="user?.username" disabled class="form-input" />
                     </div>
 
                     <div class="form-group">
-                        <label>Email：</label>
+                        <label>Email</label>
                         <input type="email" v-model="email" required class="form-input" />
                     </div>
 
                     <div class="form-group">
-                        <label>大頭貼 URL：</label>
+                        <label>大頭貼 URL</label>
                         <input type="text" v-model="avatarUrl" class="form-input" />
                     </div>
 
                     <div class="form-group">
-                        <label>個人簽名：</label>
+                        <label>個人簽名</label>
                         <textarea v-model="signature" rows="2" class="form-textarea"></textarea>
                     </div>
 
@@ -38,20 +37,44 @@
             <div class="password-section">
                 <h2 class="section-title">修改密碼</h2>
                 <form @submit.prevent="changePassword" class="password-form">
+
+                    <!-- 舊密碼 -->
                     <div class="form-group">
-                        <label>舊密碼：</label>
-                        <input type="password" v-model="oldPassword" required class="form-input" />
+                        <label>舊密碼</label>
+                        <div class="input-group">
+                            <input :type="showPassword ? 'text' : 'password'" v-model="oldPassword" required
+                                class="form-input" />
+                            <button type="button" class="toggle-password" @click="showPassword = !showPassword"
+                                :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
+                                {{ showPassword ? '隱藏' : '顯示' }}
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 新密碼 -->
+                    <div class="form-group">
+                        <label>新密碼</label>
+                        <div class="input-group">
+                            <input :type="showPassword ? 'text' : 'password'" v-model="newPassword" required
+                                class="form-input" />
+                            <button type="button" class="toggle-password" @click="showPassword = !showPassword"
+                                :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
+                                {{ showPassword ? '隱藏' : '顯示' }}
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 再次輸入新密碼 -->
+                    <div class="form-group">
+                        <label>再次輸入新密碼</label>
+                        <div class="input-group">
+                            <input :type="showPassword ? 'text' : 'password'" v-model="confirmPassword" required
+                                class="form-input" />
+                            <button type="button" class="toggle-password" @click="showPassword = !showPassword"
+                                :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
+                                {{ showPassword ? '隱藏' : '顯示' }}
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>新密碼：</label>
-                        <input type="password" v-model="newPassword" required class="form-input" />
-                    </div>
-
-                    <div class="form-group">
-                        <label>再次輸入新密碼：</label>
-                        <input type="password" v-model="confirmPassword" required class="form-input" />
-                    </div>
 
                     <div class="form-group">
                         <button type="submit" class="btn-primary">更新密碼</button>
@@ -84,6 +107,11 @@ const signature = ref(user.value?.signature || '')
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+
+const showPassword = ref(false)
+const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value
+}
 
 const message = ref('')
 
@@ -144,11 +172,16 @@ async function changePassword() {
 
 .profile-view {
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--color-primary);
+    background: #1a1a2a;
+    border: 2px solid var(--color-primary);
     border-radius: var(--border-radius);
-    max-width: 1200px;
-    margin: 0 auto;
+    margin: 2rem auto;
+    min-height: 76vh;
+    max-width: 1000px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 20px var(--color-primary);
 }
 
 .page-title {
@@ -201,9 +234,9 @@ async function changePassword() {
     background-color: var(--color-primary);
     border: none;
     border-radius: var(--border-radius);
-    color: white;
     cursor: pointer;
     font-weight: bold;
+    color: #1a1a2a;
 }
 
 .message {
@@ -225,5 +258,23 @@ async function changePassword() {
     .password-section {
         width: 100%;
     }
+}
+
+.input-group {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    background: transparent;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--color-primary);
+    padding: 0;
 }
 </style>
