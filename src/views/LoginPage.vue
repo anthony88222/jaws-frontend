@@ -103,7 +103,7 @@ async function login() {
 
 /* 登入區塊設定：半透明背景、陰影、邊框、最小寬度與最大寬度限制 */
 .login-box {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #1a1a2a;
   padding: 2rem;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
@@ -140,6 +140,7 @@ async function login() {
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-primary);
   background: transparent;
+  background-color: rgba(255, 255, 255, 0.05);
   color: var(--color-text);
   border-radius: var(--border-radius);
   font-family: var(--font-family);
@@ -157,7 +158,7 @@ async function login() {
   position: absolute;
   right: 0.75rem;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-100%);
   font-size: 0.75rem;
   background: transparent;
   border: none;
