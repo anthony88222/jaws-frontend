@@ -5,7 +5,7 @@
   <!--  -->
   <div class="profile-container">
     <div class="profile-header">
-      <img :src="user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
+      <img :src="avatarFullUrl(user.avatarUrl)" alt="Avatar" class="avatar" @click.stop="goProfile" />
       <div class="user-info">
         <h2 class="username">{{ user.username }}</h2>
         <p class="user-id">ID：{{ user.id }}</p>
@@ -45,7 +45,7 @@
         <h3 class="section-title">好友列表</h3>
         <ul class="friend-list">
           <button v-for="friend in friends" :key="friend.id" class="friend-button" @click="goToUserProfile(friend.id)">
-            <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
+            <img :src="avatarFullUrl(friend.avatarUrl)" alt="friend avatar" class="friend-avatar" />
             <span class="friend-name">{{ friend.name }}</span>
           </button>
         </ul>
@@ -73,6 +73,12 @@ const friends = ref([])
 const isMyProfile = computed(() => targetUserId.value === auth.user?.id)
 const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id || 0)
 
+function avatarFullUrl(path) {
+  if (!path) return '/default-avatar2.png'; // 預設頭貼
+  if (path.startsWith('http')) return path;
+  return `http://localhost:8080${path}`;
+}
+
 async function fetchUserProfile(userId) {
   try {
     const res = await fetch(`/api/user/profile/${userId}`, {
@@ -89,6 +95,20 @@ async function fetchUserProfile(userId) {
 async function loadUserProfile() {
   if (!targetUserId.value) return
   const profile = await fetchUserProfile(targetUserId.value)
+  if (profile) {
+    const expPerLevel = 1000
+    const totalExp = profile.experience || 0
+    const level = Math.floor(totalExp / expPerLevel)
+    const currentExp = totalExp % expPerLevel
+    const expPercent = (currentExp / expPerLevel) * 100
+
+    profile.level = level
+    profile.expPercent = Math.min(100, expPercent)
+    profile.expPerLevel = expPerLevel
+    profile.currentExp = currentExp
+
+    user.value = profile
+  }
   if (profile) user.value = profile
 }
 
@@ -119,7 +139,7 @@ const fetchFriends = async () => {
       return {
         id: otherId,
         name: f.username,
-        avatarUrl: f.avatarUrl || friendAvatar
+        avatarUrl: f.avatarUrl || defaultAvatarUrl
       }
     })
   } catch (err) {
@@ -151,11 +171,15 @@ onMounted(async () => {
     profile.currentExp = totalExp % expPerLevel
 
     // 3. 更新 auth.user
+    user.value = profile
     auth.user = profile
 
-    // 4. 取得遊戲
-    // const resGames = await axios.get('/user/me/games')
-    // games.value = resGames.data.data
+    // 4. 取得遊戲和好友資料
+    const resGames = await axios.get('/user/me/games')
+    games.value = resGames.data.data
+
+    const resFriends = await axios.get('/user/me/friends')
+    friends.value = resFriends.data.data
 
   } catch (error) {
     console.error('載入使用者資料失敗', error)
@@ -170,6 +194,7 @@ onMounted(async () => {
     },
     { immediate: true }
   )
+  console.log('目前 user.avatarUrl', user.avatarUrl)
 })
 
 </script>
@@ -177,8 +202,16 @@ onMounted(async () => {
 <style scoped>
 .profile-container {
   max-width: 1000px;
+  min-height: 70vh;
+  display: grid;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin: 2rem auto;
-  padding: 2rem;
+
+  /* padding: 2rem; */
+  padding: 2rem 1rem;
+
   background: #1a1a2a;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
@@ -226,9 +259,9 @@ onMounted(async () => {
 
 .level-bar span {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--color-secondary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 1rem;
 }
 
 .exp-bar {

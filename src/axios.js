@@ -7,9 +7,22 @@ const instance = axios.create({
 });
 
 instance.interceptors.request.use((config) => {
-  const store = useAuthStore();
-  if (store.token) {
-    config.headers.Authorization = `Bearer ${store.token}`;
+  // 先抓 pinia，沒值再抓 localStorage
+  let token = null;
+  try {
+    token = useAuthStore().token;
+  } catch {
+    // fallback: 有時候 pinia 尚未初始化
+  }
+  // 這行直接用 localStorage 的 key
+  if (!token) {
+    const storage = localStorage.getItem("auth");
+    if (storage) {
+      token = JSON.parse(storage).token;
+    }
+  }
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });

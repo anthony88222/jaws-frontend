@@ -13,23 +13,31 @@
                 <input id="email" type="email" v-model="email" required />
 
                 <!-- 密碼輸入 -->
-                <label for="password">密碼</label>
-                <div class="input-group">
-                    <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" required />
-                    <button type="button" class="toggle-password" @click="showPassword = !showPassword">
-                        {{ showPassword ? '隱藏' : '顯示' }}
-                    </button>
+                <div class="form-group">
+                    <label>密碼</label>
+                    <div class="input-group">
+                        <input :type="showPassword ? 'text' : 'password'" v-model="password" required
+                            class="form-input" />
+                        <button type="button" class="toggle-password" @click="showPassword = !showPassword"
+                            :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
+                            {{ showPassword ? '隱藏' : '顯示' }}
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 確認密碼 -->
-                <label for="confirmPassword">確認密碼</label>
-                <div class="input-group">
-                    <input :type="showPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword"
-                        required />
-                    <button type="button" class="toggle-password" @click="showPassword = !showPassword">
-                        {{ showPassword ? '隱藏' : '顯示' }}
-                    </button>
+                <div class="form-group">
+                    <label>確認密碼</label>
+                    <div class="input-group">
+                        <input :type="showPassword ? 'text' : 'password'" v-model="confirmPassword" required
+                            class="form-input" />
+                        <button type="button" class="toggle-password" @click="showPassword = !showPassword"
+                            :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" tabindex="-1">
+                            {{ showPassword ? '隱藏' : '顯示' }}
+                        </button>
+                    </div>
                 </div>
+
 
                 <!-- 註冊按鈕 -->
                 <button class="btn-neon" type="submit">註冊</button>
@@ -145,6 +153,7 @@ async function registerUser() {
     padding: 0.75rem;
     border: 2px solid var(--color-primary);
     background: transparent;
+    background-color: rgba(255, 255, 255, 0.05);
     color: var(--color-text);
     border-radius: var(--border-radius);
     outline: none;
@@ -158,7 +167,7 @@ async function registerUser() {
     position: absolute;
     right: 0.75rem;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-100%);
     font-size: 0.75rem;
     background: transparent;
     border: none;
@@ -167,6 +176,7 @@ async function registerUser() {
     text-shadow: 0 0 6px var(--color-primary);
     padding: 0;
 }
+
 
 .btn-neon {
     width: 100%;
@@ -200,5 +210,13 @@ async function registerUser() {
     color: #ff6b6b;
     font-size: 0.9rem;
     margin-top: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 0.5rem;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
 }
 </style>

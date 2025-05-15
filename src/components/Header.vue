@@ -8,7 +8,6 @@
         </router-link>
       </div>
 
-      <!-- 主選單 -->
       <nav>
         <ul class="main-nav">
           <!-- 搜尋列 -->
@@ -19,6 +18,7 @@
           <!-- 常駐連結 -->
           <li><router-link to="/library">遊戲庫</router-link></li>
           <li><router-link to="/promotion">限時特賣</router-link></li>
+
 
           <!-- 已登入時：使用者下拉 -->
           <li v-if="auth.user" class="dropdown user-dropdown" ref="dropdownRef">
@@ -33,20 +33,20 @@
                   <span class="dropdown-arrow">▼</span>
                 </div>
                 <img
-                  :src="auth.user.avatarUrl || 'default-avatar.png'"
+                  :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()"
                   alt="Avatar"
                   class="avatar"
                   @click.stop="goProfile"
                 />
               </div>
+                
             </div>
-
             <!-- 下拉選單內容 -->
             <ul class="dropdown-menu right-align" :class="{ show: showMenu }">
               <li><router-link to="/wishlist">願望清單</router-link></li>
               <li>
                 <router-link to="/wallet">
-                  檢視我的錢包：NT$ {{ wallet }}
+                  檢視我的錢包：NT$ {{ (wallet || 0).toLocaleString() }}
                 </router-link>
               </li>
               <li><router-link to="/order-history">歷史訂單</router-link></li>
@@ -56,13 +56,12 @@
               </li>
             </ul>
           </li>
-
           <!-- 未登入 -->
           <li v-else>
             <router-link to="/login">登入 / 註冊</router-link>
           </li>
         </ul>
-      </nav>
+    </nav>
     </div>
   </header>
 </template>
@@ -107,7 +106,14 @@ function toggleMenu() {
   showMenu.value = !showMenu.value
 }
 
-// 點大頭貼去個人頁
+function avatarFullUrl(path) {
+  if (!path) return '/default-avatar.png';
+  if (path.startsWith('http')) return path;
+  // 補上你的後端 domain
+  return `http://localhost:8080${path}`;
+}
+
+// 點擊大頭貼跳到個人資料頁
 function goProfile() {
   router.push('/profile')
 }
@@ -269,5 +275,4 @@ onBeforeUnmount(() => {
   padding: 0;
   margin: 0;
 }
-
 </style>
