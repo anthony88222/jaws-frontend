@@ -80,7 +80,7 @@ function goToCheckout() {
 async function fetchCart() {
   try {
     const { data } = await axios.get(
-      `http://localhost:8080/api/cart/${userId.value}` // ➡️ .value
+      `/api/cart/${userId.value}` // ➡️ .value
     )
     cart.value = data
     await fetchPromotions()
@@ -94,7 +94,7 @@ async function fetchPromotions() {
   await Promise.all(
     cart.value.map(async (item) => {
       const { data } = await axios.get(
-        `http://localhost:8080/api/promotions/status/${item.gameId}`
+        `/api/promotions/status/${item.gameId}`
       )
       promotionMap.value[item.gameId] = data
     })
@@ -103,7 +103,7 @@ async function fetchPromotions() {
 
 async function removeFromCart(gameId) {
   await axios.delete(
-    `http://localhost:8080/api/cart/${userId.value}/remove/${gameId}`
+    `/api/cart/${userId.value}/remove/${gameId}`
   )
   await fetchCart()
 }

@@ -165,10 +165,10 @@ const sortedReviews = computed(() => {
 
 const fetchGameDetail = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}`);
+    const res = await axios.get(`/api/games/${gameId.value}`);
     game.value = res.data;
 
-    const previewRes = await axios.get(`http://localhost:8080/api/games/${gameId.value}/previews`);
+    const previewRes = await axios.get(`/api/games/${gameId.value}/previews`);
     const previews = previewRes.data.map(p => p.imageUrl);
     screenshots.value = previews;
   } catch (err) {
@@ -180,7 +180,7 @@ const fetchGameDetail = async () => {
 
 const fetchRatingSummary = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/rating-summary`);
+    const res = await axios.get(`/api/games/${gameId.value}/rating-summary`);
     ratingSummary.value = res.data;
     averageRating.value = ratingSummary.value.averageRating;
   } catch (err) {
@@ -190,7 +190,7 @@ const fetchRatingSummary = async () => {
 
 const fetchCategories = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/categories`);
+    const res = await axios.get(`/api/games/${gameId.value}/categories`);
     categories.value = res.data;
   } catch (err) {
     console.error('取得分類失敗', err);
@@ -199,7 +199,7 @@ const fetchCategories = async () => {
 
 const fetchRelatedGames = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/games/${gameId.value}/related-games`);
+    const res = await axios.get(`/api/games/${gameId.value}/related-games`);
     relatedGames.value = res.data;
   } catch (err) {
     console.error('取得相似遊戲失敗', err);
@@ -208,7 +208,7 @@ const fetchRelatedGames = async () => {
 
 const fetchPromotionStatus = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId.value}`);
+    const res = await axios.get(`/api/promotions/status/${gameId.value}`);
     console.log('促銷狀態:', res.data);
     promotionStatus.value = res.data;
   } catch (err) {
@@ -239,7 +239,7 @@ async function submitReview() {
   try {
     console.log(gameId.value)
     await axios.post(
-      `http://localhost:8080/api/reviews/game/${gameId.value}`,
+      `/api/reviews/game/${gameId.value}`,
       {
         // gameId: gameId.value,
         userId: authStore.user?.id,   // ✅ 補上這個
@@ -268,7 +268,7 @@ async function addToCart() {
     return;
   }
   try {
-    await axios.post(`http://localhost:8080/api/cart/${userId}/add/${game.value.id}`);
+    await axios.post(`/api/cart/${userId}/add/${game.value.id}`);
     alert('成功加入購物車！');
   } catch (err) {
     console.error('加入購物車失敗', err);
@@ -284,7 +284,7 @@ async function clearCart() {
     return;
   }
   try {
-    await axios.delete(`http://localhost:8080/api/cart/${userId}/clear`);
+    await axios.delete(`/api/cart/${userId}/clear`);
     alert('已清空購物車！');
   } catch (err) {
     console.error('清空購物車失敗', err);
@@ -328,7 +328,7 @@ async function addToWishlist() {
     return;
   }
   try {
-    await axios.post(`http://localhost:8080/api/wishlist/${userId}/add/${game.value.id}`);
+    await axios.post(`/api/wishlist/${userId}/add/${game.value.id}`);
     alert('已加入願望清單！');
     inWishlist.value = true;
     localStorage.setItem(`wishlist-${game.value.id}`, 'true');

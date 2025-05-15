@@ -24,12 +24,12 @@
   
   onMounted(async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/games/game');
+      const res = await axios.get('/api/games/game');
       games.value = res.data;
       // 對每個遊戲查詢促銷狀態
       for (const game of games.value) {
         try {
-        const promoRes = await axios.get(`http://localhost:8080/api/promotions/status/${game.id}`);
+        const promoRes = await axios.get(`/api/promotions/status/${game.id}`);
         game.promotionStatus = promoRes.data;
         } catch {
         game.promotionStatus = { onSale: false }; // 沒有促銷也要設預設

@@ -110,13 +110,13 @@ const submitOrder = async () => {
     if (orderId) {
       // 再次付款
       response = await axios.post(
-        "http://localhost:8080/api/order/pay-again",
+        "/api/order/pay-again",
         payload,
         { params: { orderId } }
       )
     } else {
       // 建立新訂單
-      response = await axios.post("http://localhost:8080/api/order/create", payload)
+      response = await axios.post("/api/order/create", payload)
     }
 
     if (response.data.ecpayHtmlForm) {
@@ -170,7 +170,7 @@ const canSubmit = computed(() => {
 onMounted(async () => {
   const orderId = route.query.orderId
   if (orderId) {
-    const res = await axios.get(`http://localhost:8080/api/order/${orderId}`)
+    const res = await axios.get(`/api/order/${orderId}`)
     const order = res.data
     total.value = order.total
     gameList.value = order.gameIds.map((id, idx) => ({
@@ -179,12 +179,12 @@ onMounted(async () => {
       coverImageUrl: order.gameImages[idx],
       price: order.gamePrices[idx]
     }))
-    const userRes = await axios.get(`http://localhost:8080/api/user/${userId}`)
+    const userRes = await axios.get(`/api/user/${userId}`)
     walletBalance.value = userRes.data.walletBalance
   } else {
     // 假設你有從購物車結帳邏輯，要另外補 gameList
     total.value = parseInt(route.query.total || 0)
-    const userRes = await axios.get(`http://localhost:8080/api/user/${userId}`)
+    const userRes = await axios.get(`/api/user/${userId}`)
     walletBalance.value = userRes.data.walletBalance
     // 此處你可以 fetchCart() 並轉為 gameList 格式
   }

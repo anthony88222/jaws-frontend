@@ -134,7 +134,7 @@ const formatDate = (dateString) => {
 // ✅ 拉取並展平資料
 const fetchLibrary = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/Library/user/${userId}/list-dto?status=1`)
+    const response = await axios.get(`/api/Library/user/${userId}/list-dto?status=1`)
     libraries.value = response.data
   } catch (error) {
     console.error('❌ 載入遊戲庫資料失敗', error)

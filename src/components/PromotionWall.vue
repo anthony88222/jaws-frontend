@@ -61,7 +61,7 @@
   const fetchPromotions = async () => {
     try {
       const { data } = await axios.get(
-        'http://localhost:8080/api/promotions/active'
+        '/api/promotions/active'
       )
       promotions.value = data.flatMap(p => p.promotionGame || [])
     } catch (err) {

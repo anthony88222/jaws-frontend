@@ -64,7 +64,7 @@ const promotionMap = ref({})
 
 const fetchOrderDetail = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/order/${route.params.orderId}`)
+    const res = await axios.get(`/api/order/${route.params.orderId}`)
     order.value = res.data
   } catch (err) {
     console.error('取得訂單失敗', err)
@@ -75,7 +75,7 @@ const fetchPromotions = async () => {
   if (!order.value?.gameIds) return
   for (let i = 0; i < order.value.gameIds.length; i++) {
     const gameId = order.value.gameIds[i]
-    const res = await axios.get(`http://localhost:8080/api/promotions/status/${gameId}`)
+    const res = await axios.get(`/api/promotions/status/${gameId}`)
     promotionMap.value[gameId] = res.data
   }
 }
