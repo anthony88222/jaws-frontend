@@ -1,57 +1,56 @@
 <template>
 
-<!--  -->
-<!-- 因為可能會查詢好友的所有資料用 user.   如我確定是要登入者的資訊才用auth.user by anthony-->
-<!--  -->
+  <!--  -->
+  <!-- 因為可能會查詢好友的所有資料用 user.   如我確定是要登入者的資訊才用auth.user by anthony-->
+  <!--  -->
   <div class="profile-container">
-      <div class="profile-header">
-          <img :src="user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
-          <div class="user-info">
-              <h2 class="username">{{ user.username }}</h2>
-              <p class="user-id">ID：{{ user.id }}</p>
-              <p class="signature">個人簽名：{{ user.signature }}</p>
-              <div class="level-bar">
-                  <span>Lv. {{ user.level ?? 0 }}</span>
-                  <div class="exp-bar">
-                      <div class="exp-fill" :style="{ width: (user.expPercent || 0) + '%' }"></div>
-                      <span class="exp-text">
-                          {{ user.currentExp || 0 }} / {{ user.expPerLevel || 1000 }} EXP
-                      </span>
-                  </div>
-              </div>
+    <div class="profile-header">
+      <img :src="user.avatarUrl || defaultAvatarUrl" alt="Avatar" class="avatar" @click.stop="goProfile" />
+      <div class="user-info">
+        <h2 class="username">{{ user.username }}</h2>
+        <p class="user-id">ID：{{ user.id }}</p>
+        <p class="signature">個人簽名：{{ user.signature }}</p>
+        <div class="level-bar">
+          <span>Lv. {{ user.level ?? 0 }}</span>
+          <div class="exp-bar">
+            <div class="exp-fill" :style="{ width: (user.expPercent || 0) + '%' }"></div>
+            <span class="exp-text">
+              {{ user.currentExp || 0 }} / {{ user.expPerLevel || 1000 }} EXP
+            </span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-actions" v-if="isMyProfile">
+      <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
+      <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
+      <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
+      <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
+      <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
+    </div>
+
+    <div class="profile-columns">
+      <div class="profile-section">
+        <h3 class="section-title">擁有的遊戲</h3>
+        <div class="games-grid">
+          <div class="game-card" v-for="game in games" :key="game.id">
+            <img :src="game.cover" alt="game cover" class="game-cover" />
+            <p class="game-title">{{ game.name }}</p>
+          </div>
+        </div>
       </div>
 
-      <div class="profile-actions" v-if="isMyProfile">
-          <router-link to="/profile/edit" class="btn-neon-sm">個人資訊設定</router-link>
-          <router-link to="/privacy-settings" class="btn-neon-sm">隱私設定</router-link>
-          <router-link to="/wallet" class="btn-neon-sm">錢包餘額 & 加值</router-link>
-          <router-link to="/orders" class="btn-neon-sm">購買紀錄</router-link>
-          <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
+      <div class="profile-section">
+        <h3 class="section-title">好友列表</h3>
+        <ul class="friend-list">
+          <button v-for="friend in friends" :key="friend.id" class="friend-button" @click="goToUserProfile(friend.id)">
+            <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
+            <span class="friend-name">{{ friend.name }}</span>
+          </button>
+        </ul>
       </div>
-
-      <div class="profile-columns">
-          <div class="profile-section">
-              <h3 class="section-title">擁有的遊戲</h3>
-              <div class="games-grid">
-                  <div class="game-card" v-for="game in games" :key="game.id">
-                      <img :src="game.cover" alt="game cover" class="game-cover" />
-                      <p class="game-title">{{ game.name }}</p>
-                  </div>
-              </div>
-          </div>
-
-          <div class="profile-section">
-              <h3 class="section-title">好友列表</h3>
-              <ul class="friend-list">
-                  <button v-for="friend in friends" :key="friend.id" class="friend-button"
-                      @click="goToUserProfile(friend.id)">
-                      <img :src="friend.avatarUrl" alt="friend avatar" class="friend-avatar" />
-                      <span class="friend-name">{{ friend.name }}</span>
-                  </button>
-              </ul>
-          </div>
-      </div>
+    </div>
   </div>
 </template>
 
@@ -75,14 +74,14 @@ const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id 
 
 async function fetchUserProfile(userId) {
   try {
-      const res = await fetch(`/api/user/profile/${userId}`, {
-          method: 'GET',
-          credentials: 'include'
-      })
-      if (!res.ok) throw new Error('取得使用者資料失敗')
-      return await res.json()
+    const res = await fetch(`/api/user/profile/${userId}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    if (!res.ok) throw new Error('取得使用者資料失敗')
+    return await res.json()
   } catch {
-      return null
+    return null
   }
 }
 
@@ -94,21 +93,21 @@ async function loadUserProfile() {
 
 const fetchFriends = async () => {
   try {
-      const res = await fetch(`/api/friend/getFriends?userId=${targetUserId.value}`)
-      const data = await res.json()
+    const res = await fetch(`/api/friend/getFriends?userId=${targetUserId.value}`)
+    const data = await res.json()
 
-      friends.value = data.map(f => {
-          const isSelfUser = f.userId === targetUserId.value
-          const otherId = isSelfUser ? f.friendId : f.userId
+    friends.value = data.map(f => {
+      const isSelfUser = f.userId === targetUserId.value
+      const otherId = isSelfUser ? f.friendId : f.userId
 
-          return {
-              id: otherId,
-              name: f.username,
-              avatarUrl: f.avatarUrl || defaultAvatarUrl
-          }
-      })
+      return {
+        id: otherId,
+        name: f.username,
+        avatarUrl: f.avatarUrl || defaultAvatarUrl
+      }
+    })
   } catch (err) {
-      console.error('取得好友失敗', err)
+    console.error('取得好友失敗', err)
   }
 }
 
@@ -118,44 +117,44 @@ const goToUserProfile = (userId) => {
 
 onMounted(async () => {
   try {
-      // 1. 取得使用者資料
-      const resProfile = await axios.get('/user/me')
-      const profile = resProfile.data.data
+    // 1. 取得使用者資料
+    const resProfile = await axios.get('/user/me')
+    const profile = resProfile.data.data
 
-      // 2. 等級系統邏輯（這是我新增的）
-      const expPerLevel = 1000                            // 每升一級需要經驗值
-      const totalExp = profile.experience || 0            // 使用者目前總經驗值
+    // 2. 等級系統邏輯（這是我新增的）
+    const expPerLevel = 1000                            // 每升一級需要經驗值
+    const totalExp = profile.experience || 0            // 使用者目前總經驗值
 
-      const level = Math.floor(totalExp / expPerLevel)    // 算出目前等級
-      const currentExp = totalExp % expPerLevel           // 算出這一級內累積了多少
-      const expPercent = (currentExp / expPerLevel) * 100 // 算出百分比進度條
+    const level = Math.floor(totalExp / expPerLevel)    // 算出目前等級
+    const currentExp = totalExp % expPerLevel           // 算出這一級內累積了多少
+    const expPercent = (currentExp / expPerLevel) * 100 // 算出百分比進度條
 
-      profile.level = level                               // 加到 profile 裡
-      profile.expPercent = Math.min(100, expPercent)      // 保險機制避免超過
-      profile.expPerLevel = expPerLevel
-      profile.currentExp = totalExp % expPerLevel
+    profile.level = level                               // 加到 profile 裡
+    profile.expPercent = Math.min(100, expPercent)      // 保險機制避免超過
+    profile.expPerLevel = expPerLevel
+    profile.currentExp = totalExp % expPerLevel
 
-      // 3. 更新 auth.user
-      auth.user = profile
+    // 3. 更新 auth.user
+    auth.user = profile
 
-      // 4. 取得遊戲和好友資料
-      const resGames = await axios.get('/user/me/games')
-      games.value = resGames.data.data
+    // 4. 取得遊戲和好友資料
+    const resGames = await axios.get('/user/me/games')
+    games.value = resGames.data.data
 
-      const resFriends = await axios.get('/user/me/friends')
-      friends.value = resFriends.data.data
+    const resFriends = await axios.get('/user/me/friends')
+    friends.value = resFriends.data.data
 
   } catch (error) {
-      console.error('載入使用者資料失敗', error)
+    console.error('載入使用者資料失敗', error)
   }
 
   watch(
-      () => targetUserId.value,
-      async () => {
-          await loadUserProfile()
-          await fetchFriends()
-      },
-      { immediate: true }
+    () => targetUserId.value,
+    async () => {
+      await loadUserProfile()
+      await fetchFriends()
+    },
+    { immediate: true }
   )
 })
 
@@ -164,8 +163,16 @@ onMounted(async () => {
 <style scoped>
 .profile-container {
   max-width: 1000px;
+  min-height: 70vh;
+  display: grid;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin: 2rem auto;
-  padding: 2rem;
+
+  /* padding: 2rem; */
+  padding: 2rem 1rem;
+
   background: #1a1a2a;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
@@ -213,9 +220,9 @@ onMounted(async () => {
 
 .level-bar span {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--color-secondary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 1rem;
 }
 
 .exp-bar {
@@ -259,11 +266,11 @@ onMounted(async () => {
 
 @keyframes fill-glow {
   0% {
-      box-shadow: 0 0 6px var(--color-primary);
+    box-shadow: 0 0 6px var(--color-primary);
   }
 
   100% {
-      box-shadow: 0 0 12px #38f38f;
+    box-shadow: 0 0 12px #38f38f;
   }
 }
 
@@ -397,5 +404,4 @@ onMounted(async () => {
   color: var(--color-text);
   font-size: 1rem;
 }
-
 </style>
