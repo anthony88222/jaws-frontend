@@ -34,19 +34,18 @@
           class="search-input"
         />
         <select v-model="sortBy" class="sort-select">
-          <option v-if="!sortBy" disabled hidden value="">請選擇排序方式</option>
-          <option value="purchaseDate_desc">購買日期（新 → 舊）</option>
+          <option value="purchaseDate_desc">購買日期（新 → 舊）</option> 
           <option value="purchaseDate_asc">購買日期（舊 → 新）</option>
-          <option value="price_desc">價格（高 → 低）</option>
-          <option value="price_asc">價格（低 → 高）</option>
+          <option value="name_asc">名稱（A → Z）</option>
+          <option value="name_desc">名稱（Z → A）</option>
         </select>
+
       </div>
 
       <!-- 遊戲列表 -->
       <div class="game-grid">
         <template v-if="filteredLibraries.length > 0">
-          <div
-            v-for="game in filteredLibraries"
+          <div v-for="game in sortedLibraries"
             :key="game.id"
             class="game-card"
           >
@@ -60,7 +59,6 @@
               <h3 class="game-title">{{ game.gameName }}</h3>
               <p class="game-date">📅 購買日：{{ formatDate(game.purchaseDate) }}</p>
               <p class="game-category">🎮 類別：{{ game.categoryNames?.join(', ') || '無分類' }}</p>
-              <p class="game-price">💰 金額：{{ game.price ?? '未知' }} 元</p>
             </div>
           </div>
         </template>
@@ -87,12 +85,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
 const libraries = ref([])
 const keyword = ref('')
-const sortBy = ref("")
-const userId = 1
+const sortBy = ref('purchaseDate_desc')
 const selectedCategory = ref('')
+const authStore = useAuthStore()
+const userId = computed(() => authStore.user?.id)
 
 const categoryList = [
   "角色扮演",
@@ -107,17 +107,10 @@ const categoryList = [
   "冒險"
 ]
 
+// ✅ 分類點擊事件
 const filterByCategory = (category) => {
   selectedCategory.value = category
 }
-if (selectedCategory.value) {
-  result = result.filter((game) =>
-    game.categoryNames?.includes(selectedCategory.value)
-  )
-}
-
-
-
 
 // ✅ 圖片載入錯誤時使用預設圖
 const handleImageError = (e) => {
@@ -133,18 +126,16 @@ const formatDate = (dateString) => {
 
 // ✅ 拉取並展平資料
 const fetchLibrary = async () => {
+  if (!userId.value) return
   try {
-    const response = await axios.get(`http://localhost:8080/api/Library/user/${userId}/list-dto?status=1`)
+    const response = await axios.get(`/api/Library/user/${userId}/list-dto?status=1`)
     libraries.value = response.data
   } catch (error) {
     console.error('❌ 載入遊戲庫資料失敗', error)
   }
 }
 
-
-
-
-// ✅ 搜尋與排序
+// ✅ 先過濾分類與搜尋條件
 const filteredLibraries = computed(() => {
   let result = [...libraries.value]
 
@@ -155,34 +146,45 @@ const filteredLibraries = computed(() => {
     )
   }
 
-  // ✅ 分類篩選條件（放這裡！）
   if (selectedCategory.value) {
-    result = result.filter((game) =>
+    result = result.filter(game =>
       game.categoryNames?.includes(selectedCategory.value)
     )
-  }
-
-  // ✅ 排序
-  if (sortBy.value === "purchaseDate_desc") {
-    result.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate))
-  } else if (sortBy.value === "purchaseDate_asc") {
-    result.sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate))
-  } else if (sortBy.value === "price_desc") {
-    result.sort((a, b) => b.price - a.price)
-  } else if (sortBy.value === "price_asc") {
-    result.sort((a, b) => a.price - b.price)
   }
 
   return result
 })
 
+// ✅ 再根據排序條件排序
+const sortedLibraries = computed(() => {
+  const result = [...filteredLibraries.value]
 
-// ✅ 回頁首
+  switch (sortBy.value) {
+    case 'purchaseDate_desc':
+      return result.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate))
+    case 'purchaseDate_asc':
+      return result.sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate))
+    case 'price_desc':
+      return result.sort((a, b) => b.price - a.price)
+    case 'price_asc':
+      return result.sort((a, b) => a.price - b.price)
+    case 'name_asc':
+      return result.sort((a, b) => a.gameName.localeCompare(b.gameName))
+    case 'name_desc':
+      return result.sort((a, b) => b.gameName.localeCompare(a.gameName))
+    default:
+      return result
+  }
+})
+
+// ✅ 回頁首按鈕功能
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-onMounted(fetchLibrary)
+onMounted(() => {
+  if (userId.value) fetchLibrary()
+})
 </script>
 
 
@@ -284,12 +286,29 @@ onMounted(fetchLibrary)
 }
 
 .sort-select {
-  width: 200px;        /* ⭐ 建議加上這個！兩個元素寬度不要差太多 */
+  width: 200px;
   padding: 8px;
   border: 2px solid #0ff;
-  background: transparent;
-  color: #0ff;
+  background-color: #1a1a2a; /* ✅ 深色背景 */
+  color: #f0f;               /* ✅ 亮色文字 */
   border-radius: 8px;
+  font-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+/* 下拉選單展開時的選項樣式（部分瀏覽器有效） */
+.sort-select option {
+  background-color: #1a1a2a; /* ✅ 同樣的深色背景 */
+  color: #f0f;               /* ✅ 亮色文字 */
+}
+
+/* 為了可讀性，也可加上 focus 樣式 */
+.sort-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #0ff;
 }
 
 
@@ -336,7 +355,7 @@ onMounted(fetchLibrary)
 
 .game-title {
   color: var(--color-primary);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-bottom: 5px;
   text-shadow: 0 0 4px var(--color-primary);
 }
@@ -344,9 +363,10 @@ onMounted(fetchLibrary)
 .game-date,
 .game-category,
 .game-price {
-  font-size: 0.9rem;
-  color: #f0f;
-  text-shadow: 0 0 4px var(--color-secondary);
+  font-size: 1rem;
+  color:white; 
+  text-shadow: 0 0 0px white;
+  font-weight: 400;
 }
 
 /* 回到頁首按鈕 */

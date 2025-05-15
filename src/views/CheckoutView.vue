@@ -5,6 +5,21 @@
 
       <p class="wallet-info">目前可用遊戲幣：{{ walletBalance }} 元</p>
 
+      <!-- 贈送好友欄位（可選） -->
+<div class="checkout-receiver">
+  <label>
+    贈送對象（可留空代表自購）：
+    <select v-model="receiverId">
+      <option :value="undefined">-- 自購（不贈送） --</option>
+      <option v-for="friend in friends" :key="friend.id" :value="friend.id">
+        {{ friend.username }}
+      </option>
+    </select>
+  </label>
+</div>
+
+
+
       <!-- 支付方式選擇 -->
       <div class="checkout-payment-method">
   <label>
@@ -38,11 +53,19 @@
             <h2 class="checkout-game-name">{{ item.name }}</h2>
           </div>
           <div class="checkout-game-right">
-            <div class="checkout-price-box">
-              <div class="checkout-price-text">
-                <div class="checkout-final-price">NT$ {{ item.price }}</div>
-              </div>
-            </div>
+            <div v-if="item.discountRate > 0" class="checkout-price-box">
+  <div class="discount-tag">-{{ item.discountRate }}%</div>
+  <div class="checkout-price-text">
+    <div class="original-price">NT$ {{ item.originalPrice }}</div>
+    <div class="checkout-final-price">NT$ {{ item.price }}</div>
+  </div>
+</div>
+<div v-else class="checkout-price-box">
+  <div class="checkout-price-text">
+    <div class="checkout-final-price">NT$ {{ item.price }}</div>
+  </div>
+</div>
+
           </div>
         </div>
       </div>
@@ -86,52 +109,79 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const userId = authStore.user?.id ?? 1
+const userId = computed(() => authStore.user?.id)
 const walletBalance = ref(0)
 const paymentType = ref(1)
 const walletUsed = ref(0)
 const total = ref(0)
 const gameList = ref([])
 const ecpayForm = ref('')
+const receiverId = ref(null) // ✅ 受贈者 ID，可為 null（代表自購）
+const friendList = ref([]) // ✅ 好友清單
 const isLoading = ref(false)
+const friends = ref([])
 
 const submitOrder = async () => {
+  if (!userId.value) {
+    alert('請先登入')
+    router.push('/login')
+    return
+  }
+
   isLoading.value = true
   try {
+    // ✅ 嚴格轉為整數避免浮點錯誤，並加上 console.log
+    const rawWalletUsed = Number(walletUsed.value)
+const finalWalletUsed = ([2, 3].includes(Number(paymentType.value)))
+  ? Math.floor(rawWalletUsed)
+  : 0
+
+
+    console.log('🎯 paymentType:', paymentType.value)
+    console.log('🎯 walletUsed.value:', walletUsed.value)
+    console.log('🎯 finalWalletUsed:', finalWalletUsed)
+
     const payload = {
-      userId,
+      userId: userId.value,
       paymentType: paymentType.value,
-      walletUsed: (paymentType.value === 2 || paymentType.value === 3) ? walletUsed.value : 0
+      walletUsed: finalWalletUsed,
+      receiverId: receiverId.value ?? null
+
     }
+
+    console.log('✅ payload:', payload)
 
     const orderId = route.query.orderId
     let response
 
     if (orderId) {
-      // 再次付款
       response = await axios.post(
-        "http://localhost:8080/api/order/pay-again",
+        "/api/order/pay-again",
         payload,
         { params: { orderId } }
       )
     } else {
-      // 建立新訂單
-      response = await axios.post("http://localhost:8080/api/order/create", payload)
+      response = await axios.post("/api/order/create", payload)
     }
+
+    // ... 保持後續邏輯不變
+
 
     if (response.data.ecpayHtmlForm) {
       ecpayForm.value = response.data.ecpayHtmlForm
+
       nextTick(() => {
-        const div = document.createElement('div')
-        div.innerHTML = ecpayForm.value
-        const form = div.querySelector('form')
+        const wrapper = document.createElement('div')
+        wrapper.innerHTML = ecpayForm.value
+        const form = wrapper.querySelector('form')
         if (form) {
           document.body.appendChild(form)
-          form.submit()
+          requestAnimationFrame(() => form.submit()) // ✅ CSP 安全觸發
         } else {
           alert('❌ 綠界表單產生失敗')
         }
       })
+
     } else if (response.data.status === 3) {
       alert('✅ 付款完成')
       router.push('/library')
@@ -166,40 +216,115 @@ const canSubmit = computed(() => {
   return true
 })
 
-// 👇 取得訂單資訊（再次付款 or 購物車）
+const fetchFriends = async () => {
+  try {
+    const res = await fetch(`/api/friend/getFriends?userId=${userId.value}`)
+    const data = await res.json()
+
+    friends.value = data.map(f => {
+      const isSelfUser = f.userId === userId
+      const otherId = isSelfUser ? f.friendId : f.userId
+
+      return {
+        id: otherId,
+        username: f.username
+      }
+    })
+  } catch (err) {
+    console.error('取得好友失敗', err)
+  }
+}
+
 onMounted(async () => {
+  if (!userId.value) {
+    alert('請先登入')
+    router.push('/login')
+    return
+  }
+
+  // 取得使用者遊戲幣餘額
+  try {
+    const userRes = await axios.get(`/api/user/${userId.value}`)
+    walletBalance.value = userRes.data.wallet ?? 0
+  } catch (e) {
+    console.warn('❌ 無法取得使用者餘額', e)
+    walletBalance.value = 0
+  }
+
+  fetchFriends()
+
   const orderId = route.query.orderId
   if (orderId) {
-    const res = await axios.get(`http://localhost:8080/api/order/${orderId}`)
-    const order = res.data
-    total.value = order.total
-    gameList.value = order.gameIds.map((id, idx) => ({
-      gameId: id,
-      name: order.gameNames[idx],
-      coverImageUrl: order.gameImages[idx],
-      price: order.gamePrices[idx]
-    }))
-    const userRes = await axios.get(`http://localhost:8080/api/user/${userId}`)
-    walletBalance.value = userRes.data.walletBalance
+    // ✅ 再次付款模式：從訂單載入資料（價格已是正確折扣價）
+    try {
+      const res = await axios.get(`/api/order/${orderId}`)
+      const order = res.data
+      total.value = order.total
+      gameList.value = order.gameIds.map((id, idx) => ({
+        gameId: id,
+        name: order.gameNames[idx],
+        coverImageUrl: order.gameImages[idx],
+        price: Math.floor(order.gamePrices[idx]),
+        originalPrice: Math.floor(order.gamePrices[idx]), // 無打折就同原價
+        discountRate: 0 // 預設無折扣
+      }))
+    } catch (e) {
+      console.error('❌ 無法載入訂單資料', e)
+    }
   } else {
-    // 假設你有從購物車結帳邏輯，要另外補 gameList
-    total.value = parseInt(route.query.total || 0)
-    const userRes = await axios.get(`http://localhost:8080/api/user/${userId}`)
-    walletBalance.value = userRes.data.walletBalance
-    // 此處你可以 fetchCart() 並轉為 gameList 格式
+    // ✅ 首次結帳：從購物車載入資料 + 查詢促銷折扣
+    try {
+      const cartRes = await axios.get(`/api/cart/${userId.value}`)
+      gameList.value = cartRes.data.map(item => ({
+        gameId: item.gameId,
+        name: item.name,
+        coverImageUrl: item.coverImageUrl,
+        price: item.price,
+        originalPrice: item.price, // 預設原價與售價相同
+        discountRate: 0 // 預設沒打折
+      }))
+
+      // 查詢所有遊戲的促銷狀態，若有折扣則更新折扣資料
+      for (const item of gameList.value) {
+        try {
+          const promoRes = await axios.get(`/api/promotions/status/${item.gameId}`)
+          const promo = promoRes.data
+          if (promo.onSale) {
+            item.originalPrice = item.price
+            item.price = Math.floor(promo.discountedPrice)
+            item.discountRate = Math.floor(promo.discountRate * 100)
+          }
+        } catch (e) {
+          console.warn(`❌ 查詢促銷失敗 - 遊戲ID ${item.gameId}`, e)
+        }
+      }
+
+      total.value = gameList.value.reduce((sum, item) => sum + item.price, 0)
+    } catch (e) {
+      console.error('❌ 無法載入購物車資料', e)
+      gameList.value = []
+      total.value = 0
+    }
   }
 })
+
+
+
+
 </script>
+
+
 
 
 
 <style scoped>
 .checkout-container {
   height: 100%;
+  min-height: 75vh;
 }
 
 .checkout-wrapper {
-  width: 1150px;
+  width: 1050px;
   max-width: 100%;
   margin: 2rem auto;
   padding: 2rem;
@@ -390,6 +515,24 @@ onMounted(async () => {
   border-radius: 10px;
   box-shadow: 0 0 10px cyan;
 }
+
+.discount-tag {
+  background-color: #4a772f;
+  color: #bfff00;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.3rem;
+  border-radius: 2px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #bbb;
+  font-size: 0.7rem;
+}
+
 </style>
 
 

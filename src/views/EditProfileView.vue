@@ -1,115 +1,89 @@
-<!-- 整合：個人資料 + 修改密碼 + 刪除帳號（含防呆 + 再確認） -->
+<!-- 整合：個人資料 + 修改密碼 -->
 <template>
     <div class="profile-view container">
-        <h1>歡迎回來，{{ user?.username }}</h1>
+        <h1 class="page-title">歡迎回來，{{ user?.username }}</h1>
 
-        <!-- 🔹 使用者資訊編輯表單 -->
-        <form @submit.prevent="updateProfile" class="profile-form">
-            <div>
-                <label>帳號（無法修改）：</label>
-                <input type="text" :value="user?.username" disabled />
+        <div class="profile-layout">
+            <!-- 左側：個人資料 -->
+            <div class="profile-section">
+                <h2 class="section-title">個人資料</h2>
+                <form @submit.prevent="updateProfile" class="profile-form">
+                    <div class="form-group">
+                        <label>帳號（無法修改）：</label>
+                        <input type="text" :value="user?.username" disabled class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email：</label>
+                        <input type="email" v-model="email" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>大頭貼 URL：</label>
+                        <input type="text" v-model="avatarUrl" class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>個人簽名：</label>
+                        <textarea v-model="signature" rows="2" class="form-textarea"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn-primary">儲存修改</button>
+                    </div>
+                </form>
             </div>
 
-            <div>
-                <label>Email：</label>
-                <input type="email" v-model="email" required />
+            <!-- 右側：修改密碼 -->
+            <div class="password-section">
+                <h2 class="section-title">修改密碼</h2>
+                <form @submit.prevent="changePassword" class="password-form">
+                    <div class="form-group">
+                        <label>舊密碼：</label>
+                        <input type="password" v-model="oldPassword" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>新密碼：</label>
+                        <input type="password" v-model="newPassword" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>再次輸入新密碼：</label>
+                        <input type="password" v-model="confirmPassword" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn-primary">更新密碼</button>
+                    </div>
+                </form>
             </div>
-
-            <div>
-                <label>大頭貼 URL：</label>
-                <input type="text" v-model="avatarUrl" />
-            </div>
-
-            <div>
-                <label>個人簽名：</label>
-                <textarea v-model="signature" rows="2"></textarea>
-            </div>
-
-            <div>
-                <label><input type="checkbox" v-model="gamesPrivacy" /> 隱藏我的遊戲庫</label>
-            </div>
-
-            <div>
-                <label><input type="checkbox" v-model="reviewsPrivacy" /> 隱藏我的評論</label>
-            </div>
-
-            <button type="submit">儲存修改</button>
-        </form>
-
-        <div style="padding: 20px 0px 0px 0px;">
-            <hr />
         </div>
-
-        <!-- 🔒 修改密碼表單 -->
-        <form @submit.prevent="changePassword" class="profile-form">
-            <h2>修改密碼</h2>
-            <div>
-                <label>舊密碼：</label>
-                <input type="password" v-model="oldPassword" required />
-            </div>
-            <div>
-                <label>新密碼：</label>
-                <input type="password" v-model="newPassword" required />
-            </div>
-            <div>
-                <label>再次輸入新密碼：</label>
-                <input type="password" v-model="confirmPassword" required />
-            </div>
-            <button type="submit">更新密碼</button>
-        </form>
-
-        <div style="padding: 20px 0px 0px 0px;">
-            <hr />
-        </div>
-
-        <!-- 🔥 刪除帳號表單 -->
-        <form @submit.prevent="deleteAccount" class="profile-form">
-            <h2 style="color: red">刪除帳號</h2>
-            <div>
-                <label>請輸入密碼以確認刪除：</label>
-                <input type="password" v-model="deletePassword" required />
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" v-model="confirmDelete" /> 我確認要永久刪除帳號
-                </label>
-            </div>
-            <button type="submit" :disabled="!confirmDelete" style="background-color: red;">永久刪除帳號</button>
-        </form>
 
         <!-- 顯示訊息 -->
         <p v-if="message" class="message">{{ message }}</p>
     </div>
 </template>
 
+
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
 import axios from '@/axios'
 
 const auth = useAuthStore()
 const { user } = storeToRefs(auth)
-const router = useRouter()
 
 // 個人資料欄位
 const email = ref(user.value?.email || '')
 const avatarUrl = ref(user.value?.avatarUrl || '')
 const signature = ref(user.value?.signature || '')
-const gamesPrivacy = ref(user.value?.gamesPrivacy ?? true)
-gamesPrivacy.value = Boolean(gamesPrivacy.value)
-const reviewsPrivacy = ref(user.value?.reviewsPrivacy ?? true)
-reviewsPrivacy.value = Boolean(reviewsPrivacy.value)
 
 // 密碼變更欄位
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-
-// 刪除帳號欄位
-const deletePassword = ref('')
-const confirmDelete = ref(false)
 
 const message = ref('')
 
@@ -120,8 +94,6 @@ async function updateProfile() {
             email: email.value,
             avatarUrl: avatarUrl.value,
             signature: signature.value,
-            gamesPrivacy: gamesPrivacy.value,
-            reviewsPrivacy: reviewsPrivacy.value,
         })
 
         const profileRes = await axios.get('/user/me')
@@ -161,55 +133,71 @@ async function changePassword() {
         message.value = err.response?.data?.message || '密碼更新失敗，請確認舊密碼正確 ❌'
     }
 }
-
-// ✅ 刪除帳號（soft delete + 登出）
-async function deleteAccount() {
-    if (!confirmDelete.value) {
-        message.value = '請勾選確認刪除 ✅'
-        return
-    }
-    try {
-        await axios.delete('/user/delete', {
-            data: { password: deletePassword.value },
-        })
-
-        message.value = '帳號已刪除，登出中...'
-        auth.logout()
-        router.push('/')
-    } catch (err) {
-        console.error('刪除帳號失敗', err)
-        message.value = err.response?.data?.message || '刪除帳號失敗 ❌'
-    }
-}
 </script>
 
 <style scoped>
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 .profile-view {
     padding: 2rem;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--color-primary);
     border-radius: var(--border-radius);
-    text-shadow: 0 0 6px var(--color-primary);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.profile-form {
+.page-title {
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.profile-layout {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 2rem;
 }
 
-.profile-form input,
-.profile-form textarea {
-    padding: 0.5rem;
+.profile-section,
+.password-section {
+    flex: 1;
+}
+
+.section-title {
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem;
     border: 1px solid var(--color-primary);
     border-radius: var(--border-radius);
     background-color: rgba(255, 255, 255, 0.05);
     color: var(--color-text);
 }
 
-button[type='submit'] {
-    padding: 0.5rem 1rem;
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.btn-primary {
+    padding: 0.75rem 1.5rem;
     background-color: var(--color-primary);
     border: none;
     border-radius: var(--border-radius);
@@ -218,13 +206,24 @@ button[type='submit'] {
     font-weight: bold;
 }
 
-button[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
+.message {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    text-align: center;
+    color: yellow;
 }
 
-.message {
-    margin-top: 1rem;
-    color: yellow;
+/* 響應式設計 - 在小螢幕上改為垂直排列 */
+@media screen and (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+    }
+
+    .profile-section,
+    .password-section {
+        width: 100%;
+    }
 }
 </style>

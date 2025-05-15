@@ -133,7 +133,7 @@ export default {
   methods: {
     async fetchGames() {
       try {
-        const { data } = await axios.get('http://localhost:8080/api/games/game');
+        const { data } = await axios.get('/api/games/game');
         const gameArray = Array.isArray(data) ? data : data.games || [];
 
         const mapped = await Promise.all(
@@ -143,7 +143,7 @@ export default {
 
             try {
               const { data: promo } = await axios.get(
-                `http://localhost:8080/api/promotions/status/${g.id}`
+                `/api/promotions/status/${g.id}`
               );
               if (promo.onSale) {
                 discount = Math.round(promo.discountRate * 100);
@@ -179,7 +179,7 @@ export default {
 
     async fetchRatingSummary(gameId) {
       try {
-        const { data } = await axios.get(`http://localhost:8080/api/games/${gameId}/rating-summary`);
+        const { data } = await axios.get(`/api/games/${gameId}/rating-summary`);
         this.ratingSummary = data;
       } catch (err) {
         console.error('載入評分摘要失敗：', err);
@@ -189,7 +189,7 @@ export default {
 
     async fetchPreviewImages(gameId) {
       try {
-        const { data } = await axios.get(`http://localhost:8080/api/games/${gameId}`);
+        const { data } = await axios.get(`/api/games/${gameId}`);
         this.previewImages = data.previewImages || [];
       } catch (err) {
         console.error('載入預覽圖失敗：', err);

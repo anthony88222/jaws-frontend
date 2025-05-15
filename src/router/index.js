@@ -18,6 +18,11 @@ import GamePageView from '../views/GamePageView.vue'
 import PromotionView from '../views/PromotionView.vue'
 import AllGamesView from '../views/AllGamesView.vue'
 import RegisterPage from "../views/RegisterPage.vue";
+import EditProfileView from "../views/EditProfileView.vue";
+import PrivacySettingsView from "../views/PrivacySettingsView.vue";
+import CheckoutView from "../views/CheckoutView.vue";
+import WalletView from "../views/WalletView.vue";
+
 const routes = [
   { path: "/", name: "Home", component: HomeView },
   { path: "/login", name: "LoginPage", component: LoginPage },
@@ -26,6 +31,8 @@ const routes = [
   // 需要登入的頁面
   { path: "/cart", name: "Cart", component: CartView, meta: { requiresAuth: true } },
   { path: "/profile", name: "Profile", component: ProfileView, meta: { requiresAuth: true } },
+  { path: "/profile/edit", name: "EditProfile", component: EditProfileView, meta: { requiresAuth: true } },
+  { path: "/privacy-settings", name: "PrivacySettings", component: PrivacySettingsView, meta: { requiresAuth: true } },
   { path: "/friend", name: "Friend", component: FriendView, meta: { requiresAuth: true } },
   { path: "/invite", name: "Invite", component: InviteView, meta: { requiresAuth: true } },
   { path: "/chat", name: "Chat", component: ChatView, meta: { requiresAuth: true } },
@@ -33,8 +40,8 @@ const routes = [
   { path: "/library", name: "Library", component: LibraryView, meta: { requiresAuth: true } },
   { path: "/order-history", name: "OrderHistory", component: OrderHistoryView, meta: { requiresAuth: true } },
   { path: "/order/:orderId", name: "OrderDetail", component: OrderDetailView, meta: { requiresAuth: true } },
-  { path: "/checkout", name: "Checkout", component: () => import('@/views/CheckoutView.vue'), meta: { requiresAuth: true } },
-
+  { path: "/checkout", name: "Checkout", component:CheckoutView, meta: { requiresAuth: true } },
+  {path:  "/wallet",name:"Wallet",component:WalletView,meta:{ requiresAuth: true } },
   // 其他公開頁面
   { path: "/promotion", name: "Promotion", component: PromotionView },
   { path: "/games", name: "AllGamesView", component: AllGamesView },

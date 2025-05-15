@@ -143,17 +143,17 @@ function showToast (msg) {
 /* ===== API 輔助函式 ===== */
 const fetchCategories = (gameId) =>
   axios
-    .get(`http://localhost:8080/api/games/${gameId}/categories`)
+    .get(`/api/games/${gameId}/categories`)
     .then(({ data }) => data.map((c) => c.name))
 
 const fetchPromotion = (gameId) =>
   axios
-    .get(`http://localhost:8080/api/promotions/status/${gameId}`)
+    .get(`/api/promotions/status/${gameId}`)
     .then(({ data }) => (promotionMap.value[gameId] = data))
 
 const fetchRating = (gameId) =>
   axios
-    .get(`http://localhost:8080/api/games/${gameId}/rating-summary`)
+    .get(`/api/games/${gameId}/rating-summary`)
     .then(({ data }) => (ratingMap.value[gameId] = data))
     .catch(() => (ratingMap.value[gameId] = null))
 
@@ -161,7 +161,7 @@ const fetchRating = (gameId) =>
 const fetchWishlist = async () => {
   try {
     const { data } = await axios.get(
-      `http://localhost:8080/api/wishlist/${userId.value}`
+      `/api/wishlist/${userId.value}`
     )
     wishlist.value = data
 
@@ -184,7 +184,7 @@ const fetchWishlist = async () => {
 const removeFromWishlist = async (gameId) => {
   try {
     await axios.delete(
-      `http://localhost:8080/api/wishlist/${userId.value}/remove/${gameId}`
+      `/api/wishlist/${userId.value}/remove/${gameId}`
     )
     wishlist.value = wishlist.value.filter((w) => w.gameId !== gameId)
     ;[promotionMap, tagMap, ratingMap].forEach((m) => delete m.value[gameId])
@@ -199,7 +199,7 @@ const removeFromWishlist = async (gameId) => {
 const addToCart = async (gameId) => {
   try {
     await axios.post(
-      `http://localhost:8080/api/cart/${userId.value}/add/${gameId}`
+      `/api/cart/${userId.value}/add/${gameId}`
     )
     showToast('✔ 已加入購物車！')
   } catch (err) {

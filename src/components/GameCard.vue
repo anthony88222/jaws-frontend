@@ -34,7 +34,7 @@ const promotion = ref({
 
 onMounted(async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/promotions/status/${props.game.id}`)
+    const res = await axios.get(`/api/promotions/status/${props.game.id}`)
     promotion.value = res.data
   } catch (err) {
     console.warn('促銷查詢失敗', err)
