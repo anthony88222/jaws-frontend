@@ -13,7 +13,7 @@
 
     if (orderId) {
       // 通知後端更新訂單狀態為已付款
-      fetch(`http://localhost:8080/order/confirm-payment?orderId=${orderId}`, {
+      fetch(`/order/confirm-payment?orderId=${orderId}`, {
         method: 'POST'
       })
       .then(() => {
