@@ -34,10 +34,17 @@
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
-          <div class="game-card" v-for="game in games" :key="game.coverImageUrl">
-            <img :src="game.coverImageUrl" alt="game cover" class="game-cover" />
-            <p class="game-title">{{ game.gameName }}</p>
-          </div>
+          <div
+  class="game-card"
+  v-for="game in games"
+  :key="game.coverImageUrl"
+  @click="goToGamePage(game.gameId)"
+  style="cursor: pointer"
+>
+  <img :src="game.coverImageUrl" alt="game cover" class="game-cover" />
+  <p class="game-title">{{ game.gameName }}</p>
+</div>
+
         </div>
       </div>
 
@@ -71,6 +78,10 @@ const friends = ref([])
 
 const isMyProfile = computed(() => targetUserId.value === auth.user?.id)
 const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id || 0)
+const goToGamePage = (gameId) => {
+  router.push(`/gamepage/${gameId}`)
+}
+
 
 function avatarFullUrl(path) {
   if (!path || path === 'null') return `${window.location.origin}/default-avatar2.png`;
@@ -117,6 +128,7 @@ const fetchUserGames = async () => {
     const data = await res.json()
 
     games.value = data.map(g => ({
+      gameId: g.gameId,
       coverImageUrl: g.coverImageUrl,
       gameName: g.gameName
     }))

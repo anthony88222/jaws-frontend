@@ -38,7 +38,14 @@
         <!-- 遊戲清單 -->
         <h3 class="section-title">遊戲清單:</h3>
         <div class="checkout-game-list">
-          <div class="checkout-game-row" v-for="(name, index) in order.gameNames" :key="index">
+          <div
+  class="checkout-game-row"
+  v-for="(name, index) in order.gameNames"
+  :key="index"
+  @click="goToGamePage(order.gameIds[index])"
+  style="cursor: pointer"
+>
+
             <img class="checkout-thumb" :src="order.gameImages?.[index]" :alt="name" />
             <div class="checkout-game-info">
               <h2 class="checkout-game-name">{{ name }}</h2>
@@ -65,9 +72,11 @@
         </div>
 
         <!-- 結帳按鈕（待付款才顯示） -->
+        <div class="button-container">
         <div v-if="order.status === 1" class="checkout-summary">
           <p class="checkout-total-label">訂單總金額：NT$ {{ order.total }}</p>
           <button class="btn-neon checkout-btn" @click="goToPayAgain">結帳</button>
+        </div>
         </div>
       </div>
     </div>
@@ -133,6 +142,11 @@ const goBack = () => {
 const goToPayAgain = () => {
   router.push({ path: '/checkout', query: { orderId: order.value.orderId } })
 }
+
+const goToGamePage = (gameId) => {
+  router.push(`/gamepage/${gameId}`)
+}
+
 
 onMounted(async () => {
   await fetchOrderDetail()
@@ -256,4 +270,20 @@ onMounted(async () => {
   justify-content: center;
   min-width: 100px;
 }
+
+.button-container {
+  text-align: right;
+  margin-top: 1rem; /* 或自行調整間距 */
+}
+
+
+.btn-neon {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 0.75rem 2rem;
+  text-shadow: 0 0 6px var(--color-primary);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+  }
 </style>

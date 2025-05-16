@@ -21,6 +21,7 @@
 
         <p :class="{ 'dim-text': amount <= 0 }">
           🎁 預計獲得遊戲幣：{{ bonusAmount }} 元
+          <span v-if="bonus > 0" class="gift-text">（其中 {{ bonus }} 元為贈送）</span>
         </p>
 
         <button class="btn-neon" @click="topUpEcpay">立即加值</button>
@@ -38,6 +39,12 @@ const auth = useAuthStore()
 const wallet = ref(0)
 const amount = ref(0)
 
+// ✅ 新增：計算贈送的部分（滿千送百）
+const bonus = computed(() => Math.floor(amount.value / 1000) * 100)
+
+// ✅ 修改：總遊戲幣 = 加值金額 + 贈送
+const bonusAmount = computed(() => amount.value + bonus.value)
+
 onMounted(async () => {
   try {
     const res = await axios.get(`/user/${auth.user.id}`)
@@ -45,10 +52,6 @@ onMounted(async () => {
   } catch (error) {
     wallet.value = 0
   }
-})
-
-const bonusAmount = computed(() => {
-  return amount.value + Math.floor(amount.value / 1000) * 100
 })
 
 const topUpEcpay = async () => {
@@ -66,6 +69,7 @@ const topUpEcpay = async () => {
   form.querySelector('form').submit()
 }
 </script>
+
 
 <style scoped>
 .container {
