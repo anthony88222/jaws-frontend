@@ -32,14 +32,10 @@
                   <span class="username">{{ auth.user.username }}</span>
                   <span class="dropdown-arrow">▼</span>
                 </div>
-                <img
-                  :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()"
-                  alt="Avatar"
-                  class="avatar"
-                  @click.stop="goProfile"
-                />
+                <img :src="avatarFullUrl(auth.user?.avatarUrl) + '?v=' + Date.now()" alt="Avatar" class="avatar"
+                  @click.stop="goProfile" />
               </div>
-                
+
             </div>
             <!-- 下拉選單內容 -->
             <ul class="dropdown-menu right-align" :class="{ show: showMenu }">
@@ -61,7 +57,7 @@
             <router-link to="/login">登入 / 註冊</router-link>
           </li>
         </ul>
-    </nav>
+      </nav>
     </div>
   </header>
 </template>
@@ -109,8 +105,8 @@ function toggleMenu() {
 function avatarFullUrl(path) {
   if (!path) return '/default-avatar.png';
   if (path.startsWith('http')) return path;
-  // 補上你的後端 domain
-  return `http://localhost:8080${path}`;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
 }
 
 // 點擊大頭貼跳到個人資料頁
