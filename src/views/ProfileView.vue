@@ -65,7 +65,6 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const defaultAvatarUrl = '/default-avatar2.png'
-const friendAvatar = 'logo4.png'
 const user = ref({})
 const games = ref([])
 const friends = ref([])
@@ -74,8 +73,8 @@ const isMyProfile = computed(() => targetUserId.value === auth.user?.id)
 const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id || 0)
 
 function avatarFullUrl(path) {
-  if (!path) return '/default-avatar2.png'; // 預設頭貼
-  if (path.startsWith('http')) return path;
+  if (!path || path === 'null') return `${window.location.origin}/default-avatar2.png`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `http://localhost:8080${path}`;
 }
 
@@ -139,7 +138,7 @@ const fetchFriends = async () => {
       return {
         id: otherId,
         name: f.username,
-        avatarUrl: f.avatarUrl || defaultAvatarUrl
+        avatarUrl: avatarFullUrl(f.avatarUrl) || defaultAvatarUrl
       }
     })
   } catch (err) {
@@ -174,13 +173,6 @@ onMounted(async () => {
     user.value = profile
     auth.user = profile
 
-    // 4. 取得遊戲和好友資料
-    const resGames = await axios.get('/user/me/games')
-    games.value = resGames.data.data
-
-    const resFriends = await axios.get('/user/me/friends')
-    friends.value = resFriends.data.data
-
   } catch (error) {
     console.error('載入使用者資料失敗', error)
   }
@@ -194,7 +186,7 @@ onMounted(async () => {
     },
     { immediate: true }
   )
-  console.log('目前 user.avatarUrl', user.avatarUrl)
+
 })
 
 </script>
@@ -497,5 +489,4 @@ onMounted(async () => {
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
-
 </style>
