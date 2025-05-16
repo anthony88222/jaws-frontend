@@ -143,7 +143,8 @@ const message = ref('')
 function avatarFullUrl(path) {
     if (!path) return '/default-avatar.png'   // 這裡記得換你實際預設頭貼
     if (path.startsWith('http')) return path
-    return `http://localhost:8080${path}`
+    const backendHost = window.location.hostname
+    return `http://${backendHost}:8080${path}`
 }
 
 function removeAvatar() {

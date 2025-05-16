@@ -76,7 +76,8 @@ const targetUserId = computed(() => Number(route.query.userId) || auth.user?.id 
 function avatarFullUrl(path) {
   if (!path) return '/default-avatar2.png'; // 預設頭貼
   if (path.startsWith('http')) return path;
-  return `http://localhost:8080${path}`;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
 }
 
 async function fetchUserProfile(userId) {
@@ -497,5 +498,4 @@ onMounted(async () => {
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
-
 </style>
