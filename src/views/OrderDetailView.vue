@@ -65,9 +65,11 @@
         </div>
 
         <!-- 結帳按鈕（待付款才顯示） -->
+        <div class="button-container">
         <div v-if="order.status === 1" class="checkout-summary">
           <p class="checkout-total-label">訂單總金額：NT$ {{ order.total }}</p>
           <button class="btn-neon checkout-btn" @click="goToPayAgain">結帳</button>
+        </div>
         </div>
       </div>
     </div>
@@ -256,6 +258,12 @@ onMounted(async () => {
   justify-content: center;
   min-width: 100px;
 }
+
+.button-container {
+  text-align: right;
+  margin-top: 1rem; /* 或自行調整間距 */
+}
+
 
 .btn-neon {
   background: transparent;
