@@ -29,7 +29,7 @@
               <td>{{ order.walletUsed ?? 0 }} 元</td>
             </tr>
             <tr v-if="order.status !== 1 && order.total != null">
-              <th>刷卡付款</th>
+              <th>綠界付款</th>
               <td>{{ order.total - (order.walletUsed ?? 0) }} 元</td>
             </tr>
           </tbody>
