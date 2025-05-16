@@ -81,7 +81,8 @@ const goToGamePage = (gameId) => {
 function avatarFullUrl(path) {
   if (!path || path === 'null') return `${window.location.origin}/default-avatar2.png`;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `http://localhost:8080${path}`;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
 }
 
 async function fetchUserProfile(userId) {
