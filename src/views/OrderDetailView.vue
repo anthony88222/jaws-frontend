@@ -29,7 +29,7 @@
               <td>{{ order.walletUsed ?? 0 }} 元</td>
             </tr>
             <tr v-if="order.status !== 1 && order.total != null">
-              <th>綠界付款</th>
+              <th>刷卡付款</th>
               <td>{{ order.total - (order.walletUsed ?? 0) }} 元</td>
             </tr>
           </tbody>
@@ -38,7 +38,14 @@
         <!-- 遊戲清單 -->
         <h3 class="section-title">遊戲清單:</h3>
         <div class="checkout-game-list">
-          <div class="checkout-game-row" v-for="(name, index) in order.gameNames" :key="index">
+          <div
+  class="checkout-game-row"
+  v-for="(name, index) in order.gameNames"
+  :key="index"
+  @click="goToGamePage(order.gameIds[index])"
+  style="cursor: pointer"
+>
+
             <img class="checkout-thumb" :src="order.gameImages?.[index]" :alt="name" />
             <div class="checkout-game-info">
               <h2 class="checkout-game-name">{{ name }}</h2>
@@ -135,6 +142,11 @@ const goBack = () => {
 const goToPayAgain = () => {
   router.push({ path: '/checkout', query: { orderId: order.value.orderId } })
 }
+
+const goToGamePage = (gameId) => {
+  router.push(`/gamepage/${gameId}`)
+}
+
 
 onMounted(async () => {
   await fetchOrderDetail()

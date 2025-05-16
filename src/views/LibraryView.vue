@@ -46,9 +46,11 @@
       <div class="game-grid">
         <template v-if="filteredLibraries.length > 0">
           <div v-for="game in sortedLibraries"
-            :key="game.id"
-            class="game-card"
-          >
+     :key="game.id"
+     class="game-card"
+     @click="goToGamePage(game.gameId)"
+     style="cursor: pointer">
+
             <img
               :src="game.coverImageUrl || '/placeholder.png'"
               @error="handleImageError"
@@ -86,6 +88,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
 
 const libraries = ref([])
 const keyword = ref('')
@@ -93,6 +96,7 @@ const sortBy = ref('purchaseDate_desc')
 const selectedCategory = ref('')
 const authStore = useAuthStore()
 const userId = computed(() => authStore.user?.id)
+const router = useRouter()
 
 const categoryList = [
   "角色扮演",
@@ -106,6 +110,10 @@ const categoryList = [
   "MOBA",
   "冒險"
 ]
+
+const goToGamePage = (gameId) => {
+  router.push(`/gamepage/${gameId}`)
+}
 
 // ✅ 分類點擊事件
 const filterByCategory = (category) => {
