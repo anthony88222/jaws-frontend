@@ -30,7 +30,7 @@
       <router-link to="/wishlist" class="btn-neon-sm">願望清單</router-link>
     </div>
 
-    <div class="profile-columns">
+    <div class="profile-layout">
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
@@ -340,7 +340,7 @@ onMounted(async () => {
   box-shadow: 0 0 12px var(--color-primary);
 }
 
-.profile-columns {
+.profile-layout {
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
@@ -397,7 +397,9 @@ onMounted(async () => {
 
 /* 以下anthony */
 .profile-section {
-  flex: 1 1 48%;
+  /* flex: 1 1 48%; */
+  flex: 1;
+  min-width: 300px;
 }
 
 .section-title {
