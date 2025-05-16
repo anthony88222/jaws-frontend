@@ -244,6 +244,7 @@ const formatDate = (dateStr) => {
   padding: 2rem 1rem;
 }
 
+
 .top-bar {
   display: flex;
   flex-wrap: wrap;

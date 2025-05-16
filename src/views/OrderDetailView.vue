@@ -256,4 +256,14 @@ onMounted(async () => {
   justify-content: center;
   min-width: 100px;
 }
+
+.btn-neon {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 0.75rem 2rem;
+  text-shadow: 0 0 6px var(--color-primary);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+  }
 </style>

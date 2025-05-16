@@ -174,12 +174,8 @@ onMounted(async () => {
     user.value = profile
     auth.user = profile
 
-    // 4. 取得遊戲和好友資料
-    const resGames = await axios.get('/user/me/games')
-    games.value = resGames.data.data
+  
 
-    const resFriends = await axios.get('/user/me/friends')
-    friends.value = resFriends.data.data
 
   } catch (error) {
     console.error('載入使用者資料失敗', error)
