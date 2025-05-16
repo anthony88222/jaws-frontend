@@ -34,16 +34,11 @@
       <div class="profile-section">
         <h3 class="section-title">擁有的遊戲</h3>
         <div class="games-grid">
-          <div
-  class="game-card"
-  v-for="game in games"
-  :key="game.coverImageUrl"
-  @click="goToGamePage(game.gameId)"
-  style="cursor: pointer"
->
-  <img :src="game.coverImageUrl" alt="game cover" class="game-cover" />
-  <p class="game-title">{{ game.gameName }}</p>
-</div>
+          <div class="game-card" v-for="game in games" :key="game.coverImageUrl" @click="goToGamePage(game.gameId)"
+            style="cursor: pointer">
+            <img :src="game.coverImageUrl" alt="game cover" class="game-cover" />
+            <p class="game-title">{{ game.gameName }}</p>
+          </div>
 
         </div>
       </div>
