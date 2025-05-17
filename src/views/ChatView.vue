@@ -41,7 +41,7 @@
 
         <div class="chat-messages" ref="messageList">
           <div v-for="msg in messages" :key="msg.id" class="message-wrapper" :class="msg.from">
-            <img v-if="msg.from === 'them'" :src="msg.avatar" class="avatar" />
+            <img v-if="msg.from === 'them'" :src="avatarFullUrl(msg.avatar)" class="avatar" />
             <div :class="['bubble', msg.from === 'me' ? 'me' : 'them']">
               {{ msg.text }}
             </div>
@@ -105,6 +105,13 @@ function selectChat(chat) {
   })
 }
 
+function avatarFullUrl(path) {
+  if (!path || path === 'null') return `${window.location.origin}${DEFAULT_AVATAR}`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
+}
+
 const currentChatUsername = computed(() => {
   const chat = recentChats.value.find(c => c.friendId === receiverId)
   return chat?.username || '好友聊天'
@@ -116,7 +123,7 @@ const getHistory = async () => {
   messages.value = history.map(m => ({
     id: Date.now() + Math.random(),
     from: m.senderId == senderId ? 'me' : 'them',
-    avatar: m.senderId == senderId ? null : (m.avatar || DEFAULT_AVATAR),
+    avatar: m.senderId == senderId ? null : m.avatar,
     text: m.message,
     time: formatTime(m.sendAt)
   }))
@@ -141,7 +148,7 @@ const connect = () => {
       messages.value.push({
         id: Date.now(),
         from: payload.senderId == senderId ? 'me' : 'them',
-        avatar: payload.senderId == senderId ? null : DEFAULT_AVATAR,
+        avatar: payload.senderId == senderId,
         text: payload.message,
         time: formatTime(payload.sendAt)
       })

@@ -202,16 +202,8 @@ onMounted(async () => {
 <style scoped>
 .profile-container {
   max-width: 1000px;
-  min-height: 70vh;
-  display: grid;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   margin: 2rem auto;
-
-  /* padding: 2rem; */
-  padding: 2rem 1rem;
-
+  padding: 2rem;
   background: #1a1a2a;
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius);
@@ -259,9 +251,9 @@ onMounted(async () => {
 
 .level-bar span {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-secondary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.2rem;
 }
 
 .exp-bar {
@@ -461,8 +453,14 @@ onMounted(async () => {
 }
 
 .friend-name {
-  color: var(--color-text);
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 1rem;
+  color: var(--color-text);
 }
 
 /* jacky */
@@ -497,4 +495,5 @@ onMounted(async () => {
   font-size: 0.9rem;
   text-shadow: 0 0 4px var(--color-text);
 }
+
 </style>

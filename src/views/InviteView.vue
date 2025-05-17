@@ -33,7 +33,7 @@
                     <div class="invite-list" :style="{ maxHeight: sentHeight }">
                         <div class="invite-item" v-for="invite in sentInvites" :key="invite.username">
                             <div class="invite-card">
-                                <img class="avatar" :src="invite.avatar" />
+                                <img class="avatar" :src="avatarFullUrl(invite.avatar)" />
                                 <div class="info-row">
                                     <div class="name">{{ invite.username }}</div>
                                     <div class="date">{{ invite.time }}</div>
@@ -50,7 +50,7 @@
                     <div class="invite-list" :style="{ maxHeight: receivedHeight }">
                         <div class="invite-item" v-for="invite in receivedInvites" :key="invite.username">
                             <div class="invite-card">
-                                <img class="avatar" :src="invite.avatar" />
+                                <img class="avatar" :src="avatarFullUrl(invite.avatar)" />
                                 <div class="info-row">
                                     <div class="name">{{ invite.username }}</div>
                                     <div class="date">{{ invite.time }}</div>
@@ -127,6 +127,13 @@ function navigateTo(path) {
     router.push(path)
 }
 
+function avatarFullUrl(path) {
+  if (!path || path === 'null') return `${window.location.origin}${DEFAULT_AVATAR}`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
+}
+
 async function sendInvite() {
   const friendUsername = inviteUsername.value.trim()
   if (!friendUsername) {
@@ -171,7 +178,7 @@ const fetchInvites = async () => {
             userId: invite.userId,
             friendId: invite.friendId,
             username: invite.username,
-            avatar: invite.avatarUrl || DEFAULT_AVATAR,
+            avatar: invite.avatarUrl,
             time: formatTime(invite.createdAt)
         }
 

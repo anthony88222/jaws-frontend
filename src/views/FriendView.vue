@@ -30,7 +30,7 @@
             <button class="delete-btn" @click="confirmRemove(friend)">✕</button>
             <div class="friend-content">
               <button class="avatar-btn" @click="onAvatarClick(friend)">
-                <img class="avatar" :src="friend.avatar" alt="Avatar" />
+                <img class="avatar" :src="avatarFullUrl(friend.avatar)" alt="Avatar" />
               </button>
               <div class="friend-name center">{{ friend.name }}</div>
               <button class="message-btn" @click="selectChat(friend.id)">
@@ -69,6 +69,13 @@ function navigateTo(path) {
   router.push(path)
 }
 
+function avatarFullUrl(path) {
+  if (!path || path === 'null') return `${window.location.origin}${DEFAULT_AVATAR}`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const backendHost = window.location.hostname
+  return `http://${backendHost}:8080${path}`
+}
+
 const fetchFriends = async () => {
   try {
     const res = await fetch(`/api/friend/getFriends?userId=${userId.value}`)
@@ -83,7 +90,7 @@ const fetchFriends = async () => {
         userId: f.userId,
         friendId: f.friendId,
         name: f.username,
-        avatar: f.avatarUrl || DEFAULT_AVATAR,
+        avatar: f.avatarUrl,
         time: formatTime(f.updatedAt)
       }
     })
