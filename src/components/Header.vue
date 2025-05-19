@@ -103,7 +103,7 @@ function toggleMenu() {
 }
 
 function avatarFullUrl(path) {
-  if (!path) return '/default-avatar.png';
+  if (!path) return '/default-avatar2.png';
   if (path.startsWith('http')) return path;
   const backendHost = window.location.hostname
   return `http://${backendHost}:8080${path}`
