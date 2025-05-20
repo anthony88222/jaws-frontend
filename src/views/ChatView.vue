@@ -148,7 +148,7 @@ const connect = () => {
       messages.value.push({
         id: Date.now(),
         from: payload.senderId == senderId ? 'me' : 'them',
-        avatar: payload.senderId == senderId,
+        avatar: payload.senderId == senderId ? null : payload.avatar,
         text: payload.message,
         time: formatTime(payload.sendAt)
       })
